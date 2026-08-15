@@ -1,12 +1,6 @@
 import Stripe from 'stripe';
 
-function getStripeClient(): Stripe {
-  const secretKey = process.env.STRIPE_SECRET_KEY;
-
-  if (!secretKey) {
-    throw new Error('STRIPE_SECRET_KEY is not configured');
-  }
-
+function createStripeClient(secretKey: string): Stripe {
   return new Stripe(secretKey, {
     apiVersion: '2026-07-29.dahlia',
     typescript: true,
@@ -18,6 +12,10 @@ export interface CreateStripeCheckoutSessionInput {
   feeId: string;
   memberId: string;
   amount: number;
+  /** Club slug carried in session metadata for webhook club resolution. */
+  clubSlug: string;
+  /** Per-club secret key resolved from the club's SiteConfig. */
+  secretKey: string;
   successUrl: string;
   cancelUrl: string;
 }
@@ -25,7 +23,7 @@ export interface CreateStripeCheckoutSessionInput {
 export async function createStripeCheckoutSession(
   input: CreateStripeCheckoutSessionInput
 ): Promise<{ sessionId: string; url: string | null }> {
-  const stripe = getStripeClient();
+  const stripe = createStripeClient(input.secretKey);
 
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
@@ -48,6 +46,7 @@ export async function createStripeCheckoutSession(
       feeId: input.feeId,
       memberId: input.memberId,
       paymentId: input.paymentId,
+      clubSlug: input.clubSlug,
     },
     success_url: input.successUrl,
     cancel_url: input.cancelUrl,
@@ -56,20 +55,26 @@ export async function createStripeCheckoutSession(
   return { sessionId: session.id, url: session.url };
 }
 
+/**
+ * Verifies a Stripe webhook signature against the club's webhook secret.
+ * The secret must be passed explicitly (resolved per club BEFORE parsing the
+ * payload, because constructEvent needs the secret to decrypt the signature).
+ */
 export async function verifyStripeWebhook(
   payload: string | Buffer,
-  signature: string | null
+  signature: string | null,
+  webhookSecret: string
 ): Promise<Stripe.Event> {
-  const stripe = getStripeClient();
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-  if (!webhookSecret) {
-    throw new Error('STRIPE_WEBHOOK_SECRET is not configured');
-  }
-
   if (!signature) {
     throw new Error('Missing Stripe signature header');
   }
 
+  if (!webhookSecret) {
+    throw new Error('Stripe webhook secret is not configured');
+  }
+
+  // constructEvent only consumes the explicit `webhookSecret` argument; the
+  // client instance is a container for the Webhooks namespace.
+  const stripe = createStripeClient(webhookSecret);
   return stripe.webhooks.constructEvent(payload, signature, webhookSecret);
 }
