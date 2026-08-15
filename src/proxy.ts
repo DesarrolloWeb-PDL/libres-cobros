@@ -6,7 +6,9 @@ export default withAuth({
   },
   callbacks: {
     authorized({ token }) {
-      return token?.role === 'ADMIN';
+      return (
+        token?.role === 'ADMIN' || token?.role === 'SUPER_ADMIN'
+      );
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
