@@ -3,19 +3,20 @@ import { cookies } from 'next/headers';
 /**
  * Server-side fetch to the app's own API routes.
  *
- * Server Components that fetch their own /api routes must forward the
- * session cookie, otherwise getServerSession inside the route returns
- * null and the request is rejected with 401. Relative paths are resolved
- * by Next.js against the current request host, so no absolute URL is
- * needed and the previous `NEXT_PUBLIC_URL ?? localhost` fallback is gone.
+ * Two requirements must hold at the same time:
+ * - The fetch needs an ABSOLUTE URL: the Vercel runtime rejects relative
+ *   paths with "Failed to parse URL" (ERR_INVALID_URL).
+ * - It must forward the request cookies, otherwise getServerSession
+ *   inside the route returns null and the request is rejected with 401.
  */
 export async function adminFetch(
   path: string,
   errorMessage?: string
 ): Promise<Response> {
   const cookieStore = await cookies();
+  const origin = process.env.NEXT_PUBLIC_URL ?? 'http://localhost:3000';
 
-  const response = await fetch(path, {
+  const response = await fetch(`${origin}${path}`, {
     cache: 'no-store',
     headers: {
       cookie: cookieStore.toString(),
@@ -28,3 +29,4 @@ export async function adminFetch(
 
   return response;
 }
+
