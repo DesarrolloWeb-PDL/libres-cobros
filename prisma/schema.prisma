@@ -6,12 +6,59 @@ datasource db {
   provider = "postgresql"
 }
 
+enum ClubCommissionType {
+  PERCENTAGE
+  FIXED
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+}
+
+model Club {
+  id              String              @id @default(cuid())
+  name            String
+  slug            String              @unique
+  commissionType  ClubCommissionType  @default(PERCENTAGE)
+  commissionValue Float               @default(0)
+  status          String              @default("ACTIVE")
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  members         Member[]
+  feeConfigs      FeeConfig[]
+  fees            Fee[]
+  payments        Payment[]
+  commissions     Commission[]
+  closings        MonthlyClosing[]
+  whatsappLogs    WhatsAppLog[]
+  siteConfigs     SiteConfig[]
+  adminUsers      AdminUser[]
+  invoices        ProviderInvoice[]
+}
+
+model ProviderInvoice {
+  id        String   @id @default(cuid())
+  clubId    String
+  month     Int
+  year      Int
+  amount    Float
+  status    String   @default("ISSUED") // ISSUED | PAID
+  issuedAt  DateTime @default(now())
+  paidAt    DateTime?
+  club      Club     @relation(fields: [clubId], references: [id])
+
+  @@unique([clubId, month, year])
+  @@index([status])
+}
+
 model Member {
   id        String   @id @default(cuid())
-  dni       String   @unique
+  clubId    String
+  dni       String
   firstName String
   lastName  String
-  email     String?  @unique
+  email     String?
   phone     String?
   category  String   @default("ADULT")
   status    String   @default("ACTIVE")
@@ -19,30 +66,39 @@ model Member {
   notes     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  club      Club     @relation(fields: [clubId], references: [id])
   fees      Fee[]
   payments  Payment[]
   whatsappLogs WhatsAppLog[]
 
+  @@unique([clubId, dni])
+  @@unique([clubId, email])
   @@index([dni])
   @@index([status])
   @@index([category])
+  @@index([clubId])
 }
 
 model FeeConfig {
   id          String  @id @default(cuid())
-  category    String  @unique
+  clubId      String
+  category    String
   amount      Float
   description String?
   isActive    Boolean @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  club        Club    @relation(fields: [clubId], references: [id])
   fees        Fee[]
 
+  @@unique([clubId, category])
   @@index([category])
+  @@index([clubId])
 }
 
 model Fee {
   id          String   @id @default(cuid())
+  clubId      String
   memberId    String
   feeConfigId String
   month       Int
@@ -52,6 +108,7 @@ model Fee {
   status      String   @default("PENDING")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  club        Club     @relation(fields: [clubId], references: [id])
   member      Member   @relation(fields: [memberId], references: [id])
   feeConfig   FeeConfig @relation(fields: [feeConfigId], references: [id])
   payments    Payment[]
@@ -61,10 +118,12 @@ model Fee {
   @@index([status])
   @@index([dueDate])
   @@index([memberId])
+  @@index([clubId, month, year])
 }
 
 model Payment {
   id                      String   @id @default(cuid())
+  clubId                  String
   feeId                   String
   memberId                String
   amount                  Float
@@ -78,6 +137,7 @@ model Payment {
   confirmedAt             DateTime?
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
+  club                    Club     @relation(fields: [clubId], references: [id])
   fee                     Fee      @relation(fields: [feeId], references: [id])
   member                  Member   @relation(fields: [memberId], references: [id])
   commissions             Commission[]
@@ -87,26 +147,31 @@ model Payment {
   @@index([status])
   @@index([stripePaymentId])
   @@index([mercadopagoPaymentId])
+  @@index([clubId])
 }
 
 model Commission {
   id        String   @id @default(cuid())
+  clubId    String
   paymentId String
   feeId     String
   amount    Float
   rate      Float
   periodId  String?
   createdAt DateTime @default(now())
+  club      Club     @relation(fields: [clubId], references: [id])
   payment   Payment  @relation(fields: [paymentId], references: [id])
   fee       Fee      @relation(fields: [feeId], references: [id])
   period    MonthlyClosing? @relation(fields: [periodId], references: [id])
 
   @@index([periodId])
   @@index([createdAt])
+  @@index([clubId])
 }
 
 model MonthlyClosing {
   id               String   @id @default(cuid())
+  clubId           String
   month            Int
   year             Int
   status           String   @default("OPEN")
@@ -116,14 +181,17 @@ model MonthlyClosing {
   closedAt         DateTime?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+  club             Club     @relation(fields: [clubId], references: [id])
   commissions      Commission[]
 
-  @@unique([month, year])
+  @@unique([clubId, month, year])
   @@index([status])
+  @@index([clubId])
 }
 
 model WhatsAppLog {
   id         String   @id @default(cuid())
+  clubId     String
   memberId   String
   type       String
   message    String
@@ -131,18 +199,25 @@ model WhatsAppLog {
   externalId String?
   error      String?
   sentAt     DateTime @default(now())
+  club       Club     @relation(fields: [clubId], references: [id])
   member     Member   @relation(fields: [memberId], references: [id])
 
   @@index([memberId])
   @@index([sentAt])
   @@index([type])
+  @@index([clubId])
 }
 
 model SiteConfig {
   id        String   @id @default(cuid())
-  key       String   @unique
+  clubId    String
+  key       String
   value     String
   updatedAt DateTime @updatedAt
+  club      Club     @relation(fields: [clubId], references: [id])
+
+  @@unique([clubId, key])
+  @@index([clubId])
 }
 
 model AdminUser {
@@ -150,7 +225,9 @@ model AdminUser {
   email        String   @unique
   name         String
   passwordHash String
-  role         String   @default("ADMIN")
+  role         AdminRole @default(ADMIN)
+  clubId       String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  club         Club?    @relation(fields: [clubId], references: [id])
 }
