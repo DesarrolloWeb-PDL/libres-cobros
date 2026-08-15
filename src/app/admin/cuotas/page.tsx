@@ -3,19 +3,16 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
 import { authOptions } from '@/lib/auth';
+import { adminFetch } from '@/lib/admin-fetch';
 import { FeeList } from '@/components/admin/FeeList';
 import { Button } from '@/components/ui/button';
 import type { FeeListResponse } from '@/types/fee';
 
 async function getInitialFees(): Promise<FeeListResponse> {
-  const origin = process.env.NEXT_PUBLIC_URL ?? 'http://localhost:3000';
-  const response = await fetch(`${origin}/api/admin/fees?page=1&limit=20`, {
-    cache: 'no-store',
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to load fees');
-  }
+  const response = await adminFetch(
+    '/api/admin/fees?page=1&limit=20',
+    'Failed to load fees'
+  );
 
   return response.json();
 }

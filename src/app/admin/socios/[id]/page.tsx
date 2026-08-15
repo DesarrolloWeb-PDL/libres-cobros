@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth';
 import { redirect, notFound } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
+import { adminFetch } from '@/lib/admin-fetch';
 import { EditMemberClient } from './EditMemberClient';
 
 interface EditMemberPageProps {
@@ -8,10 +9,7 @@ interface EditMemberPageProps {
 }
 
 async function getMember(id: string) {
-  const origin = process.env.NEXT_PUBLIC_URL ?? 'http://localhost:3000';
-  const response = await fetch(`${origin}/api/admin/members/${id}`, {
-    cache: 'no-store',
-  });
+  const response = await adminFetch(`/api/admin/members/${id}`);
 
   if (!response.ok) {
     return null;

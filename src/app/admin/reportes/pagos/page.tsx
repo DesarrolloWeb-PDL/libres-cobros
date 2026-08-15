@@ -1,27 +1,21 @@
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
+import { adminFetch } from '@/lib/admin-fetch';
 import { PaymentReport } from '@/components/admin/PaymentReport';
 import type { PaymentReportResponse } from '@/types/report';
 
 export const dynamic = 'force-dynamic';
 
 async function getInitialPayments(): Promise<PaymentReportResponse> {
-  const origin = process.env.NEXT_PUBLIC_URL ?? 'http://localhost:3000';
   const now = new Date();
   const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
   const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-  const response = await fetch(
-    `${origin}/api/admin/reports/payments?page=1&limit=20&from=${firstDay.toISOString()}&to=${lastDay.toISOString()}`,
-    {
-      cache: 'no-store',
-    }
+  const response = await adminFetch(
+    `/api/admin/reports/payments?page=1&limit=20&from=${firstDay.toISOString()}&to=${lastDay.toISOString()}`,
+    'Failed to load payment report'
   );
-
-  if (!response.ok) {
-    throw new Error('Failed to load payment report');
-  }
 
   return response.json();
 }

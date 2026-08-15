@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { authOptions } from '@/lib/auth';
+import { adminFetch } from '@/lib/admin-fetch';
 import { CommissionReport } from '@/components/admin/CommissionReport';
 import { Button } from '@/components/ui/button';
 import { Lock } from 'lucide-react';
@@ -10,21 +11,14 @@ import type { CommissionListResponse } from '@/types/commission';
 export const dynamic = 'force-dynamic';
 
 async function getInitialCommissions(): Promise<CommissionListResponse> {
-  const origin = process.env.NEXT_PUBLIC_URL ?? 'http://localhost:3000';
   const now = new Date();
   const month = now.getMonth() + 1;
   const year = now.getFullYear();
 
-  const response = await fetch(
-    `${origin}/api/admin/reports/commissions?page=1&limit=20&month=${month}&year=${year}`,
-    {
-      cache: 'no-store',
-    }
+  const response = await adminFetch(
+    `/api/admin/reports/commissions?page=1&limit=20&month=${month}&year=${year}`,
+    'Failed to load commissions'
   );
-
-  if (!response.ok) {
-    throw new Error('Failed to load commissions');
-  }
 
   return response.json();
 }

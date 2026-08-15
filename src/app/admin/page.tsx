@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
+import { adminFetch } from '@/lib/admin-fetch';
 import { StatsCards } from '@/components/admin/StatsCards';
 
 interface DashboardData {
@@ -12,14 +13,10 @@ interface DashboardData {
 }
 
 async function getDashboardData(): Promise<DashboardData> {
-  const origin = process.env.NEXT_PUBLIC_URL ?? 'http://localhost:3000';
-  const response = await fetch(`${origin}/api/admin/dashboard`, {
-    cache: 'no-store',
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to load dashboard metrics');
-  }
+  const response = await adminFetch(
+    '/api/admin/dashboard',
+    'Failed to load dashboard metrics'
+  );
 
   return response.json();
 }

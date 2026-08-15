@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
+import { adminFetch } from '@/lib/admin-fetch';
 import { ConfigurationForm } from '@/components/admin/ConfigurationForm';
 import type { FeeConfigListResponse } from '@/types/fee';
 import type { SiteConfigListResponse } from '@/types/config';
@@ -11,20 +12,10 @@ async function getInitialData(): Promise<{
   feeConfigs: FeeConfigListResponse;
   siteConfigs: SiteConfigListResponse;
 }> {
-  const origin = process.env.NEXT_PUBLIC_URL ?? 'http://localhost:3000';
-
   const [feeResponse, siteResponse] = await Promise.all([
-    fetch(`${origin}/api/admin/fee-configs`, { cache: 'no-store' }),
-    fetch(`${origin}/api/admin/site-config`, { cache: 'no-store' }),
+    adminFetch('/api/admin/fee-configs', 'Failed to load fee configs'),
+    adminFetch('/api/admin/site-config', 'Failed to load site configs'),
   ]);
-
-  if (!feeResponse.ok) {
-    throw new Error('Failed to load fee configs');
-  }
-
-  if (!siteResponse.ok) {
-    throw new Error('Failed to load site configs');
-  }
 
   return {
     feeConfigs: await feeResponse.json(),

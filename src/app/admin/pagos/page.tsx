@@ -1,18 +1,15 @@
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
+import { adminFetch } from '@/lib/admin-fetch';
 import { PaymentList } from '@/components/admin/PaymentList';
 import type { PaymentListResponse } from '@/types/payment';
 
 async function getInitialPayments(): Promise<PaymentListResponse> {
-  const origin = process.env.NEXT_PUBLIC_URL ?? 'http://localhost:3000';
-  const response = await fetch(`${origin}/api/admin/payments?page=1&limit=20`, {
-    cache: 'no-store',
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to load payments');
-  }
+  const response = await adminFetch(
+    '/api/admin/payments?page=1&limit=20',
+    'Failed to load payments'
+  );
 
   return response.json();
 }

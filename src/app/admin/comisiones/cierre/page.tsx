@@ -1,23 +1,17 @@
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
+import { adminFetch } from '@/lib/admin-fetch';
 import { MonthlyClosingForm } from '@/components/admin/MonthlyClosingForm';
 import type { CommissionListResponse, MonthlyClosingListResponse } from '@/types/commission';
 
 export const dynamic = 'force-dynamic';
 
-function buildOrigin(): string {
-  return process.env.NEXT_PUBLIC_URL ?? 'http://localhost:3000';
-}
-
 async function getClosings(): Promise<MonthlyClosingListResponse> {
-  const response = await fetch(`${buildOrigin()}/api/admin/closings`, {
-    cache: 'no-store',
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to load closings');
-  }
+  const response = await adminFetch(
+    '/api/admin/closings',
+    'Failed to load closings'
+  );
 
   return response.json();
 }
@@ -27,16 +21,10 @@ async function getInitialPreview(): Promise<CommissionListResponse> {
   const month = now.getMonth() + 1;
   const year = now.getFullYear();
 
-  const response = await fetch(
-    `${buildOrigin()}/api/admin/reports/commissions?month=${month}&year=${year}&unassigned=true&limit=1000`,
-    {
-      cache: 'no-store',
-    }
+  const response = await adminFetch(
+    `/api/admin/reports/commissions?month=${month}&year=${year}&unassigned=true&limit=1000`,
+    'Failed to load preview'
   );
-
-  if (!response.ok) {
-    throw new Error('Failed to load preview');
-  }
 
   return response.json();
 }

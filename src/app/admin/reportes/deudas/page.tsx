@@ -1,27 +1,21 @@
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
+import { adminFetch } from '@/lib/admin-fetch';
 import { DebtReport } from '@/components/admin/DebtReport';
 import type { DebtReportResponse } from '@/types/report';
 
 export const dynamic = 'force-dynamic';
 
 async function getInitialDebts(): Promise<DebtReportResponse> {
-  const origin = process.env.NEXT_PUBLIC_URL ?? 'http://localhost:3000';
   const now = new Date();
   const month = now.getMonth() + 1;
   const year = now.getFullYear();
 
-  const response = await fetch(
-    `${origin}/api/admin/reports/debts?page=1&limit=20&month=${month}&year=${year}`,
-    {
-      cache: 'no-store',
-    }
+  const response = await adminFetch(
+    `/api/admin/reports/debts?page=1&limit=20&month=${month}&year=${year}`,
+    'Failed to load debt report'
   );
-
-  if (!response.ok) {
-    throw new Error('Failed to load debt report');
-  }
 
   return response.json();
 }
