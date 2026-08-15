@@ -2,6 +2,7 @@ import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { compare } from 'bcryptjs';
 import { prisma } from '@/lib/db';
+import type { ScopedRole } from '@/lib/access';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -35,6 +36,7 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           role: user.role,
+          clubId: user.clubId,
         };
       },
     }),
@@ -48,13 +50,15 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.role = user.role;
+        token.clubId = user.clubId ?? null;
       }
       return token;
     },
     async session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.id as string;
-        session.user.role = (token.role as string) ?? 'ADMIN';
+        session.user.role = (token.role as ScopedRole) ?? 'ADMIN';
+        session.user.clubId = (token.clubId as string | null) ?? null;
       }
       return session;
     },
