@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/overdue",
+      "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/fees",
+      "schedule": "0 6 1 * *"
+    }
+  ]
+}

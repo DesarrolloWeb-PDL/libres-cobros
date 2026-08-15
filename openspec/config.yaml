@@ -6,6 +6,27 @@ context: |
   Project type: Greenfield club fee management system (libres-cobros).
   Architecture: Fee-First (pre-generate monthly fees, then attach payments).
 
+testing:
+  strict_tdd: false
+  detected: 2026-08-13
+  test_runner:
+    command: ""
+    framework: None
+  test_layers:
+    unit: false
+    integration: false
+    e2e: false
+  coverage:
+    available: false
+    command: ""
+  quality_tools:
+    linter: true
+    linter_command: "npm run lint"
+    type_checker: true
+    type_checker_command: "npx tsc --noEmit"
+    formatter: false
+    formatter_command: ""
+
 rules:
   proposal:
     - Include rollback plan for risky changes

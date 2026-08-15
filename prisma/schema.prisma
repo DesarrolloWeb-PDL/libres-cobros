@@ -1,0 +1,156 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Member {
+  id        String   @id @default(cuid())
+  dni       String   @unique
+  firstName String
+  lastName  String
+  email     String?  @unique
+  phone     String?
+  category  String   @default("ADULT")
+  status    String   @default("ACTIVE")
+  joinDate  DateTime @default(now())
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  fees      Fee[]
+  payments  Payment[]
+  whatsappLogs WhatsAppLog[]
+
+  @@index([dni])
+  @@index([status])
+  @@index([category])
+}
+
+model FeeConfig {
+  id          String  @id @default(cuid())
+  category    String  @unique
+  amount      Float
+  description String?
+  isActive    Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  fees        Fee[]
+
+  @@index([category])
+}
+
+model Fee {
+  id          String   @id @default(cuid())
+  memberId    String
+  feeConfigId String
+  month       Int
+  year        Int
+  amount      Float
+  dueDate     DateTime
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  member      Member   @relation(fields: [memberId], references: [id])
+  feeConfig   FeeConfig @relation(fields: [feeConfigId], references: [id])
+  payments    Payment[]
+  commissions Commission[]
+
+  @@unique([memberId, month, year])
+  @@index([status])
+  @@index([dueDate])
+  @@index([memberId])
+}
+
+model Payment {
+  id                      String   @id @default(cuid())
+  feeId                   String
+  memberId                String
+  amount                  Float
+  method                  String
+  status                  String   @default("PENDING")
+  stripeSessionId         String?
+  stripePaymentId         String?
+  mercadopagoPaymentId    String?
+  mercadopagoPreferenceId String?
+  bankTransferRef         String?
+  confirmedAt             DateTime?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  fee                     Fee      @relation(fields: [feeId], references: [id])
+  member                  Member   @relation(fields: [memberId], references: [id])
+  commissions             Commission[]
+
+  @@index([feeId])
+  @@index([memberId])
+  @@index([status])
+  @@index([stripePaymentId])
+  @@index([mercadopagoPaymentId])
+}
+
+model Commission {
+  id        String   @id @default(cuid())
+  paymentId String
+  feeId     String
+  amount    Float
+  rate      Float
+  periodId  String?
+  createdAt DateTime @default(now())
+  payment   Payment  @relation(fields: [paymentId], references: [id])
+  fee       Fee      @relation(fields: [feeId], references: [id])
+  period    MonthlyClosing? @relation(fields: [periodId], references: [id])
+
+  @@index([periodId])
+  @@index([createdAt])
+}
+
+model MonthlyClosing {
+  id               String   @id @default(cuid())
+  month            Int
+  year             Int
+  status           String   @default("OPEN")
+  totalPayments    Float    @default(0)
+  totalCommissions Float    @default(0)
+  commissionRate   Float
+  closedAt         DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  commissions      Commission[]
+
+  @@unique([month, year])
+  @@index([status])
+}
+
+model WhatsAppLog {
+  id         String   @id @default(cuid())
+  memberId   String
+  type       String
+  message    String
+  status     String
+  externalId String?
+  error      String?
+  sentAt     DateTime @default(now())
+  member     Member   @relation(fields: [memberId], references: [id])
+
+  @@index([memberId])
+  @@index([sentAt])
+  @@index([type])
+}
+
+model SiteConfig {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         String   @default("ADMIN")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
