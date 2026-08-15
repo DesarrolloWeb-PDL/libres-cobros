@@ -1,7 +1,16 @@
 import { NextRequest } from 'next/server';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
+import { prisma } from '@/lib/db';
 import { generateMonthlyFees } from '@/lib/fees';
 import { GenerateFeesSchema } from '@/types/fee';
+
+interface ClubFeeGenerationReport {
+  clubId: string;
+  clubSlug: string;
+  clubName: string;
+  created: number;
+  skipped: number;
+}
 
 function authorizeCron(request: NextRequest): boolean {
   const cronSecret = request.headers.get('x-cron-secret');
@@ -13,6 +22,37 @@ function getCurrentPeriod(): { month: number; year: number } {
   return { month: now.getUTCMonth() + 1, year: now.getUTCFullYear() };
 }
 
+/**
+ * Iterates ACTIVE clubs and generates monthly fees per club using each club's
+ * own FeeConfigs. Per-club generation is idempotent, so re-runs report zero
+ * new fees for clubs that already generated the period.
+ */
+async function generateFeesForAllClubs(month: number, year: number) {
+  const clubs = await prisma.club.findMany({
+    where: { status: 'ACTIVE' },
+    select: { id: true, slug: true, name: true },
+    orderBy: { name: 'asc' },
+  });
+
+  const clubsResult: ClubFeeGenerationReport[] = [];
+  for (const club of clubs) {
+    const result = await generateMonthlyFees(club.id, month, year);
+    clubsResult.push({
+      clubId: club.id,
+      clubSlug: club.slug,
+      clubName: club.name,
+      created: result.created,
+      skipped: result.skipped,
+    });
+  }
+
+  return {
+    month,
+    year,
+    clubs: clubsResult,
+  };
+}
+
 export async function GET(request: NextRequest) {
   try {
     if (!authorizeCron(request)) {
@@ -20,7 +60,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { month, year } = getCurrentPeriod();
-    const result = await generateMonthlyFees(month, year);
+    const result = await generateFeesForAllClubs(month, year);
 
     return apiSuccess(result);
   } catch (error) {
@@ -47,7 +87,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { month, year } = parsed.data;
-    const result = await generateMonthlyFees(month, year);
+    const result = await generateFeesForAllClubs(month, year);
 
     return apiSuccess(result);
   } catch (error) {
