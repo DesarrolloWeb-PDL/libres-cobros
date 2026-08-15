@@ -3,13 +3,18 @@ import { createCommission } from '@/lib/commissions';
 
 export type ConfirmPaymentResult =
   | { status: 'already-paid' }
-  | { status: 'paid'; paymentId: string; commissionId: string };
+  | { status: 'paid'; paymentId: string; commissionId: string | null };
 
 export interface ConfirmPaymentOptions {
   stripePaymentId?: string;
   mercadopagoPaymentId?: string;
 }
 
+/**
+ * Marks a payment (and its fee) PAID inside a transaction and runs the
+ * club-driven commission logic. The club is resolved from the payment's own
+ * clubId, so commission rates always come from the club that owns the payment.
+ */
 export async function confirmPayment(
   paymentId: string,
   opts: ConfirmPaymentOptions = {}
@@ -26,6 +31,14 @@ export async function confirmPayment(
 
     if (payment.status === 'PAID' || payment.fee.status === 'PAID') {
       return { status: 'already-paid' };
+    }
+
+    const club = await tx.club.findUnique({
+      where: { id: payment.clubId },
+    });
+
+    if (!club) {
+      throw new Error(`Club ${payment.clubId} not found for payment ${paymentId}`);
     }
 
     const updatedPayment = await tx.payment.update({
@@ -45,12 +58,12 @@ export async function confirmPayment(
       data: { status: 'PAID' },
     });
 
-    const commission = await createCommission(tx, updatedPayment);
+    const commission = await createCommission(tx, updatedPayment, club);
 
     return {
       status: 'paid',
       paymentId: updatedPayment.id,
-      commissionId: commission.id,
+      commissionId: commission?.id ?? null,
     };
   });
 }

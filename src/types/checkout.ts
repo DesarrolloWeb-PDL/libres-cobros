@@ -5,6 +5,7 @@ export const CheckoutRequestSchema = z.object({
   feeId: z.string().cuid(),
   method: PaymentMethodSchema,
   memberDni: z.string().min(1, 'Member DNI is required'),
+  clubSlug: z.string().min(1, 'Club slug is required'),
 });
 
 export type CheckoutRequestInput = z.infer<typeof CheckoutRequestSchema>;

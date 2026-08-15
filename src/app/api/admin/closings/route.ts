@@ -1,9 +1,8 @@
 import { NextRequest } from 'next/server';
-import { getServerSession } from 'next-auth';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
-import { authOptions } from '@/lib/auth';
+import { requireClub, clubWhere, AuthError } from '@/lib/access';
 
 const CreateClosingSchema = z.object({
   month: z.coerce.number().int().min(1).max(12),
@@ -30,30 +29,35 @@ function serializeClosing(closing: {
   };
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.role || session.user.role !== 'ADMIN') {
-      return apiError('No autorizado', 401);
-    }
+    const ctx = await requireClub(request);
 
     const closings = await prisma.monthlyClosing.findMany({
+      where: clubWhere(ctx.clubId),
       orderBy: [{ year: 'desc' }, { month: 'desc' }],
     });
 
     return apiSuccess({ data: closings.map(serializeClosing) });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return apiError(error.message, error.status);
+    }
     return apiDbError(error, 'Error al listar los cierres');
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const ctx = await requireClub(request);
 
-    if (!session?.user?.role || session.user.role !== 'ADMIN') {
-      return apiError('No autorizado', 401);
+    if (!ctx.clubId) {
+      return apiError(
+        'Seleccione un club',
+        400,
+        'Se requiere un club para crear el cierre',
+        'CLUB_REQUIRED'
+      );
     }
 
     const body = await request.json();
@@ -71,7 +75,7 @@ export async function POST(request: NextRequest) {
     const { month, year } = parsed.data;
 
     const existing = await prisma.monthlyClosing.findUnique({
-      where: { month_year: { month, year } },
+      where: { clubId_month_year: { clubId: ctx.clubId, month, year } },
     });
 
     if (existing) {
@@ -83,23 +87,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const config = await prisma.siteConfig.findUnique({
-      where: { key: 'commission_rate' },
+    const club = await prisma.club.findUnique({
+      where: { id: ctx.clubId },
     });
 
-    const commissionRate = config && config.value !== '' ? parseFloat(config.value) : 0;
+    if (!club) {
+      return apiError('Club no encontrado', 404, 'Club ID inválido', 'CLUB_NOT_FOUND');
+    }
 
     const closing = await prisma.monthlyClosing.create({
       data: {
+        clubId: ctx.clubId,
         month,
         year,
         status: 'OPEN',
-        commissionRate: Number.isNaN(commissionRate) ? 0 : commissionRate,
+        commissionRate: club.commissionValue,
       },
     });
 
     return apiSuccess(serializeClosing(closing));
   } catch (error) {
+    if (error instanceof AuthError) {
+      return apiError(error.message, error.status);
+    }
     return apiDbError(error, 'Error al crear el cierre');
   }
 }

@@ -1,33 +1,28 @@
-import type { Prisma } from '@prisma/client';
+import type { Prisma, Club, Commission } from '@prisma/client';
 
-export async function getCommissionRate(
-  tx: Prisma.TransactionClient
-): Promise<number> {
-  const config = await tx.siteConfig.findUnique({
-    where: { key: 'commission_rate' },
-  });
-
-  if (!config || config.value === '') {
-    return 0;
-  }
-
-  const parsed = parseFloat(config.value);
-  return Number.isNaN(parsed) ? 0 : parsed;
-}
-
+/**
+ * Club-driven commission creation.
+ *
+ * PERCENTAGE clubs charge `club.commissionValue` percent of each confirmed
+ * payment; the rate is snapshotted on the Commission row so later rate changes
+ * do not alter historical commissions. FIXED clubs charge nothing per payment
+ * (they generate one ProviderInvoice per month at closing) and return null.
+ */
 export async function createCommission(
   tx: Prisma.TransactionClient,
-  payment: {
-    id: string;
-    feeId: string;
-    amount: number;
+  payment: { id: string; feeId: string; clubId: string; amount: number },
+  club: Club
+): Promise<Commission | null> {
+  if (club.commissionType === 'FIXED') {
+    return null;
   }
-) {
-  const rate = await getCommissionRate(tx);
+
+  const rate = club.commissionValue;
   const amount = Math.round(payment.amount * rate) / 100;
 
   return tx.commission.create({
     data: {
+      clubId: club.id,
       paymentId: payment.id,
       feeId: payment.feeId,
       amount,

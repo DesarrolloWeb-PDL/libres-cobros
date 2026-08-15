@@ -1,22 +1,8 @@
 import MercadoPagoConfig, { Preference, Payment, WebhookSignatureValidator } from 'mercadopago';
 import type { PreferenceRequest } from 'mercadopago/dist/clients/preference/commonTypes';
 
-function getMercadoPagoConfig(): MercadoPagoConfig {
-  const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
-
-  if (!accessToken) {
-    throw new Error('MERCADOPAGO_ACCESS_TOKEN is not configured');
-  }
-
+function createMercadoPagoConfig(accessToken: string): MercadoPagoConfig {
   return new MercadoPagoConfig({ accessToken });
-}
-
-function getPreferenceClient(): Preference {
-  return new Preference(getMercadoPagoConfig());
-}
-
-function getPaymentClient(): Payment {
-  return new Payment(getMercadoPagoConfig());
 }
 
 export interface CreateMercadoPagoPreferenceInput {
@@ -24,6 +10,10 @@ export interface CreateMercadoPagoPreferenceInput {
   feeId: string;
   amount: number;
   memberName: string;
+  /** Club slug carried in preference metadata for webhook club resolution. */
+  clubSlug: string;
+  /** Per-club access token resolved from the club's SiteConfig. */
+  accessToken: string;
   successUrl: string;
   failureUrl: string;
   pendingUrl: string;
@@ -33,7 +23,7 @@ export interface CreateMercadoPagoPreferenceInput {
 export async function createMercadoPagoPreference(
   input: CreateMercadoPagoPreferenceInput
 ): Promise<{ preferenceId: string; initPoint: string | undefined }> {
-  const client = getPreferenceClient();
+  const client = new Preference(createMercadoPagoConfig(input.accessToken));
 
   const body: PreferenceRequest = {
     items: [
@@ -53,6 +43,7 @@ export async function createMercadoPagoPreference(
     metadata: {
       paymentId: input.paymentId,
       feeId: input.feeId,
+      clubSlug: input.clubSlug,
     },
     back_urls: {
       success: input.successUrl,
@@ -72,14 +63,15 @@ export async function createMercadoPagoPreference(
 }
 
 export async function getMercadoPagoPayment(
-  paymentId: string | number
+  paymentId: string | number,
+  accessToken: string
 ): Promise<{
   id: string;
   status: string;
   externalReference: string | null;
   metadata: Record<string, unknown> | null;
 }> {
-  const client = getPaymentClient();
+  const client = new Payment(createMercadoPagoConfig(accessToken));
   const response = await client.get({ id: paymentId });
 
   return {
@@ -96,13 +88,16 @@ export interface VerifyMercadoPagoWebhookInput {
   dataId: string | string[] | null | undefined;
 }
 
+/**
+ * Validates the MercadoPago IPN signature against the club's client secret.
+ * The secret is resolved per club from SiteConfig BEFORE any payment lookup.
+ */
 export function verifyMercadoPagoWebhook(
-  input: VerifyMercadoPagoWebhookInput
+  input: VerifyMercadoPagoWebhookInput,
+  secret: string
 ): void {
-  const secret = process.env.MERCADOPAGO_CLIENT_SECRET;
-
   if (!secret) {
-    throw new Error('MERCADOPAGO_CLIENT_SECRET is not configured');
+    throw new Error('MercadoPago client secret is not configured');
   }
 
   WebhookSignatureValidator.validate({
