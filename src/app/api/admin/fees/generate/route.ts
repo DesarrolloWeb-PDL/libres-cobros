@@ -1,16 +1,15 @@
 import { NextRequest } from 'next/server';
-import { getServerSession } from 'next-auth';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
-import { authOptions } from '@/lib/auth';
+import { requireClub, AuthError } from '@/lib/access';
 import { generateMonthlyFees } from '@/lib/fees';
 import { GenerateFeesSchema } from '@/types/fee';
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const { clubId } = await requireClub(request);
 
-    if (!session?.user?.role || session.user.role !== 'ADMIN') {
-      return apiError('No autorizado', 401);
+    if (!clubId) {
+      return apiError('Seleccione un club para generar cuotas', 400);
     }
 
     const body = await request.json();
@@ -26,10 +25,13 @@ export async function POST(request: NextRequest) {
     }
 
     const { month, year } = parsed.data;
-    const result = await generateMonthlyFees(month, year);
+    const result = await generateMonthlyFees(clubId, month, year);
 
     return apiSuccess(result);
   } catch (error) {
+    if (error instanceof AuthError) {
+      return apiError(error.message, error.status);
+    }
     return apiDbError(error, 'Error al generar las cuotas');
   }
 }
