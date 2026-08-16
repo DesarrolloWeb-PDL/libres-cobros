@@ -1,8 +1,7 @@
 import { NextRequest } from 'next/server';
-import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
-import { authOptions } from '@/lib/auth';
+import { requireClub, AuthError } from '@/lib/access';
 import { confirmPayment } from '@/lib/payments';
 
 export async function POST(
@@ -10,11 +9,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.role || session.user.role !== 'ADMIN') {
-      return apiError('No autorizado', 401);
-    }
+    const ctx = await requireClub(request);
 
     const { id } = await params;
 
@@ -24,6 +19,11 @@ export async function POST(
     });
 
     if (!payment) {
+      return apiError('Pago no encontrado', 404, 'Payment ID inválido', 'PAYMENT_NOT_FOUND');
+    }
+
+    // Scope check: the payment must belong to the caller's club.
+    if (ctx.clubId && payment.clubId !== ctx.clubId) {
       return apiError('Pago no encontrado', 404, 'Payment ID inválido', 'PAYMENT_NOT_FOUND');
     }
 
@@ -49,6 +49,9 @@ export async function POST(
 
     return apiSuccess({ status: result.status });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return apiError(error.message, error.status);
+    }
     return apiDbError(error, 'Error al confirmar la transferencia');
   }
 }

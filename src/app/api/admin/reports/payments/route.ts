@@ -1,17 +1,12 @@
 import { NextRequest } from 'next/server';
-import { getServerSession } from 'next-auth';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
-import { authOptions } from '@/lib/auth';
+import { requireClub, AuthError } from '@/lib/access';
 import { generatePaymentReport } from '@/lib/reports';
 import { PaymentReportQuerySchema } from '@/types/report';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.role || session.user.role !== 'ADMIN') {
-      return apiError('No autorizado', 401);
-    }
+    await requireClub(request);
 
     const { searchParams } = request.nextUrl;
 
@@ -46,6 +41,9 @@ export async function GET(request: NextRequest) {
 
     return apiSuccess(report);
   } catch (error) {
+    if (error instanceof AuthError) {
+      return apiError(error.message, error.status);
+    }
     return apiDbError(error, 'Error al generar el reporte de pagos');
   }
 }

@@ -1,9 +1,8 @@
 import { NextRequest } from 'next/server';
-import { getServerSession } from 'next-auth';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
-import { authOptions } from '@/lib/auth';
+import { requireClub, clubWhere, AuthError } from '@/lib/access';
 import { sendBulkReminders } from '@/lib/whatsapp';
 import { MemberCategorySchema } from '@/types/member';
 import { FeeStatusSchema } from '@/types/fee';
@@ -17,11 +16,7 @@ const SendBulkSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.role || session.user.role !== 'ADMIN') {
-      return apiError('No autorizado', 401);
-    }
+    const ctx = await requireClub(request);
 
     const body = await request.json();
     const parsed = SendBulkSchema.safeParse(body);
@@ -43,6 +38,7 @@ export async function POST(request: NextRequest) {
 
     const members = await prisma.member.findMany({
       where: {
+        ...clubWhere(ctx.clubId),
         phone: { not: null },
         ...(category && { category }),
         fees: {
@@ -69,6 +65,9 @@ export async function POST(request: NextRequest) {
       year: targetYear,
     });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return apiError(error.message, error.status);
+    }
     return apiDbError(error, 'Error al enviar recordatorios');
   }
 }

@@ -1,8 +1,7 @@
 import { NextRequest } from 'next/server';
-import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
-import { authOptions } from '@/lib/auth';
+import { requireClub, clubWhere, AuthError } from '@/lib/access';
 import { UpdateMemberSchema } from '@/types/member';
 
 function serializeMember(member: {
@@ -24,20 +23,16 @@ function serializeMember(member: {
 }
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.role || session.user.role !== 'ADMIN') {
-      return apiError('No autorizado', 401);
-    }
+    const ctx = await requireClub(request);
 
     const { id } = await params;
 
-    const member = await prisma.member.findUnique({
-      where: { id },
+    const member = await prisma.member.findFirst({
+      where: { id, ...clubWhere(ctx.clubId) },
     });
 
     if (!member) {
@@ -46,6 +41,9 @@ export async function GET(
 
     return apiSuccess(serializeMember(member));
   } catch (error) {
+    if (error instanceof AuthError) {
+      return apiError(error.message, error.status);
+    }
     return apiDbError(error, 'Error al obtener el socio');
   }
 }
@@ -55,16 +53,12 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.role || session.user.role !== 'ADMIN') {
-      return apiError('No autorizado', 401);
-    }
+    const ctx = await requireClub(request);
 
     const { id } = await params;
 
-    const existing = await prisma.member.findUnique({
-      where: { id },
+    const existing = await prisma.member.findFirst({
+      where: { id, ...clubWhere(ctx.clubId) },
     });
 
     if (!existing) {
@@ -87,7 +81,7 @@ export async function PUT(
 
     if (dni && dni !== existing.dni) {
       const duplicateDni = await prisma.member.findUnique({
-        where: { dni },
+        where: { clubId_dni: { clubId: existing.clubId, dni } },
       });
       if (duplicateDni) {
         return apiError('Ya existe un socio con ese DNI', 409, 'DNI duplicado', 'DUPLICATE_DNI');
@@ -98,7 +92,7 @@ export async function PUT(
 
     if (normalizedEmail && normalizedEmail !== existing.email) {
       const duplicateEmail = await prisma.member.findUnique({
-        where: { email: normalizedEmail },
+        where: { clubId_email: { clubId: existing.clubId, email: normalizedEmail } },
       });
       if (duplicateEmail) {
         return apiError('Ya existe un socio con ese email', 409, 'Email duplicado', 'DUPLICATE_EMAIL');
@@ -116,25 +110,24 @@ export async function PUT(
 
     return apiSuccess(serializeMember(member));
   } catch (error) {
+    if (error instanceof AuthError) {
+      return apiError(error.message, error.status);
+    }
     return apiDbError(error, 'Error al actualizar el socio');
   }
 }
 
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.role || session.user.role !== 'ADMIN') {
-      return apiError('No autorizado', 401);
-    }
+    const ctx = await requireClub(request);
 
     const { id } = await params;
 
-    const member = await prisma.member.findUnique({
-      where: { id },
+    const member = await prisma.member.findFirst({
+      where: { id, ...clubWhere(ctx.clubId) },
       include: {
         _count: {
           select: { fees: true, payments: true },
@@ -161,6 +154,9 @@ export async function DELETE(
 
     return apiSuccess({ success: true });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return apiError(error.message, error.status);
+    }
     return apiDbError(error, 'Error al eliminar el socio');
   }
 }

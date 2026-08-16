@@ -1,7 +1,6 @@
 import { NextRequest } from 'next/server';
-import { getServerSession } from 'next-auth';
 import { apiError, apiDbError } from '@/lib/api-response';
-import { authOptions } from '@/lib/auth';
+import { requireClub, AuthError } from '@/lib/access';
 import { generateDebtReport, generatePaymentReport, generateCommissionReport } from '@/lib/reports';
 import { generateExcel } from '@/lib/excel';
 import { ExportReportQuerySchema } from '@/types/report';
@@ -163,11 +162,7 @@ async function generateCommissionsExcel(filters: {
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.role || session.user.role !== 'ADMIN') {
-      return apiError('No autorizado', 401);
-    }
+    await requireClub(request);
 
     const { searchParams } = request.nextUrl;
 
@@ -219,6 +214,9 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return apiError(error.message, error.status);
+    }
     return apiDbError(error, 'Error al generar la exportación');
   }
 }

@@ -1,9 +1,8 @@
 import { NextRequest } from 'next/server';
-import { getServerSession } from 'next-auth';
 import * as xlsx from 'xlsx';
 import { prisma } from '@/lib/db';
 import { apiError, apiDbError } from '@/lib/api-response';
-import { authOptions } from '@/lib/auth';
+import { requireClub, clubWhere, AuthError } from '@/lib/access';
 
 const CATEGORY_LABELS: Record<string, string> = {
   ADULT: 'Adulto',
@@ -18,11 +17,7 @@ const STATUS_LABELS: Record<string, string> = {
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.role || session.user.role !== 'ADMIN') {
-      return apiError('No autorizado', 401);
-    }
+    const ctx = await requireClub(request);
 
     const { searchParams } = request.nextUrl;
 
@@ -30,7 +25,9 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category');
     const status = searchParams.get('status');
 
-    const where: Record<string, unknown> = {};
+    const where: Record<string, unknown> = {
+      ...clubWhere(ctx.clubId),
+    };
 
     if (category && ['ADULT', 'FAMILY', 'MINOR'].includes(category)) {
       where.category = category;
@@ -81,6 +78,9 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return apiError(error.message, error.status);
+    }
     return apiDbError(error, 'Error al exportar socios');
   }
 }

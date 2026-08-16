@@ -1,8 +1,7 @@
 import { NextRequest } from 'next/server';
-import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
-import { authOptions } from '@/lib/auth';
+import { requireClub, clubWhere, AuthError } from '@/lib/access';
 import { UpdateFeeConfigsSchema } from '@/types/fee';
 import type { FeeConfigListItem, FeeConfigListResponse } from '@/types/fee';
 
@@ -22,15 +21,12 @@ function serializeConfig(config: {
   };
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.role || session.user.role !== 'ADMIN') {
-      return apiError('No autorizado', 401);
-    }
+    const ctx = await requireClub(request);
 
     const configs = await prisma.feeConfig.findMany({
+      where: clubWhere(ctx.clubId),
       orderBy: { category: 'asc' },
     });
 
@@ -40,16 +36,24 @@ export async function GET() {
 
     return apiSuccess(response);
   } catch (error) {
+    if (error instanceof AuthError) {
+      return apiError(error.message, error.status);
+    }
     return apiDbError(error, 'Error al listar las configuraciones de cuotas');
   }
 }
 
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const ctx = await requireClub(request);
 
-    if (!session?.user?.role || session.user.role !== 'ADMIN') {
-      return apiError('No autorizado', 401);
+    if (!ctx.clubId) {
+      return apiError(
+        'Seleccione un club',
+        400,
+        'Se requiere un club para actualizar las configuraciones',
+        'CLUB_REQUIRED'
+      );
     }
 
     const body = await request.json();
@@ -69,7 +73,7 @@ export async function PUT(request: NextRequest) {
     const updated = await prisma.$transaction(
       configs.map((config) =>
         prisma.feeConfig.update({
-          where: { category: config.category },
+          where: { clubId_category: { clubId: ctx.clubId!, category: config.category } },
           data: { amount: config.amount },
         })
       )
@@ -81,6 +85,9 @@ export async function PUT(request: NextRequest) {
 
     return apiSuccess(response);
   } catch (error) {
+    if (error instanceof AuthError) {
+      return apiError(error.message, error.status);
+    }
     return apiDbError(error, 'Error al actualizar las configuraciones de cuotas');
   }
 }

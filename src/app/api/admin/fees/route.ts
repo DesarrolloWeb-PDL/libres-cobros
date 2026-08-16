@@ -1,8 +1,7 @@
 import { NextRequest } from 'next/server';
-import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
-import { authOptions } from '@/lib/auth';
+import { requireClub, clubWhere, AuthError } from '@/lib/access';
 import { FeeListQuerySchema } from '@/types/fee';
 import type { FeeListItem, FeeListResponse } from '@/types/fee';
 
@@ -30,11 +29,7 @@ function serializeFee(fee: {
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.role || session.user.role !== 'ADMIN') {
-      return apiError('No autorizado', 401);
-    }
+    const ctx = await requireClub(request);
 
     const { searchParams } = request.nextUrl;
 
@@ -59,7 +54,9 @@ export async function GET(request: NextRequest) {
 
     const { memberId, search, status, month, year, page, limit } = parsed.data;
 
-    const where: Record<string, unknown> = {};
+    const where: Record<string, unknown> = {
+      ...clubWhere(ctx.clubId),
+    };
 
     if (memberId) {
       where.memberId = memberId;
@@ -110,6 +107,9 @@ export async function GET(request: NextRequest) {
 
     return apiSuccess(response);
   } catch (error) {
+    if (error instanceof AuthError) {
+      return apiError(error.message, error.status);
+    }
     return apiDbError(error, 'Error al listar las cuotas');
   }
 }

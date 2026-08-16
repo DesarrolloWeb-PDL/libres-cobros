@@ -1,9 +1,8 @@
 import { NextRequest } from 'next/server';
-import { getServerSession } from 'next-auth';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
-import { authOptions } from '@/lib/auth';
+import { requireClub, AuthError } from '@/lib/access';
 import type { SiteConfigListItem, SiteConfigListResponse } from '@/types/config';
 
 const UpdateSiteConfigSchema = z.object({
@@ -45,16 +44,21 @@ function serializeConfig(config: {
   };
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const ctx = await requireClub(request);
 
-    if (!session?.user?.role || session.user.role !== 'ADMIN') {
-      return apiError('No autorizado', 401);
+    if (!ctx.clubId) {
+      return apiError(
+        'Seleccione un club',
+        400,
+        'Se requiere un club para ver la configuración',
+        'CLUB_REQUIRED'
+      );
     }
 
     const configs = await prisma.siteConfig.findMany({
-      where: { key: { in: CONFIG_KEYS } },
+      where: { clubId: ctx.clubId, key: { in: CONFIG_KEYS } },
       orderBy: { key: 'asc' },
     });
 
@@ -64,6 +68,7 @@ export async function GET() {
       CONFIG_KEYS.filter((key) => !configMap.has(key)).map((key) =>
         prisma.siteConfig.create({
           data: {
+            clubId: ctx.clubId!,
             key,
             value: '',
           },
@@ -81,16 +86,24 @@ export async function GET() {
 
     return apiSuccess(response);
   } catch (error) {
+    if (error instanceof AuthError) {
+      return apiError(error.message, error.status);
+    }
     return apiDbError(error, 'Error al listar la configuración');
   }
 }
 
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const ctx = await requireClub(request);
 
-    if (!session?.user?.role || session.user.role !== 'ADMIN') {
-      return apiError('No autorizado', 401);
+    if (!ctx.clubId) {
+      return apiError(
+        'Seleccione un club',
+        400,
+        'Se requiere un club para actualizar la configuración',
+        'CLUB_REQUIRED'
+      );
     }
 
     const body = await request.json();
@@ -133,9 +146,10 @@ export async function PUT(request: NextRequest) {
     const updated = await prisma.$transaction(
       configs.map((config) =>
         prisma.siteConfig.upsert({
-          where: { key: config.key },
+          where: { clubId_key: { clubId: ctx.clubId!, key: config.key } },
           update: { value: config.value },
           create: {
+            clubId: ctx.clubId!,
             key: config.key,
             value: config.value,
           },
@@ -149,6 +163,9 @@ export async function PUT(request: NextRequest) {
 
     return apiSuccess(response);
   } catch (error) {
+    if (error instanceof AuthError) {
+      return apiError(error.message, error.status);
+    }
     return apiDbError(error, 'Error al actualizar la configuración');
   }
 }

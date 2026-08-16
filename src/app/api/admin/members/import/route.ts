@@ -1,9 +1,8 @@
 import { NextRequest } from 'next/server';
-import { getServerSession } from 'next-auth';
 import * as xlsx from 'xlsx';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
-import { authOptions } from '@/lib/auth';
+import { requireClub, AuthError } from '@/lib/access';
 import { CreateMemberSchema } from '@/types/member';
 
 interface ImportError {
@@ -64,10 +63,15 @@ function cellToString(value: unknown): string | undefined {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const ctx = await requireClub(request);
 
-    if (!session?.user?.role || session.user.role !== 'ADMIN') {
-      return apiError('No autorizado', 401);
+    if (!ctx.clubId) {
+      return apiError(
+        'Seleccione un club',
+        400,
+        'Se requiere un club para importar socios',
+        'CLUB_REQUIRED'
+      );
     }
 
     const formData = await request.formData();
@@ -175,6 +179,7 @@ export async function POST(request: NextRequest) {
 
     const existingDnis = await prisma.member.findMany({
       where: {
+        clubId: ctx.clubId,
         dni: { in: validMembers.map((m) => m.dni) },
       },
       select: { dni: true },
@@ -193,13 +198,16 @@ export async function POST(request: NextRequest) {
 
     if (membersToCreate.length > 0) {
       await prisma.member.createMany({
-        data: membersToCreate,
+        data: membersToCreate.map((m) => ({ ...m, clubId: ctx.clubId! })),
         skipDuplicates: true,
       });
     }
 
     return apiSuccess({ imported: membersToCreate.length, errors });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return apiError(error.message, error.status);
+    }
     return apiDbError(error, 'Error al importar socios');
   }
 }

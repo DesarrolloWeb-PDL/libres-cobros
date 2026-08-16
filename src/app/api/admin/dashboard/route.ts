@@ -1,19 +1,17 @@
-import { getServerSession } from 'next-auth';
+import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
-import { authOptions } from '@/lib/auth';
+import { requireClub, clubWhere, AuthError } from '@/lib/access';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.role || session.user.role !== 'ADMIN') {
-      return apiError('Unauthorized', 401);
-    }
+    const ctx = await requireClub(request);
 
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
+    const scope = clubWhere(ctx.clubId);
 
     const [
       totalSocios,
@@ -22,9 +20,9 @@ export async function GET() {
       pagosMes,
       comisionesMes,
     ] = await Promise.all([
-      prisma.member.count(),
-      prisma.fee.count({ where: { status: 'PENDING' } }),
-      prisma.fee.count({ where: { status: 'OVERDUE' } }),
+      prisma.member.count({ where: scope }),
+      prisma.fee.count({ where: { status: 'PENDING', ...scope } }),
+      prisma.fee.count({ where: { status: 'OVERDUE', ...scope } }),
       prisma.payment.count({
         where: {
           status: 'PAID',
@@ -32,6 +30,7 @@ export async function GET() {
             gte: startOfMonth,
             lt: endOfMonth,
           },
+          ...scope,
         },
       }),
       prisma.commission.count({
@@ -40,6 +39,7 @@ export async function GET() {
             gte: startOfMonth,
             lt: endOfMonth,
           },
+          ...scope,
         },
       }),
     ]);
@@ -52,6 +52,9 @@ export async function GET() {
       comisionesMes,
     });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return apiError(error.message, error.status);
+    }
     return apiDbError(error, 'Failed to load dashboard metrics');
   }
 }
