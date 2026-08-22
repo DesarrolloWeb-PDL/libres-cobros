@@ -47,7 +47,7 @@ export function AdminSidebar() {
   }, []);
 
   const filteredNavItems = userRole
-    ? navItems.filter((item) => item.roles.includes(userRole as 'SUPER_ADMIN' | 'ADMIN'))
+    ? navItems.filter((item) => (item.roles as readonly string[]).includes(userRole))
     : [];
 
   return (

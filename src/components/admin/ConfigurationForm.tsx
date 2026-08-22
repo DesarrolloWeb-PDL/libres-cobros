@@ -34,9 +34,9 @@ const siteConfigSections = [
     keys: ['bank_alias', 'bank_cbu', 'bank_cuit', 'bank_name', 'bank_holder', 'bank_reference'],
   },
   {
-    title: 'WhatsApp',
-    description: 'Credenciales de la API de WhatsApp Business para envío de recordatorios.',
-    keys: ['whatsapp_token', 'whatsapp_phone_number_id', 'whatsapp_template_name'],
+    title: 'Twilio SMS',
+    description: 'Credenciales de Twilio para envío de recordatorios por SMS.',
+    keys: ['twilio_account_sid', 'twilio_auth_token', 'twilio_phone_number'],
   },
 ];
 
@@ -48,9 +48,9 @@ const siteConfigLabels: Record<string, string> = {
   bank_name: 'Banco',
   bank_holder: 'Titular',
   bank_reference: 'Referencia / Concepto',
-  whatsapp_token: 'Access Token',
-  whatsapp_phone_number_id: 'Phone Number ID',
-  whatsapp_template_name: 'Nombre de plantilla',
+  twilio_account_sid: 'Account SID',
+  twilio_auth_token: 'Auth Token',
+  twilio_phone_number: 'Número de teléfono',
 };
 
 export function ConfigurationForm({

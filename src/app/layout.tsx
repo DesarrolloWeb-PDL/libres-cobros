@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     "Manage club membership fees, payments, and commissions. Members can look up their dues by DNI and pay online via Stripe, MercadoPago, or bank transfer.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="es"

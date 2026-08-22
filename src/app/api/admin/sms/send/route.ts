@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
 import { requireClub, clubWhere, AuthError } from '@/lib/access';
-import { sendBulkReminders } from '@/lib/whatsapp';
+import { sendBulkReminders } from '@/lib/sms';
 import { MemberCategorySchema } from '@/types/member';
 import { FeeStatusSchema } from '@/types/fee';
 

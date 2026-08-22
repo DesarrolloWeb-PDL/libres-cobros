@@ -24,9 +24,9 @@ const CONFIG_KEYS = [
   'bank_name',
   'bank_holder',
   'bank_reference',
-  'whatsapp_token',
-  'whatsapp_phone_number_id',
-  'whatsapp_template_name',
+  'twilio_account_sid',
+  'twilio_auth_token',
+  'twilio_phone_number',
 ];
 
 function serializeConfig(config: {
@@ -179,9 +179,9 @@ function getConfigDescription(key: string): string {
     bank_name: 'Nombre del banco',
     bank_holder: 'Titular de la cuenta bancaria',
     bank_reference: 'Concepto o referencia sugerida para transferencias',
-    whatsapp_token: 'Token de acceso de la API de WhatsApp Business',
-    whatsapp_phone_number_id: 'ID del número de teléfono de WhatsApp Business',
-    whatsapp_template_name: 'Nombre de la plantilla aprobada para recordatorios',
+    twilio_account_sid: 'Account SID de Twilio',
+    twilio_auth_token: 'Auth Token de Twilio',
+    twilio_phone_number: 'Número de teléfono de Twilio (formato +1...)',
   };
   return descriptions[key] ?? '';
 }

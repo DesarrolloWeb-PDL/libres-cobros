@@ -22,7 +22,7 @@ export const MonthlyClosingCreateSchema = z.object({
   year: z.coerce.number().int().min(2000).max(2100),
 });
 
-export const WhatsAppSendSchema = z.object({
+export const SmsSendSchema = z.object({
   category: z.enum(['ADULT', 'FAMILY', 'MINOR']).optional(),
   status: z.enum(['PENDING', 'PAID', 'OVERDUE']).optional(),
   month: z.coerce.number().int().min(1).max(12).optional(),
@@ -32,7 +32,7 @@ export const WhatsAppSendSchema = z.object({
 export type CreateCommissionInput = z.infer<typeof CreateCommissionSchema>;
 export type CommissionListQueryInput = z.infer<typeof CommissionListQuerySchema>;
 export type MonthlyClosingCreateInput = z.infer<typeof MonthlyClosingCreateSchema>;
-export type WhatsAppSendInput = z.infer<typeof WhatsAppSendSchema>;
+export type SmsSendInput = z.infer<typeof SmsSendSchema>;
 
 export interface CommissionListItem {
   id: string;

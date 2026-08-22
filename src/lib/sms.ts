@@ -1,7 +1,8 @@
+import twilio from 'twilio';
 import { prisma } from '@/lib/db';
 import type { Prisma } from '@prisma/client';
 
-export type WhatsAppMessageStatus = 'SENT' | 'FAILED' | 'SKIPPED';
+export type SmsMessageStatus = 'SENT' | 'FAILED' | 'SKIPPED';
 
 export interface BulkResult {
   sent: number;
@@ -39,69 +40,39 @@ async function getSiteConfig(
   return config?.value ?? defaultValue;
 }
 
-export async function sendTemplateMessage(
-  phoneNumberId: string,
-  accessToken: string,
-  phoneNumber: string,
-  templateName: string,
-  params: string[]
+export async function sendSms(
+  accountSid: string,
+  authToken: string,
+  fromNumber: string,
+  toNumber: string,
+  body: string
 ): Promise<{ externalId: string | null }> {
-  const normalizedPhone = normalizePhone(phoneNumber);
+  const client = twilio(accountSid, authToken);
 
-  const url = `https://graph.facebook.com/v18.0/${phoneNumberId}/messages`;
-  const body = {
-    messaging_product: 'whatsapp',
-    recipient_type: 'individual',
-    to: normalizedPhone,
-    type: 'template',
-    template: {
-      name: templateName,
-      language: { code: 'es' },
-      components: [
-        {
-          type: 'body',
-          parameters: params.map((text) => ({ type: 'text', text })),
-        },
-      ],
-    },
-  };
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
+  const message = await client.messages.create({
+    body,
+    from: fromNumber,
+    to: normalizePhone(toNumber),
   });
 
-  const data = await response.json();
-
-  if (!response.ok) {
-    const message =
-      data?.error?.message || `WhatsApp API error (${response.status})`;
-    throw new Error(message);
-  }
-
-  const externalId = data?.messages?.[0]?.id ?? null;
-  return { externalId };
+  return { externalId: message.sid };
 }
 
 async function logAttempt(
   clubId: string,
   memberId: string,
-  templateName: string,
-  status: WhatsAppMessageStatus,
-  params: string[],
+  type: string,
+  status: SmsMessageStatus,
+  message: string,
   externalId?: string | null,
   error?: string
 ) {
-  await prisma.whatsAppLog.create({
+  await prisma.smsLog.create({
     data: {
       clubId,
       memberId,
-      type: templateName,
-      message: params.join(' | '),
+      type,
+      message,
       status,
       externalId: externalId ?? null,
       error: error ?? null,
@@ -134,69 +105,69 @@ async function sendReminder(memberId: string): Promise<BulkResult> {
     const { clubId } = member;
 
     if (!member.phone || member.phone.trim() === '') {
-      await logAttempt(clubId, memberId, 'payment_reminder', 'FAILED', [], null, 'Socio sin teléfono');
+      await logAttempt(clubId, memberId, 'payment_reminder', 'FAILED', '', undefined, 'Socio sin teléfono');
       result.skipped += 1;
       return result;
     }
 
     if (member.fees.length === 0) {
-      await logAttempt(clubId, memberId, 'payment_reminder', 'SKIPPED', [], null, 'Sin cuotas pendientes');
+      await logAttempt(clubId, memberId, 'payment_reminder', 'SKIPPED', '', undefined, 'Sin cuotas pendientes');
       result.skipped += 1;
       return result;
     }
 
-    const [phoneNumberId, accessToken, templateName, alias, cbu] = await Promise.all([
-      getSiteConfig(prisma, clubId, 'whatsapp_phone_number_id'),
-      getSiteConfig(prisma, clubId, 'whatsapp_access_token'),
-      getSiteConfig(prisma, clubId, 'whatsapp_template_name'),
-      getSiteConfig(prisma, clubId, 'bank_alias'),
-      getSiteConfig(prisma, clubId, 'bank_cbu'),
+    const [accountSid, authToken, fromNumber, nextPublicUrl] = await Promise.all([
+      getSiteConfig(prisma, clubId, 'twilio_account_sid'),
+      getSiteConfig(prisma, clubId, 'twilio_auth_token'),
+      getSiteConfig(prisma, clubId, 'twilio_phone_number'),
+      getSiteConfig(prisma, clubId, 'next_public_url', process.env.NEXT_PUBLIC_URL || ''),
     ]);
 
-    if (!phoneNumberId || !accessToken || !templateName) {
+    if (!accountSid || !authToken || !fromNumber) {
       await logAttempt(
         clubId,
         memberId,
         'payment_reminder',
         'SKIPPED',
-        [],
-        null,
-        'Configuración de WhatsApp incompleta'
+        '',
+        undefined,
+        'Configuración de Twilio incompleta'
       );
       result.skipped += 1;
       return result;
     }
 
     const fee = member.fees[0];
-    const params = [
-      `${member.firstName} ${member.lastName}`,
-      fee.amount.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' }),
-      fee.dueDate.toLocaleDateString('es-AR'),
-      alias || '-',
-      cbu || '-',
-    ];
+    const amount = fee.amount.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
+    const dueDate = fee.dueDate.toLocaleDateString('es-AR');
+    const club = await prisma.club.findUnique({ where: { id: clubId }, select: { slug: true } });
+    const paymentUrl = `${nextPublicUrl}/pagos/${club?.slug}?dni=${member.dni}`;
 
-    const { externalId } = await sendTemplateMessage(
-      phoneNumberId,
-      accessToken,
+    const smsBody = [
+      `Hola ${member.firstName}, recordatorio de pago.`,
+      `Cuota: ${amount} - Vencimiento: ${dueDate}.`,
+      `Paga acá: ${paymentUrl}`,
+    ].join('\n');
+
+    const { externalId } = await sendSms(
+      accountSid,
+      authToken,
+      fromNumber,
       member.phone,
-      templateName,
-      params
+      smsBody
     );
 
-    await logAttempt(clubId, memberId, templateName, 'SENT', params, externalId);
+    await logAttempt(clubId, memberId, 'payment_reminder', 'SENT', smsBody, externalId);
     result.sent += 1;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    // clubId may not be resolved if member fetch failed; use a fallback log without clubId is not possible,
-    // so we let it throw if the member didn't load (the catch below handles it)
     const member = await prisma.member.findUnique({
       where: { id: memberId },
       select: { clubId: true },
     });
     const logClubId = member?.clubId ?? '';
     if (logClubId) {
-      await logAttempt(logClubId, memberId, 'payment_reminder', 'FAILED', [], null, message);
+      await logAttempt(logClubId, memberId, 'payment_reminder', 'FAILED', '', undefined, message);
     }
     result.failed += 1;
   }

@@ -31,7 +31,7 @@ model Club {
   payments        Payment[]
   commissions     Commission[]
   closings        MonthlyClosing[]
-  whatsappLogs    WhatsAppLog[]
+  smsLogs         SmsLog[]
   siteConfigs     SiteConfig[]
   adminUsers      AdminUser[]
   invoices        ProviderInvoice[]
@@ -69,7 +69,7 @@ model Member {
   club      Club     @relation(fields: [clubId], references: [id])
   fees      Fee[]
   payments  Payment[]
-  whatsappLogs WhatsAppLog[]
+  smsLogs      SmsLog[]
 
   @@unique([clubId, dni])
   @@unique([clubId, email])
@@ -189,7 +189,7 @@ model MonthlyClosing {
   @@index([clubId])
 }
 
-model WhatsAppLog {
+model SmsLog {
   id         String   @id @default(cuid())
   clubId     String
   memberId   String
