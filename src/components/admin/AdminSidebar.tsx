@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { signOut } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 import {
   LayoutDashboard,
   Users,
@@ -36,15 +36,10 @@ const navItems = [
 
 export function AdminSidebar() {
   const pathname = usePathname();
+  const { data: session } = useSession();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [userRole, setUserRole] = useState<string | undefined>(undefined);
 
-  useEffect(() => {
-    fetch('/api/auth/session')
-      .then((res) => res.json())
-      .then((data) => setUserRole(data?.user?.role))
-      .catch(() => {});
-  }, []);
+  const userRole = session?.user?.role as string | undefined;
 
   const filteredNavItems = userRole
     ? navItems.filter((item) => item.roles.some((r) => r === userRole))
