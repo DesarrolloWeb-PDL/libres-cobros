@@ -18,6 +18,7 @@ import type { CheckoutResponse } from '@/types/checkout';
 interface PaymentMethodSelectorProps {
   fee: MemberFeeItem;
   memberDni: string;
+  clubSlug?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -53,6 +54,7 @@ const currencyFormatter = new Intl.NumberFormat('es-AR', {
 export function PaymentMethodSelector({
   fee,
   memberDni,
+  clubSlug,
   open,
   onOpenChange,
 }: PaymentMethodSelectorProps) {
@@ -86,6 +88,7 @@ export function PaymentMethodSelector({
           feeId: fee.id,
           method,
           memberDni,
+          ...(clubSlug && { clubSlug }),
         }),
       });
 

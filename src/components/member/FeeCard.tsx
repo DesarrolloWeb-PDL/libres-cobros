@@ -11,6 +11,7 @@ import type { MemberFeeItem } from '@/types/fee';
 interface FeeCardProps {
   fee: MemberFeeItem;
   memberDni: string;
+  clubSlug?: string;
 }
 
 const statusLabels: Record<string, string> = {
@@ -45,7 +46,7 @@ const currencyFormatter = new Intl.NumberFormat('es-AR', {
   currency: 'ARS',
 });
 
-export function FeeCard({ fee, memberDni }: FeeCardProps) {
+export function FeeCard({ fee, memberDni, clubSlug }: FeeCardProps) {
   const [selectorOpen, setSelectorOpen] = useState(false);
 
   const canPay = fee.status === 'PENDING' || fee.status === 'OVERDUE';
@@ -88,6 +89,7 @@ export function FeeCard({ fee, memberDni }: FeeCardProps) {
       <PaymentMethodSelector
         fee={fee}
         memberDni={memberDni}
+        clubSlug={clubSlug}
         open={selectorOpen}
         onOpenChange={setSelectorOpen}
       />

@@ -13,9 +13,10 @@ interface PaymentPortalProps {
     lastName: string;
   };
   fees: MemberFeeItem[];
+  clubSlug?: string;
 }
 
-export function PaymentPortal({ member, fees }: PaymentPortalProps) {
+export function PaymentPortal({ member, fees, clubSlug }: PaymentPortalProps) {
   const pendingFees = fees.filter((fee) => fee.status === 'PENDING' || fee.status === 'OVERDUE');
   const totalPending = pendingFees.reduce((sum, fee) => sum + fee.amount, 0);
 
@@ -68,7 +69,7 @@ export function PaymentPortal({ member, fees }: PaymentPortalProps) {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {fees.map((fee) => (
-              <FeeCard key={fee.id} fee={fee} memberDni={member.dni} />
+              <FeeCard key={fee.id} fee={fee} memberDni={member.dni} clubSlug={clubSlug} />
             ))}
           </div>
         )}
