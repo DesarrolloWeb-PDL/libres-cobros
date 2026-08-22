@@ -29,10 +29,13 @@ export function normalizePhone(phone: string): string {
 
 async function getSiteConfig(
   tx: Prisma.TransactionClient | typeof prisma,
+  clubId: string,
   key: string,
   defaultValue = ''
 ): Promise<string> {
-  const config = await tx.siteConfig.findUnique({ where: { key } });
+  const config = await tx.siteConfig.findUnique({
+    where: { clubId_key: { clubId, key } },
+  });
   return config?.value ?? defaultValue;
 }
 
@@ -85,6 +88,7 @@ export async function sendTemplateMessage(
 }
 
 async function logAttempt(
+  clubId: string,
   memberId: string,
   templateName: string,
   status: WhatsAppMessageStatus,
@@ -94,6 +98,7 @@ async function logAttempt(
 ) {
   await prisma.whatsAppLog.create({
     data: {
+      clubId,
       memberId,
       type: templateName,
       message: params.join(' | '),
@@ -126,28 +131,31 @@ async function sendReminder(memberId: string): Promise<BulkResult> {
       return result;
     }
 
+    const { clubId } = member;
+
     if (!member.phone || member.phone.trim() === '') {
-      await logAttempt(memberId, 'payment_reminder', 'FAILED', [], null, 'Socio sin teléfono');
+      await logAttempt(clubId, memberId, 'payment_reminder', 'FAILED', [], null, 'Socio sin teléfono');
       result.skipped += 1;
       return result;
     }
 
     if (member.fees.length === 0) {
-      await logAttempt(memberId, 'payment_reminder', 'SKIPPED', [], null, 'Sin cuotas pendientes');
+      await logAttempt(clubId, memberId, 'payment_reminder', 'SKIPPED', [], null, 'Sin cuotas pendientes');
       result.skipped += 1;
       return result;
     }
 
     const [phoneNumberId, accessToken, templateName, alias, cbu] = await Promise.all([
-      getSiteConfig(prisma, 'whatsapp_phone_number_id'),
-      getSiteConfig(prisma, 'whatsapp_access_token'),
-      getSiteConfig(prisma, 'whatsapp_template_name'),
-      getSiteConfig(prisma, 'bank_alias'),
-      getSiteConfig(prisma, 'bank_cbu'),
+      getSiteConfig(prisma, clubId, 'whatsapp_phone_number_id'),
+      getSiteConfig(prisma, clubId, 'whatsapp_access_token'),
+      getSiteConfig(prisma, clubId, 'whatsapp_template_name'),
+      getSiteConfig(prisma, clubId, 'bank_alias'),
+      getSiteConfig(prisma, clubId, 'bank_cbu'),
     ]);
 
     if (!phoneNumberId || !accessToken || !templateName) {
       await logAttempt(
+        clubId,
         memberId,
         'payment_reminder',
         'SKIPPED',
@@ -176,11 +184,20 @@ async function sendReminder(memberId: string): Promise<BulkResult> {
       params
     );
 
-    await logAttempt(memberId, templateName, 'SENT', params, externalId);
+    await logAttempt(clubId, memberId, templateName, 'SENT', params, externalId);
     result.sent += 1;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    await logAttempt(memberId, 'payment_reminder', 'FAILED', [], null, message);
+    // clubId may not be resolved if member fetch failed; use a fallback log without clubId is not possible,
+    // so we let it throw if the member didn't load (the catch below handles it)
+    const member = await prisma.member.findUnique({
+      where: { id: memberId },
+      select: { clubId: true },
+    });
+    const logClubId = member?.clubId ?? '';
+    if (logClubId) {
+      await logAttempt(logClubId, memberId, 'payment_reminder', 'FAILED', [], null, message);
+    }
     result.failed += 1;
   }
 

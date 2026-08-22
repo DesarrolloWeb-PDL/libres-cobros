@@ -6,7 +6,7 @@ import { DebtReportQuerySchema } from '@/types/report';
 
 export async function GET(request: NextRequest) {
   try {
-    await requireClub(request);
+    const ctx = await requireClub(request);
 
     const { searchParams } = request.nextUrl;
 
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 
     const { month, year, category, page, limit } = parsed.data;
 
-    const report = await generateDebtReport({ month, year, category, page, limit });
+    const report = await generateDebtReport({ clubId: ctx.clubId, month, year, category, page, limit });
 
     return apiSuccess(report);
   } catch (error) {

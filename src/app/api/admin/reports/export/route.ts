@@ -28,6 +28,7 @@ const monthLabels: Record<number, string> = {
 };
 
 async function generateDebtsExcel(filters: {
+  clubId: string | null;
   month?: number;
   year?: number;
   category?: string;
@@ -74,6 +75,7 @@ async function generateDebtsExcel(filters: {
 }
 
 async function generatePaymentsExcel(filters: {
+  clubId: string | null;
   memberId?: string;
   method?: string;
   from?: Date;
@@ -115,6 +117,7 @@ async function generatePaymentsExcel(filters: {
 }
 
 async function generateCommissionsExcel(filters: {
+  clubId: string | null;
   month?: number;
   year?: number;
   periodId?: string;
@@ -162,7 +165,7 @@ async function generateCommissionsExcel(filters: {
 
 export async function GET(request: NextRequest) {
   try {
-    await requireClub(request);
+    const ctx = await requireClub(request);
 
     const { searchParams } = request.nextUrl;
 
@@ -194,13 +197,13 @@ export async function GET(request: NextRequest) {
 
     switch (type) {
       case 'debts':
-        result = await generateDebtsExcel({ month, year, category });
+        result = await generateDebtsExcel({ clubId: ctx.clubId, month, year, category });
         break;
       case 'payments':
-        result = await generatePaymentsExcel({ memberId, method, from, to });
+        result = await generatePaymentsExcel({ clubId: ctx.clubId, memberId, method, from, to });
         break;
       case 'commissions':
-        result = await generateCommissionsExcel({ month, year, periodId });
+        result = await generateCommissionsExcel({ clubId: ctx.clubId, month, year, periodId });
         break;
       default:
         return apiError('Tipo de reporte no soportado', 400);

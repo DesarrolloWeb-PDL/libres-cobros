@@ -1,4 +1,5 @@
 import { prisma } from './db';
+import { clubWhere } from '@/lib/access';
 import type {
   DebtReportItem,
   DebtReportResponse,
@@ -8,6 +9,7 @@ import type {
 import type { CommissionListResponse } from '@/types/commission';
 
 export interface DebtReportFilters {
+  clubId: string | null;
   month?: number;
   year?: number;
   category?: string;
@@ -16,6 +18,7 @@ export interface DebtReportFilters {
 }
 
 export interface PaymentReportFilters {
+  clubId: string | null;
   memberId?: string;
   method?: string;
   from?: Date;
@@ -25,6 +28,7 @@ export interface PaymentReportFilters {
 }
 
 export interface CommissionReportFilters {
+  clubId: string | null;
   month?: number;
   year?: number;
   periodId?: string;
@@ -40,6 +44,7 @@ export async function generateDebtReport(
   const limit = filters.limit ?? 20;
 
   const where: Record<string, unknown> = {
+    ...clubWhere(filters.clubId),
     status: { in: ['PENDING', 'OVERDUE'] },
   };
 
@@ -149,6 +154,7 @@ export async function generatePaymentReport(
   const limit = filters.limit ?? 20;
 
   const where: Record<string, unknown> = {
+    ...clubWhere(filters.clubId),
     status: 'PAID',
   };
 
@@ -222,7 +228,9 @@ export async function generateCommissionReport(
   const page = filters.page ?? 1;
   const limit = filters.limit ?? 20;
 
-  const where: Record<string, unknown> = {};
+  const where: Record<string, unknown> = {
+    ...clubWhere(filters.clubId),
+  };
 
   if (filters.periodId) {
     where.periodId = filters.periodId;

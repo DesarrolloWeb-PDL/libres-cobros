@@ -1,11 +1,13 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
+import { getEffectiveClub } from '@/lib/access';
 import { z } from 'zod';
 import type { MemberFeeItem, MemberFeesResponse } from '@/types/fee';
 
 const MemberDniQuerySchema = z.object({
   dni: z.string().min(1, 'El DNI es obligatorio'),
+  clubSlug: z.string().min(1, 'El club es obligatorio'),
 });
 
 function serializeFee(fee: {
@@ -35,6 +37,7 @@ export async function GET(request: NextRequest) {
 
     const parsed = MemberDniQuerySchema.safeParse({
       dni: searchParams.get('dni') ?? undefined,
+      clubSlug: searchParams.get('clubSlug') ?? undefined,
     });
 
     if (!parsed.success) {
@@ -46,15 +49,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { dni } = parsed.data;
+    const { dni, clubSlug } = parsed.data;
 
-    const member = await prisma.member.findFirst({
-      where: {
-        dni: {
-          equals: dni,
-          mode: 'insensitive',
-        },
-      },
+    const club = await getEffectiveClub(clubSlug);
+    if (!club) {
+      return apiError('Club no encontrado', 404, 'Club slug inválido o inactivo', 'CLUB_NOT_FOUND');
+    }
+
+    const member = await prisma.member.findUnique({
+      where: { clubId_dni: { clubId: club.id, dni } },
     });
 
     if (!member) {
