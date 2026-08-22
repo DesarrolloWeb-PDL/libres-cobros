@@ -47,7 +47,7 @@ export function AdminSidebar() {
   }, []);
 
   const filteredNavItems = userRole
-    ? navItems.filter((item) => (item.roles as readonly string[]).includes(userRole))
+    ? navItems.filter((item) => item.roles.some((r) => r === userRole))
     : [];
 
   return (
