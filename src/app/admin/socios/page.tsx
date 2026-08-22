@@ -17,7 +17,7 @@ async function getInitialMembers(): Promise<MemberListResponse> {
 export default async function MembersPage() {
   const session = await getServerSession(authOptions);
 
-  if (!session?.user?.role || session.user.role !== 'ADMIN') {
+  if (!session?.user?.role || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
     redirect('/admin/login');
   }
 

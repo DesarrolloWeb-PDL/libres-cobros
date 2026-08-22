@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
@@ -12,12 +12,14 @@ import {
   Percent,
   FileText,
   Settings,
+  Building2,
   Menu,
   X,
   LogOut,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { ClubSelector } from './ClubSelector';
 
 const navItems = [
   { href: '/admin', label: 'Panel', icon: LayoutDashboard },
@@ -26,12 +28,25 @@ const navItems = [
   { href: '/admin/pagos', label: 'Pagos', icon: CreditCard },
   { href: '/admin/comisiones', label: 'Comisiones', icon: Percent },
   { href: '/admin/reportes', label: 'Reportes', icon: FileText },
+  { href: '/admin/clubes', label: 'Clubes', icon: Building2, superAdminOnly: true },
   { href: '/admin/configuracion', label: 'Configuración', icon: Settings },
 ];
 
 export function AdminSidebar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [userRole, setUserRole] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    fetch('/api/auth/session')
+      .then((res) => res.json())
+      .then((data) => setUserRole(data?.user?.role))
+      .catch(() => {});
+  }, []);
+
+  const filteredNavItems = navItems.filter(
+    (item) => !item.superAdminOnly || userRole === 'SUPER_ADMIN'
+  );
 
   return (
     <>
@@ -59,7 +74,7 @@ export function AdminSidebar() {
           </div>
 
           <nav className="flex-1 space-y-1 p-3">
-            {navItems.map((item) => {
+            {filteredNavItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
 
@@ -81,6 +96,8 @@ export function AdminSidebar() {
               );
             })}
           </nav>
+
+          <ClubSelector userRole={userRole} />
 
           <div className="border-t p-3">
             <Button

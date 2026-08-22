@@ -32,7 +32,7 @@ async function getInitialPreview(): Promise<CommissionListResponse> {
 export default async function ClosingPage() {
   const session = await getServerSession(authOptions);
 
-  if (!session?.user?.role || session.user.role !== 'ADMIN') {
+  if (!session?.user?.role || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
     redirect('/admin/login');
   }
 
