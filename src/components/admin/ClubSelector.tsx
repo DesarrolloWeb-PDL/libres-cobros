@@ -25,31 +25,25 @@ function setCookie(name: string, value: string, days = 365) {
   document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
 }
 
+function readActiveClubId(): string | null {
+  if (typeof document === 'undefined') return null;
+  return getCookie('active_club_id');
+}
+
 export function ClubSelector({ userRole }: ClubSelectorProps) {
   const [clubs, setClubs] = useState<Club[]>([]);
-  const [activeClubId, setActiveClubId] = useState<string | null>(null);
+  const [activeClubId, setActiveClubId] = useState<string | null>(readActiveClubId);
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
   const isSuperAdmin = userRole === 'SUPER_ADMIN';
 
   useEffect(() => {
     if (!isSuperAdmin) return;
-    setActiveClubId(getCookie('active_club_id'));
-  }, [isSuperAdmin]);
-
-  useEffect(() => {
-    if (!isSuperAdmin || isOpen) return;
-
-    setIsLoading(true);
     fetch('/api/admin/clubs', { cache: 'no-store' })
       .then((res) => res.json())
-      .then((json) => {
-        setClubs(json.data ?? []);
-      })
-      .catch(() => setClubs([]))
-      .finally(() => setIsLoading(false));
-  }, [isSuperAdmin, isOpen]);
+      .then((json) => setClubs(json.data ?? []))
+      .catch(() => setClubs([]));
+  }, [isSuperAdmin]);
 
   if (!isSuperAdmin) return null;
 
@@ -77,7 +71,7 @@ export function ClubSelector({ userRole }: ClubSelectorProps) {
         >
           <span className="flex items-center gap-2 truncate">
             <Building2 className="size-4 shrink-0 text-muted-foreground" />
-            <span className="truncate">{isLoading ? 'Cargando...' : displayName}</span>
+            <span className="truncate">{clubs.length === 0 ? 'Cargando...' : displayName}</span>
           </span>
           <ChevronDown className={cn('size-4 shrink-0 text-muted-foreground transition-transform', isOpen && 'rotate-180')} />
         </button>

@@ -43,35 +43,35 @@ Chain strategy: pending
 
 - [x] 3.1 commissions.ts: createCommission PERCENTAGE snapshot/FIXED null; closing upserts ProviderInvoice once.
 - [x] 3.2 payments.ts: confirmPayment passes club, commissionId nullable.
-- [ ] 3.3 fees.ts: generateMonthlyFees(clubId,month,year), fee.clubId.
+- [x] 3.3 fees.ts: generateMonthlyFees(clubId,month,year), fee.clubId.
 - [x] 3.4 stripe/mercadopago.ts: secret params, clubSlug metadata, MP ?club_slug=.
-- [ ] 3.5 reports+whatsapp.ts: clubWhere queries, per-club creds/logs/bank.
+- [x] 3.5 reports+whatsapp.ts: clubWhere queries, per-club creds/logs/bank.
 
 ## Phase 4: API Wiring
 
 - [x] 4.1 checkout: clubSlug, club-scoped member/fee (404/409), club creds, /pagos/[slug]/confirmacion, club bank.
 - [x] 4.2 webhooks stripe+mercadopago: ?club_slug->club secret/token, 401, idempotent.
-- [ ] 4.3 cron fees+overdue: iterate ACTIVE clubs.
+- [x] 4.3 cron fees+overdue: iterate ACTIVE clubs.
 - [x] 4.4 Admin routes (19): requireClub+clubWhere, role ADMIN|SUPER_ADMIN.
-- [ ] 4.5 member fees/payments: clubSlug, scoped DNI.
+- [x] 4.5 member fees/payments: clubSlug, scoped DNI.
 - [x] 4.6 admin/clubs CRUD (slug 409, 0-100, no delete) + admin/users (dup 409, SUPER_ADMIN-only).
 
 ## Phase 5: Admin UI
 
-- [ ] 5.1 AdminSidebar: club switcher, "Clubes" nav.
-- [ ] 5.2 12 pages: scoped fetches (active_club_id).
-- [ ] 5.3 /admin/clubes list+form+[id] detail, ADMIN-user mgmt.
-- [ ] 5.4 Provider overview: per-club collected/commissions/status cards.
+- [x] 5.1 AdminSidebar: club switcher, "Clubes" nav.
+- [x] 5.2 12 pages: scoped fetches (active_club_id).
+- [x] 5.3 /admin/clubes list+form+[id] detail, ADMIN-user mgmt.
+- [x] 5.4 Provider overview: per-club collected/commissions/status cards.
 
 ## Phase 6: Member Portal
 
-- [ ] 6.1 /pagos -> /pagos/clubes; /pagos/confirmacion -> /pagos redirects.
-- [ ] 6.2 /pagos/clubes directory (ACTIVE only).
-- [ ] 6.3 /pagos/[club-slug]: 404 unknown/inactive, scoped DNI, ?dni prefill, paid disabled.
-- [ ] 6.4 /pagos/[slug]/confirmacion club-scoped receipt.
+- [x] 6.1 /pagos -> /pagos/clubes; /pagos/confirmacion -> /pagos redirects.
+- [x] 6.2 /pagos/clubes directory (ACTIVE only).
+- [x] 6.3 /pagos/[club-slug]: 404 unknown/inactive, scoped DNI, ?dni prefill, paid disabled.
+- [x] 6.4 /pagos/[slug]/confirmacion club-scoped receipt.
 
 ## Phase 7: Verification
 
-- [ ] 7.1 npx tsc --noEmit + npm run lint clean.
-- [ ] 7.2 npm run build clean.
+- [x] 7.1 npx tsc --noEmit + npm run lint clean.
+- [x] 7.2 npm run build clean.
 - [ ] 7.3 Manual cross-club walkthrough passes (script in sdd-tasks handoff).
