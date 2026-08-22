@@ -15,43 +15,37 @@ interface ClubSelectorProps {
   userRole?: string;
 }
 
-function getCookie(name: string): string | null {
-  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-  return match ? decodeURIComponent(match[2]) : null;
-}
-
-function setCookie(name: string, value: string, days = 365) {
-  const expires = new Date(Date.now() + days * 864e5).toUTCString();
-  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
-}
-
-function readActiveClubId(): string | null {
-  if (typeof document === 'undefined') return null;
-  return getCookie('active_club_id');
-}
-
 export function ClubSelector({ userRole }: ClubSelectorProps) {
   const [clubs, setClubs] = useState<Club[]>([]);
-  const [activeClubId, setActiveClubId] = useState<string | null>(readActiveClubId);
+  const [activeClubId, setActiveClubId] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const isSuperAdmin = userRole === 'SUPER_ADMIN';
 
   useEffect(() => {
-    if (!isSuperAdmin) return;
+    const match = document.cookie.match(new RegExp('(^| )active_club_id=([^;]+)'));
+    setActiveClubId(match ? decodeURIComponent(match[2]) : null);
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isSuperAdmin || !mounted) return;
     fetch('/api/admin/clubs', { cache: 'no-store' })
       .then((res) => res.json())
       .then((json) => setClubs(json.data ?? []))
       .catch(() => setClubs([]));
-  }, [isSuperAdmin]);
+  }, [isSuperAdmin, mounted]);
 
-  if (!isSuperAdmin) return null;
+  if (!isSuperAdmin || !mounted) return null;
 
   const activeClub = clubs.find((c) => c.id === activeClubId);
   const displayName = activeClub?.name ?? 'Todos los clubes';
 
   function handleSelectClub(clubId: string | null) {
-    setCookie('active_club_id', clubId ?? '');
+    const days = 365;
+    const expires = new Date(Date.now() + days * 864e5).toUTCString();
+    document.cookie = `active_club_id=${encodeURIComponent(clubId ?? '')}; expires=${expires}; path=/`;
     setActiveClubId(clubId);
     setIsOpen(false);
     window.location.reload();
