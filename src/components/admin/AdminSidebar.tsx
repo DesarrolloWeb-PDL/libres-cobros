@@ -21,15 +21,17 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ClubSelector } from './ClubSelector';
 
+// SUPER_ADMIN: platform-level (Panel, Clubes, Configuración)
+// ADMIN: club-level (Panel, Socios, Cuotas, Pagos, Comisiones, Reportes, Configuración)
 const navItems = [
-  { href: '/admin', label: 'Panel', icon: LayoutDashboard },
-  { href: '/admin/socios', label: 'Socios', icon: Users },
-  { href: '/admin/cuotas', label: 'Cuotas', icon: Receipt },
-  { href: '/admin/pagos', label: 'Pagos', icon: CreditCard },
-  { href: '/admin/comisiones', label: 'Comisiones', icon: Percent },
-  { href: '/admin/reportes', label: 'Reportes', icon: FileText },
-  { href: '/admin/clubes', label: 'Clubes', icon: Building2, superAdminOnly: true },
-  { href: '/admin/configuracion', label: 'Configuración', icon: Settings },
+  { href: '/admin', label: 'Panel', icon: LayoutDashboard, roles: ['SUPER_ADMIN', 'ADMIN'] as const },
+  { href: '/admin/socios', label: 'Socios', icon: Users, roles: ['ADMIN'] as const },
+  { href: '/admin/cuotas', label: 'Cuotas', icon: Receipt, roles: ['ADMIN'] as const },
+  { href: '/admin/pagos', label: 'Pagos', icon: CreditCard, roles: ['ADMIN'] as const },
+  { href: '/admin/comisiones', label: 'Comisiones', icon: Percent, roles: ['ADMIN'] as const },
+  { href: '/admin/reportes', label: 'Reportes', icon: FileText, roles: ['ADMIN'] as const },
+  { href: '/admin/clubes', label: 'Clubes', icon: Building2, roles: ['SUPER_ADMIN'] as const },
+  { href: '/admin/configuracion', label: 'Configuración', icon: Settings, roles: ['SUPER_ADMIN', 'ADMIN'] as const },
 ];
 
 export function AdminSidebar() {
@@ -44,9 +46,9 @@ export function AdminSidebar() {
       .catch(() => {});
   }, []);
 
-  const filteredNavItems = navItems.filter(
-    (item) => !item.superAdminOnly || userRole === 'SUPER_ADMIN'
-  );
+  const filteredNavItems = userRole
+    ? navItems.filter((item) => item.roles.includes(userRole as 'SUPER_ADMIN' | 'ADMIN'))
+    : [];
 
   return (
     <>
@@ -97,7 +99,7 @@ export function AdminSidebar() {
             })}
           </nav>
 
-          <ClubSelector userRole={userRole} />
+          {userRole === 'SUPER_ADMIN' && <ClubSelector userRole={userRole} />}
 
           <div className="border-t p-3">
             <Button
