@@ -50,13 +50,16 @@ export async function GET(request: NextRequest) {
   try {
     const ctx = await requireClub(request);
 
+    // Si no hay club seleccionado, devolver configs vacías para evitar crash
     if (!ctx.clubId) {
-      return apiError(
-        'Seleccione un club',
-        400,
-        'Se requiere un club para ver la configuración',
-        'CLUB_REQUIRED'
-      );
+      const emptyConfigs: SiteConfigListItem[] = CONFIG_KEYS.map((key) => ({
+        id: '',
+        key,
+        value: '',
+        description: getConfigDescription(key),
+        updatedAt: new Date().toISOString(),
+      }));
+      return apiSuccess({ data: emptyConfigs });
     }
 
     const configs = await prisma.siteConfig.findMany({
