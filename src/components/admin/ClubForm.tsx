@@ -46,7 +46,7 @@ export function ClubForm({ club }: ClubFormProps) {
           name,
           slug,
           commissionType,
-          commissionValue,
+          commissionValue: Number(commissionValue),
           status,
         }),
       });
