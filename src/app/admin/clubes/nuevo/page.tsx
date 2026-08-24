@@ -114,17 +114,16 @@ export default function NewClubPage() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="slug">Slug</Label>
+          <Label htmlFor="slug">Identificador URL</Label>
           <Input
             id="slug"
             value={slug}
             onChange={(e) => handleSlugChange(e.target.value)}
             required
             placeholder="nombre-del-club"
-            pattern="^[a-z0-9-]+$"
           />
           <p className="text-xs text-muted-foreground">
-            Solo minúsculas, números y guiones. Se genera automáticamente del nombre.
+            Parte de la URL para el portal de socios. Ejemplo: libres-cobros.vercel.app/pagos/<strong>zum-zum</strong>
           </p>
         </div>
 

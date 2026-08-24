@@ -128,7 +128,7 @@ export function ClubForm({ club }: ClubFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="slug">Slug</Label>
+          <Label htmlFor="slug">Identificador URL</Label>
           <Input
             id="slug"
             value={slug}

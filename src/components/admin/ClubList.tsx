@@ -95,7 +95,7 @@ export function ClubList({ initialData }: ClubListProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Nombre</TableHead>
-              <TableHead>Slug</TableHead>
+              <TableHead>Identificador URL</TableHead>
               <TableHead>Comisión</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead className="w-16">Acciones</TableHead>
