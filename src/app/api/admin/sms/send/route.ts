@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
 import { requireClub, clubWhere, AuthError } from '@/lib/access';
-import { sendBulkReminders } from '@/lib/sms';
+import { sendBulkReminders, getConfiguredChannel } from '@/lib/sms';
 import { MemberCategorySchema } from '@/types/member';
 import { FeeStatusSchema } from '@/types/fee';
 
@@ -12,6 +12,7 @@ const SendBulkSchema = z.object({
   status: FeeStatusSchema.optional(),
   month: z.coerce.number().int().min(1).max(12).optional(),
   year: z.coerce.number().int().min(2000).max(2100).optional(),
+  channel: z.enum(['sms', 'whatsapp']).optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -31,6 +32,11 @@ export async function POST(request: NextRequest) {
     }
 
     const { category, status, month, year } = parsed.data;
+
+    // Detectar canal configurado
+    const configuredChannel = ctx.clubId
+      ? await getConfiguredChannel(ctx.clubId)
+      : parsed.data.channel ?? 'whatsapp';
 
     const now = new Date();
     const targetMonth = month ?? now.getMonth() + 1;
@@ -58,11 +64,14 @@ export async function POST(request: NextRequest) {
 
     const result = await sendBulkReminders(memberIds);
 
+    const channelLabel = configuredChannel === 'whatsapp' ? 'WhatsApp' : 'SMS';
     return apiSuccess({
       ...result,
+      channel: configuredChannel,
       total: memberIds.length,
       month: targetMonth,
       year: targetYear,
+      message: `${channelLabel}: ${result.sent} enviados, ${result.failed} fallidos, ${result.skipped} omitidos`,
     });
   } catch (error) {
     if (error instanceof AuthError) {

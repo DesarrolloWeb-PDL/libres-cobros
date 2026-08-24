@@ -182,9 +182,12 @@ export function MemberList({ initialData }: MemberListProps) {
         throw new Error(data.error || 'Error al enviar el recordatorio');
       }
 
+      const result = await response.json();
+      const channelLabel = result.data?.channel === 'whatsapp' ? 'WhatsApp' : 'SMS';
+
       toast.add({
         title: 'Recordatorio enviado',
-        description: 'El SMS fue enviado correctamente',
+        description: `El ${channelLabel} fue enviado correctamente`,
         type: 'success',
       });
     } catch (error) {
@@ -215,9 +218,11 @@ export function MemberList({ initialData }: MemberListProps) {
       }
 
       const result = await response.json();
+      const channelLabel = result.data?.channel === 'whatsapp' ? 'WhatsApp' : 'SMS';
+
       toast.add({
         title: 'Recordatorios enviados',
-        description: `Enviados: ${result.data.sent}, Fallidos: ${result.data.failed}, Omitidos: ${result.data.skipped}`,
+        description: `${channelLabel}: ${result.data.sent} enviados, ${result.data.failed} fallidos, ${result.data.skipped} omitidos`,
         type: 'success',
       });
       setSelectedIds(new Set());
@@ -249,9 +254,11 @@ export function MemberList({ initialData }: MemberListProps) {
       }
 
       const result = await response.json();
+      const channelLabel = result.data?.channel === 'whatsapp' ? 'WhatsApp' : 'SMS';
+
       toast.add({
         title: 'Recordatorios enviados',
-        description: `Enviados: ${result.data.sent}, Fallidos: ${result.data.failed}, Omitidos: ${result.data.skipped}`,
+        description: `${channelLabel}: ${result.data.sent} enviados, ${result.data.failed} fallidos, ${result.data.skipped} omitidos`,
         type: 'success',
       });
     } catch (error) {

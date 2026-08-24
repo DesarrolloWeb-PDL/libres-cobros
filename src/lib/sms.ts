@@ -1,8 +1,10 @@
 import twilio from 'twilio';
 import { prisma } from '@/lib/db';
 import type { Prisma } from '@prisma/client';
+import { sendWhatsAppMessage, sendWhatsAppBulkReminders } from '@/lib/whatsapp';
 
 export type SmsMessageStatus = 'SENT' | 'FAILED' | 'SKIPPED';
+export type MessageChannel = 'sms' | 'whatsapp';
 
 export interface BulkResult {
   sent: number;
@@ -40,6 +42,34 @@ async function getSiteConfig(
   return config?.value ?? defaultValue;
 }
 
+/**
+ * Detecta el canal de mensajería configurado para un club.
+ * Prioridad: WhatsApp > SMS (si ambos están configurados, usa WhatsApp)
+ */
+export async function getConfiguredChannel(clubId: string): Promise<MessageChannel> {
+  const [whatsappPhoneId, whatsappToken, twilioSid] = await Promise.all([
+    getSiteConfig(prisma, clubId, 'whatsapp_phone_number_id'),
+    getSiteConfig(prisma, clubId, 'whatsapp_access_token'),
+    getSiteConfig(prisma, clubId, 'twilio_account_sid'),
+  ]);
+
+  // Si WhatsApp está configurado, usarlo (es gratis y más efectivo)
+  if (whatsappPhoneId && whatsappToken) {
+    return 'whatsapp';
+  }
+
+  // Si Twilio está configurado, usar SMS
+  if (twilioSid) {
+    return 'sms';
+  }
+
+  // Default a WhatsApp (el usuario debería configurar uno)
+  return 'whatsapp';
+}
+
+/**
+ * Envía un mensaje de texto vía SMS (Twilio)
+ */
 export async function sendSms(
   accountSid: string,
   authToken: string,
@@ -47,14 +77,12 @@ export async function sendSms(
   toNumber: string,
   body: string
 ): Promise<{ externalId: string | null }> {
-  // Validar credenciales antes de crear el cliente
   if (!accountSid || !authToken || !fromNumber) {
     throw new Error(
       'Configuración de Twilio incompleta. Verificá Account SID, Auth Token y número de teléfono en Configuración del club.'
     );
   }
 
-  // Validar formato del Account SID (debe empezar con AC)
   if (!accountSid.startsWith('AC')) {
     throw new Error(
       'Account SID inválido. Debe empezar con "AC". Verificá la configuración en Configuración del club.'
@@ -70,6 +98,49 @@ export async function sendSms(
   });
 
   return { externalId: message.sid };
+}
+
+/**
+ * Envía un mensaje usando el canal configurado (SMS o WhatsApp)
+ */
+export async function sendMessage(
+  clubId: string,
+  toNumber: string,
+  body: string
+): Promise<{ externalId: string | null; channel: MessageChannel }> {
+  const channel = await getConfiguredChannel(clubId);
+
+  if (channel === 'whatsapp') {
+    const [phoneNumberId, accessToken] = await Promise.all([
+      getSiteConfig(prisma, clubId, 'whatsapp_phone_number_id'),
+      getSiteConfig(prisma, clubId, 'whatsapp_access_token'),
+    ]);
+
+    if (!phoneNumberId || !accessToken) {
+      throw new Error(
+        'Configuración de WhatsApp incompleta. Verificá Phone Number ID y Access Token en Configuración del club.'
+      );
+    }
+
+    const { externalId } = await sendWhatsAppMessage(phoneNumberId, accessToken, toNumber, body);
+    return { externalId, channel: 'whatsapp' };
+  }
+
+  // SMS (Twilio)
+  const [accountSid, authToken, fromNumber] = await Promise.all([
+    getSiteConfig(prisma, clubId, 'twilio_account_sid'),
+    getSiteConfig(prisma, clubId, 'twilio_auth_token'),
+    getSiteConfig(prisma, clubId, 'twilio_phone_number'),
+  ]);
+
+  if (!accountSid || !authToken || !fromNumber) {
+    throw new Error(
+      'Configuración de Twilio incompleta. Verificá Account SID, Auth Token y número de teléfono en Configuración del club.'
+    );
+  }
+
+  const { externalId } = await sendSms(accountSid, authToken, fromNumber, toNumber, body);
+  return { externalId, channel: 'sms' };
 }
 
 async function logAttempt(
@@ -130,26 +201,12 @@ async function sendReminder(memberId: string): Promise<BulkResult> {
       return result;
     }
 
-    const [accountSid, authToken, fromNumber, nextPublicUrl] = await Promise.all([
-      getSiteConfig(prisma, clubId, 'twilio_account_sid'),
-      getSiteConfig(prisma, clubId, 'twilio_auth_token'),
-      getSiteConfig(prisma, clubId, 'twilio_phone_number'),
-      getSiteConfig(prisma, clubId, 'next_public_url', process.env.NEXT_PUBLIC_URL || ''),
-    ]);
-
-    if (!accountSid || !authToken || !fromNumber) {
-      await logAttempt(
-        clubId,
-        memberId,
-        'payment_reminder',
-        'SKIPPED',
-        '',
-        undefined,
-        'Configuración de Twilio incompleta'
-      );
-      result.skipped += 1;
-      return result;
-    }
+    const nextPublicUrl = await getSiteConfig(
+      prisma,
+      clubId,
+      'next_public_url',
+      process.env.NEXT_PUBLIC_URL || ''
+    );
 
     const fee = member.fees[0];
     const amount = fee.amount.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
@@ -157,21 +214,23 @@ async function sendReminder(memberId: string): Promise<BulkResult> {
     const club = await prisma.club.findUnique({ where: { id: clubId }, select: { slug: true } });
     const paymentUrl = `${nextPublicUrl}/pagos/${club?.slug}?dni=${member.dni}`;
 
-    const smsBody = [
+    const messageBody = [
       `Hola ${member.firstName}, recordatorio de pago.`,
       `Cuota: ${amount} - Vencimiento: ${dueDate}.`,
       `Paga acá: ${paymentUrl}`,
     ].join('\n');
 
-    const { externalId } = await sendSms(
-      accountSid,
-      authToken,
-      fromNumber,
-      member.phone,
-      smsBody
-    );
+    // Usar el canal configurado (WhatsApp o SMS)
+    const { externalId, channel } = await sendMessage(clubId, member.phone, messageBody);
 
-    await logAttempt(clubId, memberId, 'payment_reminder', 'SENT', smsBody, externalId);
+    await logAttempt(
+      clubId,
+      memberId,
+      `payment_reminder_${channel}`,
+      'SENT',
+      messageBody,
+      externalId
+    );
     result.sent += 1;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -219,3 +278,8 @@ export async function sendBulkReminders(
 
   return result;
 }
+
+/**
+ * Re-exportar funciones de WhatsApp para uso directo
+ */
+export { sendWhatsAppBulkReminders };

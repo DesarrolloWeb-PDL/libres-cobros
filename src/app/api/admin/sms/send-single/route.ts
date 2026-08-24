@@ -3,10 +3,11 @@ import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
 import { requireClub, AuthError } from '@/lib/access';
-import { sendBulkReminders } from '@/lib/sms';
+import { sendBulkReminders, getConfiguredChannel } from '@/lib/sms';
 
 const SendSingleSchema = z.object({
   memberId: z.string().cuid('ID de socio inválido'),
+  channel: z.enum(['sms', 'whatsapp']).optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -43,25 +44,41 @@ export async function POST(request: NextRequest) {
       return apiError('Sin teléfono', 400, `${member.firstName} no tiene número de teléfono registrado`, 'NO_PHONE');
     }
 
+    // Detectar canal configurado
+    const configuredChannel = ctx.clubId
+      ? await getConfiguredChannel(ctx.clubId)
+      : parsed.data.channel ?? 'whatsapp';
+
     const result = await sendBulkReminders([parsed.data.memberId]);
 
     if (result.failed > 0) {
-      return apiError('Error al enviar', 500, 'No se pudo enviar el SMS. Verificá la configuración de Twilio en Configuración.', 'SMS_FAILED');
+      const channelLabel = configuredChannel === 'whatsapp' ? 'WhatsApp' : 'Twilio SMS';
+      return apiError(
+        'Error al enviar',
+        500,
+        `No se pudo enviar el mensaje. Verificá la configuración de ${channelLabel} en Configuración.`,
+        'SEND_FAILED'
+      );
     }
 
     if (result.skipped > 0) {
-      return apiError('Omitido', 400, `${member.firstName} no tiene cuotas pendientes este mes`, 'SMS_SKIPPED');
+      return apiError('Omitido', 400, `${member.firstName} no tiene cuotas pendientes este mes`, 'SKIPPED');
     }
 
-    return apiSuccess({ sent: result.sent, message: `SMS enviado a ${member.firstName}` });
+    const channelLabel = configuredChannel === 'whatsapp' ? 'WhatsApp' : 'SMS';
+    return apiSuccess({
+      sent: result.sent,
+      channel: configuredChannel,
+      message: `${channelLabel} enviado a ${member.firstName}`,
+    });
   } catch (error) {
     if (error instanceof AuthError) {
       return apiError(error.message, error.status);
     }
-    // Extraer mensaje de error específico de Twilio
+    // Extraer mensaje de error específico
     const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
-    if (errorMessage.includes('Configuración de Twilio')) {
-      return apiError('Configuración incompleta', 500, errorMessage, 'TWILIO_CONFIG_MISSING');
+    if (errorMessage.includes('Configuración de')) {
+      return apiError('Configuración incompleta', 500, errorMessage, 'CONFIG_MISSING');
     }
     return apiDbError(error, 'Error al enviar el recordatorio');
   }
