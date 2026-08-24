@@ -37,7 +37,7 @@ export default async function ConfigurationPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Configuración</h1>
         <p className="text-muted-foreground">
-          Administrar montos de cuotas, tasa de comisión, datos bancarios y credenciales de Twilio SMS.
+          Administrar montos de cuotas, tasa de comisión, datos bancarios y credenciales de mensajería (WhatsApp o SMS).
         </p>
       </div>
 

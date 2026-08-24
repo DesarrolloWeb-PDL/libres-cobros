@@ -5,6 +5,7 @@ import { Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import {
   Card,
   CardContent,
@@ -34,9 +35,16 @@ const siteConfigSections = [
     keys: ['bank_alias', 'bank_cbu', 'bank_cuit', 'bank_name', 'bank_holder', 'bank_reference'],
   },
   {
-    title: 'Twilio SMS',
-    description: 'Credenciales de Twilio para envío de recordatorios por SMS.',
+    title: 'WhatsApp (Recomendado)',
+    description: 'Configuración de WhatsApp Cloud API para envío de recordatorios. GRATIS hasta 1,000 conversaciones/mes.',
+    keys: ['whatsapp_phone_number_id', 'whatsapp_access_token'],
+    badge: 'GRATIS',
+  },
+  {
+    title: 'Twilio SMS (Alternativa)',
+    description: 'Credenciales de Twilio para envío de recordatorios por SMS. Requiere credenciales de pago.',
     keys: ['twilio_account_sid', 'twilio_auth_token', 'twilio_phone_number'],
+    badge: 'PAGO',
   },
 ];
 
@@ -48,9 +56,19 @@ const siteConfigLabels: Record<string, string> = {
   bank_name: 'Banco',
   bank_holder: 'Titular',
   bank_reference: 'Referencia / Concepto',
+  whatsapp_phone_number_id: 'Phone Number ID',
+  whatsapp_access_token: 'Access Token',
   twilio_account_sid: 'Account SID',
   twilio_auth_token: 'Auth Token',
   twilio_phone_number: 'Número de teléfono',
+};
+
+const siteConfigPlaceholders: Record<string, string> = {
+  whatsapp_phone_number_id: 'Ej: 1234567890',
+  whatsapp_access_token: 'Ej: EAAG...',
+  twilio_account_sid: 'Ej: AC1234567890...',
+  twilio_auth_token: 'Ej: tu_auth_token',
+  twilio_phone_number: 'Ej: +541112345678',
 };
 
 export function ConfigurationForm({
@@ -196,7 +214,17 @@ export function ConfigurationForm({
               <div key={section.title}>
                 {index > 0 && <Separator className="mb-6" />}
                 <div className="mb-4">
-                  <h3 className="text-sm font-medium">{section.title}</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-medium">{section.title}</h3>
+                    {section.badge && (
+                      <Badge
+                        variant={section.badge === 'GRATIS' ? 'default' : 'secondary'}
+                        className={section.badge === 'GRATIS' ? 'bg-green-100 text-green-700' : ''}
+                      >
+                        {section.badge}
+                      </Badge>
+                    )}
+                  </div>
                   <p className="text-sm text-muted-foreground">{section.description}</p>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -213,6 +241,7 @@ export function ConfigurationForm({
                           min={key === 'commission_rate' ? 0 : undefined}
                           max={key === 'commission_rate' ? 100 : undefined}
                           step={key === 'commission_rate' ? 0.01 : undefined}
+                          placeholder={siteConfigPlaceholders[key] ?? ''}
                           value={config.value}
                           onChange={(e) => updateSiteConfig(key, e.target.value)}
                         />
