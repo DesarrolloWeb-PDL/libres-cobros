@@ -47,6 +47,20 @@ export async function sendSms(
   toNumber: string,
   body: string
 ): Promise<{ externalId: string | null }> {
+  // Validar credenciales antes de crear el cliente
+  if (!accountSid || !authToken || !fromNumber) {
+    throw new Error(
+      'Configuración de Twilio incompleta. Verificá Account SID, Auth Token y número de teléfono en Configuración del club.'
+    );
+  }
+
+  // Validar formato del Account SID (debe empezar con AC)
+  if (!accountSid.startsWith('AC')) {
+    throw new Error(
+      'Account SID inválido. Debe empezar con "AC". Verificá la configuración en Configuración del club.'
+    );
+  }
+
   const client = twilio(accountSid, authToken);
 
   const message = await client.messages.create({

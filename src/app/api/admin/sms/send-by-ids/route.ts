@@ -31,6 +31,11 @@ export async function POST(request: NextRequest) {
     if (error instanceof AuthError) {
       return apiError(error.message, error.status);
     }
+    // Extraer mensaje de error específico de Twilio
+    const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+    if (errorMessage.includes('Configuración de Twilio')) {
+      return apiError('Configuración incompleta', 500, errorMessage, 'TWILIO_CONFIG_MISSING');
+    }
     return apiDbError(error, 'Error al enviar recordatorios');
   }
 }
