@@ -102,7 +102,7 @@ export function AdminSidebar() {
             <Button
               variant="ghost"
               className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
-              onClick={() => signOut({ callbackUrl: '/admin/login' })}
+              onClick={() => signOut({ callbackUrl: '/login' })}
             >
               <LogOut className="size-4" />
               Cerrar sesión

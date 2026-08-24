@@ -27,7 +27,7 @@ export default async function ConfigurationPage() {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.role || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
-    redirect('/admin/login');
+    redirect('/login');
   }
 
   const { feeConfigs, siteConfigs } = await getInitialData();

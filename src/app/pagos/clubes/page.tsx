@@ -47,7 +47,7 @@ export default async function ClubesPage() {
         <div className="container mx-auto px-4 flex items-center justify-between">
           <span>Club Libres — Sistema de cobros. Ante cualquier duda, contactate con administración.</span>
           <Link
-            href="/admin/login"
+            href="/login"
             className="text-muted-foreground hover:text-foreground transition-colors"
           >
             Admin

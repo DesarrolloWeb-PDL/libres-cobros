@@ -17,7 +17,7 @@ export default async function ClubsPage() {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.role || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
-    redirect('/admin/login');
+    redirect('/login');
   }
 
   if (session.user.role !== 'SUPER_ADMIN') {

@@ -33,7 +33,7 @@ export default async function ClosingPage() {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.role || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
-    redirect('/admin/login');
+    redirect('/login');
   }
 
   const [initialClosings, initialPreview] = await Promise.all([
