@@ -56,8 +56,14 @@ export default async function ClubPaymentPage({ params, searchParams }: SlugPage
       </main>
 
       <footer className="border-t bg-muted/30 py-4 text-center text-xs text-muted-foreground">
-        <div className="container mx-auto px-4">
-          {club.name} — Sistema de cobros. Ante cualquier duda, contactate con administración.
+        <div className="container mx-auto px-4 flex items-center justify-between">
+          <span>{club.name} — Sistema de cobros. Ante cualquier duda, contactate con administración.</span>
+          <Link
+            href="/admin/login"
+            className="text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Admin
+          </Link>
         </div>
       </footer>
     </div>
