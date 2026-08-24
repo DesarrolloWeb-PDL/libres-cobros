@@ -134,7 +134,6 @@ export function ClubForm({ club }: ClubFormProps) {
             value={slug}
             onChange={(e) => setSlug(e.target.value)}
             required
-            pattern="^[a-z0-9-]+$"
           />
         </div>
 
