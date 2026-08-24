@@ -59,19 +59,19 @@ export function ClubSelector({ userRole }: ClubSelectorProps) {
           type="button"
           onClick={() => setIsOpen(!isOpen)}
           className={cn(
-            'flex w-full items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm',
+            'flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm min-w-[200px] w-full',
             'bg-background hover:bg-muted transition-colors'
           )}
         >
-          <span className="flex items-center gap-2 truncate">
+          <span className="flex items-center gap-2">
             <Building2 className="size-4 shrink-0 text-muted-foreground" />
-            <span className="truncate">{clubs.length === 0 ? 'Cargando...' : displayName}</span>
+            <span className="whitespace-nowrap">{clubs.length === 0 ? 'Cargando...' : displayName}</span>
           </span>
           <ChevronDown className={cn('size-4 shrink-0 text-muted-foreground transition-transform', isOpen && 'rotate-180')} />
         </button>
 
         {isOpen && (
-          <div className="absolute inset-x-0 top-full z-50 mt-1 rounded-lg border bg-background shadow-lg">
+          <div className="absolute inset-x-0 top-full z-50 mt-1 rounded-lg border bg-background shadow-lg min-w-[200px]">
             <div className="max-h-60 overflow-y-auto p-1">
               <button
                 type="button"
@@ -93,10 +93,10 @@ export function ClubSelector({ userRole }: ClubSelectorProps) {
                     type="button"
                     onClick={() => handleSelectClub(club.id)}
                     className={cn(
-                      'flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors',
+                      'flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors text-left whitespace-nowrap',
                       activeClubId === club.id
                         ? 'bg-primary text-primary-foreground'
-                        : 'hover:bg-muted text-left'
+                        : 'hover:bg-muted'
                     )}
                   >
                     {club.name}
