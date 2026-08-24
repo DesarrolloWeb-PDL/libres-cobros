@@ -140,7 +140,7 @@ export default function NuevoUsuarioPage() {
         {role === 'ADMIN' && (
           <div className="space-y-2">
             <Label>Club</Label>
-            <Select value={clubId} onValueChange={setClubId} disabled={loadingClubs}>
+            <Select value={clubId} onValueChange={(v) => setClubId(v ?? '')} disabled={loadingClubs}>
               <SelectTrigger>
                 <SelectValue placeholder={loadingClubs ? 'Cargando clubs...' : 'Seleccioná un club'} />
               </SelectTrigger>
