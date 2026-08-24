@@ -77,13 +77,11 @@ export default function GenerateFeesPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          render={<Link href="/admin/cuotas" aria-label="Volver al listado" />}
-        >
-          <ArrowLeft className="size-4" />
-        </Button>
+        <Link href="/admin/cuotas" aria-label="Volver al listado">
+          <Button variant="ghost" size="icon">
+            <ArrowLeft className="size-4" />
+          </Button>
+        </Link>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Generar cuotas</h1>
           <p className="text-muted-foreground">

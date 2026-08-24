@@ -91,10 +91,10 @@ export default function NewClubPage() {
   return (
     <div className="space-y-6 max-w-xl">
       <div>
-        <Button render={<Link href="/admin/clubes" />} variant="ghost" size="sm" className="mb-2 -ml-2 gap-2">
+        <Link href="/admin/clubes" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-2 -ml-2">
           <ArrowLeft className="size-4" />
           Volver
-        </Button>
+        </Link>
         <h1 className="text-2xl font-bold tracking-tight">Nuevo club</h1>
         <p className="text-muted-foreground">
           Completá los datos para crear un nuevo club.

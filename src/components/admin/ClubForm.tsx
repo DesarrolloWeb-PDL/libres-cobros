@@ -111,10 +111,10 @@ export function ClubForm({ club }: ClubFormProps) {
 
   return (
     <div className="space-y-6">
-      <Button render={<Link href="/admin/clubes" />} variant="ghost" size="sm" className="-ml-2 gap-2">
+      <Link href="/admin/clubes" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground -ml-2">
         <ArrowLeft className="size-4" />
         Volver
-      </Button>
+      </Link>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">

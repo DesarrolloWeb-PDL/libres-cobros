@@ -42,10 +42,12 @@ export default async function CommissionsPage() {
           </p>
         </div>
 
-        <Button render={<Link href="/admin/comisiones/cierre" />} variant="outline" className="gap-2">
-          <Lock className="size-4" />
-          Cierre mensual
-        </Button>
+        <Link href="/admin/comisiones/cierre">
+          <Button variant="outline" className="gap-2">
+            <Lock className="size-4" />
+            Cierre mensual
+          </Button>
+        </Link>
       </div>
 
       <CommissionReport initialData={initialData} />

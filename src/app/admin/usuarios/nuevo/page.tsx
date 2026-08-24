@@ -77,10 +77,10 @@ export default function NuevoUsuarioPage() {
   return (
     <div className="space-y-6 max-w-xl">
       <div>
-        <Button render={<Link href="/admin/usuarios" />} variant="ghost" size="sm" className="mb-2 -ml-2 gap-2">
+        <Link href="/admin/usuarios" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-2 -ml-2">
           <ArrowLeft className="size-4" />
           Volver
-        </Button>
+        </Link>
         <h1 className="text-2xl font-bold tracking-tight">Nuevo usuario</h1>
         <p className="text-muted-foreground">
           Completá los datos para crear un nuevo administrador.

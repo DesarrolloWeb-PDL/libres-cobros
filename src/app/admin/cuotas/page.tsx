@@ -36,10 +36,12 @@ export default async function FeesPage() {
           </p>
         </div>
 
-        <Button render={<Link href="/admin/cuotas/generar" />}>
-          <Plus className="mr-2 size-4" />
-          Generar cuotas
-        </Button>
+        <Link href="/admin/cuotas/generar">
+          <Button>
+            <Plus className="mr-2 size-4" />
+            Generar cuotas
+          </Button>
+        </Link>
       </div>
 
       <FeeList initialData={initialData} />

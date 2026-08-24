@@ -39,10 +39,12 @@ export default async function ClubPaymentConfirmationPage({ params, searchParams
             payment={null}
           />
           <div className="mt-4 text-center">
-            <Button render={<Link href={`/pagos/${slug}`} />} variant="outline">
-              <ArrowLeft className="mr-2 size-4" />
-              Volver al portal
-            </Button>
+            <Link href={`/pagos/${slug}`}>
+              <Button variant="outline">
+                <ArrowLeft className="mr-2 size-4" />
+                Volver al portal
+              </Button>
+            </Link>
           </div>
         </main>
       </div>
@@ -80,10 +82,12 @@ export default async function ClubPaymentConfirmationPage({ params, searchParams
           }
         />
         <div className="mt-4 text-center">
-          <Button render={<Link href={`/pagos/${slug}`} />} variant="outline">
-            <ArrowLeft className="mr-2 size-4" />
-            Volver al portal
-          </Button>
+          <Link href={`/pagos/${slug}`}>
+            <Button variant="outline">
+              <ArrowLeft className="mr-2 size-4" />
+              Volver al portal
+            </Button>
+          </Link>
         </div>
       </main>
     </div>

@@ -166,10 +166,12 @@ export function PaymentConfirmation({ status, provider, payment }: PaymentConfir
             </div>
           )}
 
-          <Button render={<Link href="/pagos" />} variant="outline" className="w-full">
-            <ArrowLeft className="mr-2 size-4" />
-            Volver al portal
-          </Button>
+          <Link href="/pagos" className="w-full">
+            <Button variant="outline" className="w-full">
+              <ArrowLeft className="mr-2 size-4" />
+              Volver al portal
+            </Button>
+          </Link>
         </CardContent>
       </Card>
     </div>
