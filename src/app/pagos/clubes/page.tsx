@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 import { UserRound } from 'lucide-react';
 import { prisma } from '@/lib/db';
 import { ClubDirectory } from '@/components/member/ClubDirectory';
@@ -43,8 +44,14 @@ export default async function ClubesPage() {
       </main>
 
       <footer className="border-t bg-muted/30 py-4 text-center text-xs text-muted-foreground">
-        <div className="container mx-auto px-4">
-          Club Libres — Sistema de cobros. Ante cualquier duda, contactate con administración.
+        <div className="container mx-auto px-4 flex items-center justify-between">
+          <span>Club Libres — Sistema de cobros. Ante cualquier duda, contactate con administración.</span>
+          <Link
+            href="/admin/login"
+            className="text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Admin
+          </Link>
         </div>
       </footer>
     </div>
