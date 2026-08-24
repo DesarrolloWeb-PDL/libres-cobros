@@ -84,7 +84,7 @@ export default function EditarUsuarioPage({ params }: { params: Promise<{ id: st
       const response = await fetch(`/api/admin/users/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, role, clubId: role === 'ADMIN' ? clubId : null }),
+        body: JSON.stringify({ name, role, clubId: role === 'ADMIN' && clubId ? clubId : null }),
       });
 
       if (!response.ok) {
