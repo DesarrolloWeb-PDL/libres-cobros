@@ -13,6 +13,7 @@ import {
   FileText,
   Settings,
   Building2,
+  UserCog,
   Menu,
   X,
   LogOut,
@@ -31,6 +32,7 @@ const navItems = [
   { href: '/admin/comisiones', label: 'Comisiones', icon: Percent, roles: ['ADMIN'] as const },
   { href: '/admin/reportes', label: 'Reportes', icon: FileText, roles: ['ADMIN'] as const },
   { href: '/admin/clubes', label: 'Clubes', icon: Building2, roles: ['SUPER_ADMIN'] as const },
+  { href: '/admin/usuarios', label: 'Usuarios', icon: UserCog, roles: ['SUPER_ADMIN'] as const },
   { href: '/admin/configuracion', label: 'Configuración', icon: Settings, roles: ['SUPER_ADMIN', 'ADMIN'] as const },
 ];
 
