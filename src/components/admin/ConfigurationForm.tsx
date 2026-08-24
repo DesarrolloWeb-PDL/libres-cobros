@@ -5,7 +5,6 @@ import { Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import {
   Card,
   CardContent,
@@ -217,12 +216,12 @@ export function ConfigurationForm({
                   <div className="flex items-center gap-2">
                     <h3 className="text-sm font-medium">{section.title}</h3>
                     {section.badge && (
-                      <Badge
-                        variant={section.badge === 'GRATIS' ? 'default' : 'secondary'}
-                        className={section.badge === 'GRATIS' ? 'bg-green-100 text-green-700' : ''}
-                      >
+                      <span className={section.badge === 'GRATIS'
+                        ? 'inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700'
+                        : 'inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground'
+                      }>
                         {section.badge}
-                      </Badge>
+                      </span>
                     )}
                   </div>
                   <p className="text-sm text-muted-foreground">{section.description}</p>
