@@ -9,8 +9,12 @@ const CreateAdminUserSchema = z.object({
   email: z.string().email('Email inválido'),
   password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
   name: z.string().min(1, 'El nombre es obligatorio'),
-  clubId: z.string().cuid('Club ID inválido'),
-});
+  role: z.enum(['ADMIN', 'SUPER_ADMIN']).default('ADMIN'),
+  clubId: z.string().cuid('Club ID inválido').optional(),
+}).refine(
+  (data) => data.role === 'SUPER_ADMIN' || !!data.clubId,
+  { message: 'Club es obligatorio para roles de admin de club', path: ['clubId'] }
+);
 
 function serializeUser(user: {
   id: string;
@@ -78,14 +82,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { email, password, name, clubId } = parsed.data;
+    const { email, password, name, clubId, role } = parsed.data;
 
-    const club = await prisma.club.findUnique({
-      where: { id: clubId },
-    });
+    if (role === 'ADMIN') {
+      const club = await prisma.club.findUnique({
+        where: { id: clubId },
+      });
 
-    if (!club) {
-      return apiError('Club no encontrado', 404, 'Club ID inválido', 'CLUB_NOT_FOUND');
+      if (!club) {
+        return apiError('Club no encontrado', 404, 'Club ID inválido', 'CLUB_NOT_FOUND');
+      }
     }
 
     const existing = await prisma.adminUser.findUnique({
@@ -106,8 +112,8 @@ export async function POST(request: NextRequest) {
         email,
         name,
         passwordHash: hashSync(password, 10),
-        role: 'ADMIN',
-        clubId,
+        role,
+        clubId: role === 'SUPER_ADMIN' ? null : clubId,
       },
       include: {
         club: { select: { name: true } },

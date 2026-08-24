@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -29,6 +29,16 @@ export default function NuevoUsuarioPage() {
   const [name, setName] = useState('');
   const [clubId, setClubId] = useState('');
   const [role, setRole] = useState<'ADMIN' | 'SUPER_ADMIN'>('ADMIN');
+  const [clubs, setClubs] = useState<Club[]>([]);
+  const [loadingClubs, setLoadingClubs] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/admin/clubs')
+      .then((res) => res.json())
+      .then((json) => setClubs(json.data ?? []))
+      .catch(() => toast.add({ title: 'Error', description: 'No se pudieron cargar los clubs', type: 'error' }))
+      .finally(() => setLoadingClubs(false));
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -129,22 +139,24 @@ export default function NuevoUsuarioPage() {
 
         {role === 'ADMIN' && (
           <div className="space-y-2">
-            <Label htmlFor="clubId">Club ID</Label>
-            <Input
-              id="clubId"
-              value={clubId}
-              onChange={(e) => setClubId(e.target.value)}
-              required={role === 'ADMIN'}
-              placeholder="ID del club (CUID)"
-            />
-            <p className="text-xs text-muted-foreground">
-              El ID del club al que pertenece este administrador.
-            </p>
+            <Label>Club</Label>
+            <Select value={clubId} onValueChange={setClubId} disabled={loadingClubs}>
+              <SelectTrigger>
+                <SelectValue placeholder={loadingClubs ? 'Cargando clubs...' : 'Seleccioná un club'} />
+              </SelectTrigger>
+              <SelectContent>
+                {clubs.map((club) => (
+                  <SelectItem key={club.id} value={club.id}>
+                    {club.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         )}
 
         <div className="flex gap-3 pt-4">
-          <Button type="submit" disabled={isSubmitting}>
+          <Button type="submit" disabled={isSubmitting || (role === 'ADMIN' && !clubId)}>
             {isSubmitting ? 'Creando...' : 'Crear usuario'}
           </Button>
           <Button type="button" variant="outline" onClick={() => router.push('/admin/usuarios')}>
