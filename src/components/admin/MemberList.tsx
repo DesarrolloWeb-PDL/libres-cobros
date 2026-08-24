@@ -10,6 +10,8 @@ import {
   Download,
   Upload,
   Plus,
+  Send,
+  MessageSquare,
 } from 'lucide-react';
 import { BulkImportForm } from './BulkImportForm';
 import { Button } from '@/components/ui/button';
@@ -73,6 +75,9 @@ export function MemberList({ initialData }: MemberListProps) {
   const [status, setStatus] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [sendingId, setSendingId] = useState<string | null>(null);
+  const [sendingBulk, setSendingBulk] = useState(false);
 
   const fetchMembers = useCallback(async (params: FetchParams) => {
     setIsLoading(true);
@@ -141,6 +146,123 @@ export function MemberList({ initialData }: MemberListProps) {
   async function handlePageChange(newPage: number) {
     setPage(newPage);
     await fetchMembers(buildParams({ page: newPage }));
+  }
+
+  function toggleSelectAll() {
+    if (selectedIds.size === members.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(members.map((m) => m.id)));
+    }
+  }
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }
+
+  async function sendReminderSingle(memberId: string) {
+    setSendingId(memberId);
+    try {
+      const response = await fetch('/api/admin/sms/send-single', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberId }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Error al enviar el recordatorio');
+      }
+
+      toast.add({
+        title: 'Recordatorio enviado',
+        description: 'El SMS fue enviado correctamente',
+        type: 'success',
+      });
+    } catch (error) {
+      toast.add({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'No se pudo enviar el recordatorio',
+        type: 'error',
+      });
+    } finally {
+      setSendingId(null);
+    }
+  }
+
+  async function sendReminderBulk() {
+    if (selectedIds.size === 0) return;
+
+    setSendingBulk(true);
+    try {
+      const response = await fetch('/api/admin/sms/send-by-ids', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberIds: Array.from(selectedIds) }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Error al enviar los recordatorios');
+      }
+
+      const result = await response.json();
+      toast.add({
+        title: 'Recordatorios enviados',
+        description: `Enviados: ${result.data.sent}, Fallidos: ${result.data.failed}, Omitidos: ${result.data.skipped}`,
+        type: 'success',
+      });
+      setSelectedIds(new Set());
+    } catch (error) {
+      toast.add({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'No se pudieron enviar los recordatorios',
+        type: 'error',
+      });
+    } finally {
+      setSendingBulk(false);
+    }
+  }
+
+  async function sendReminderAll() {
+    if (!confirm('¿Enviar recordatorio a todos los socios con cuotas pendientes?')) return;
+
+    setSendingBulk(true);
+    try {
+      const response = await fetch('/api/admin/sms/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Error al enviar los recordatorios');
+      }
+
+      const result = await response.json();
+      toast.add({
+        title: 'Recordatorios enviados',
+        description: `Enviados: ${result.data.sent}, Fallidos: ${result.data.failed}, Omitidos: ${result.data.skipped}`,
+        type: 'success',
+      });
+    } catch (error) {
+      toast.add({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'No se pudieron enviar los recordatorios',
+        type: 'error',
+      });
+    } finally {
+      setSendingBulk(false);
+    }
   }
 
   async function toggleStatus(member: MemberListItem) {
@@ -216,6 +338,8 @@ export function MemberList({ initialData }: MemberListProps) {
   }
 
   const totalPages = Math.max(1, Math.ceil(total / limit));
+  const allSelected = members.length > 0 && selectedIds.size === members.length;
+  const someSelected = selectedIds.size > 0 && selectedIds.size < members.length;
 
   return (
     <div className="space-y-4">
@@ -256,6 +380,16 @@ export function MemberList({ initialData }: MemberListProps) {
         </div>
 
         <div className="flex flex-wrap gap-2">
+          {selectedIds.size > 0 && (
+            <Button variant="outline" onClick={sendReminderBulk} disabled={sendingBulk}>
+              <Send className="mr-2 size-4" />
+              {sendingBulk ? 'Enviando...' : `Enviar a ${selectedIds.size} seleccionados`}
+            </Button>
+          )}
+          <Button variant="outline" onClick={sendReminderAll} disabled={sendingBulk}>
+            <MessageSquare className="mr-2 size-4" />
+            {sendingBulk ? 'Enviando...' : 'Enviar a todos con deuda'}
+          </Button>
           <Button variant="outline" onClick={handleExport}>
             <Download className="mr-2 size-4" />
             Exportar
@@ -275,29 +409,46 @@ export function MemberList({ initialData }: MemberListProps) {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-12">
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  ref={(el) => { if (el) el.indeterminate = someSelected; }}
+                  onChange={toggleSelectAll}
+                  className="size-4"
+                />
+              </TableHead>
               <TableHead>DNI</TableHead>
               <TableHead>Nombre</TableHead>
               <TableHead>Categoria</TableHead>
               <TableHead>Estado</TableHead>
-              <TableHead className="w-16">Acciones</TableHead>
+              <TableHead className="w-20">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
+                <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
                   Cargando...
                 </TableCell>
               </TableRow>
             ) : members.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
+                <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
                   No se encontraron socios
                 </TableCell>
               </TableRow>
             ) : (
               members.map((member) => (
                 <TableRow key={member.id}>
+                  <TableCell>
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(member.id)}
+                      onChange={() => toggleSelect(member.id)}
+                      className="size-4"
+                    />
+                  </TableCell>
                   <TableCell>{member.dni}</TableCell>
                   <TableCell>
                     {member.firstName} {member.lastName}
@@ -330,6 +481,13 @@ export function MemberList({ initialData }: MemberListProps) {
                           {member.status === 'ACTIVE' ? 'Desactivar' : 'Activar'}
                         </DropdownMenuItem>
                         <DropdownMenuItem
+                          onClick={() => sendReminderSingle(member.id)}
+                          disabled={sendingId === member.id}
+                        >
+                          <Send className="mr-2 size-4" />
+                          {sendingId === member.id ? 'Enviando...' : 'Enviar recordatorio'}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
                           variant="destructive"
                           onClick={() => deleteMember(member)}
                         >
@@ -348,6 +506,7 @@ export function MemberList({ initialData }: MemberListProps) {
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
           Mostrando {members.length} de {total} socios
+          {selectedIds.size > 0 && ` · ${selectedIds.size} seleccionados`}
         </p>
         <div className="flex items-center gap-2">
           <Button
