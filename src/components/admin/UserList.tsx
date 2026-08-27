@@ -149,11 +149,11 @@ export function UserList({ initialData }: UserListProps) {
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger
-                        render={
-                          <Button variant="ghost" size="icon" aria-label="Acciones">
+                        render={(props) => (
+                          <Button {...props} variant="ghost" size="icon" aria-label="Acciones">
                             <MoreHorizontal className="size-4" />
                           </Button>
-                        }
+                        )}
                       />
                       <DropdownMenuContent>
                         <DropdownMenuItem onClick={() => router.push(`/admin/usuarios/${user.id}`)}>

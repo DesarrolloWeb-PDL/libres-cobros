@@ -472,11 +472,11 @@ export function MemberList({ initialData }: MemberListProps) {
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger
-                        render={
-                          <Button variant="ghost" size="icon" aria-label="Acciones">
+                        render={(props) => (
+                          <Button {...props} variant="ghost" size="icon" aria-label="Acciones">
                             <MoreHorizontal className="size-4" />
                           </Button>
-                        }
+                        )}
                       />
                       <DropdownMenuContent>
                         <DropdownMenuItem
