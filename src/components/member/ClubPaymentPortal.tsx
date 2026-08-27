@@ -12,13 +12,26 @@ interface ClubPaymentPortalProps {
   clubName: string;
   slug: string;
   prefilledDni?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  accentColor?: string;
 }
 
-export function ClubPaymentPortal({ clubName, slug, prefilledDni }: ClubPaymentPortalProps) {
+export function ClubPaymentPortal({ 
+  clubName, 
+  slug, 
+  prefilledDni, 
+  primaryColor,
+  secondaryColor,
+  accentColor 
+}: ClubPaymentPortalProps) {
   const [dni, setDni] = useState(prefilledDni ?? '');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<MemberFeesResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const accentStyle = primaryColor ? { color: primaryColor } : undefined;
+  const btnStyle = primaryColor ? { backgroundColor: primaryColor } : undefined;
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -63,10 +76,16 @@ export function ClubPaymentPortal({ clubName, slug, prefilledDni }: ClubPaymentP
     <>
       {/* Hero Section - estilo freelancer */}
       <div className="mb-8 text-center">
-        <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-4">
+        <p 
+          className="font-mono text-xs tracking-[0.2em] uppercase mb-4"
+          style={accentStyle || { color: 'hsl(var(--accent))' }}
+        >
           Portal de Pagos
         </p>
-        <h1 className="text-4xl sm:text-4xl font-bold tracking-tight mb-3 text-accent">
+        <h1 
+          className="text-4xl sm:text-4xl font-bold tracking-tight mb-3"
+          style={accentStyle || { color: 'hsl(var(--accent))' }}
+        >
           {clubName}
         </h1>
         <p className="max-w-md text-muted-foreground leading-relaxed mb-8">
@@ -78,7 +97,10 @@ export function ClubPaymentPortal({ clubName, slug, prefilledDni }: ClubPaymentP
       <section className="relative py-8 px-6 border-t border-border">
         <div className="max-w-4xl mx-auto">
           <div className="mb-6 text-center">
-            <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-3">
+            <p 
+              className="font-mono text-xs tracking-[0.2em] uppercase mb-3"
+              style={accentStyle || { color: 'hsl(var(--accent))' }}
+            >
               Buscar Socio
             </p>
             <h2 className="text-2xl font-bold mb-6">
@@ -101,7 +123,8 @@ export function ClubPaymentPortal({ clubName, slug, prefilledDni }: ClubPaymentP
             </div>
             <Button 
               type="submit" 
-              className="h-11 bg-accent hover:bg-accent-hover text-white" 
+              className="h-11 text-white" 
+              style={btnStyle || { backgroundColor: 'hsl(var(--accent))' }}
               disabled={loading}
             >
               {loading ? (

@@ -11,6 +11,7 @@ interface MemberNavProps {
   clubName: string;
   clubSlug: string;
   clubLogo?: string | null;
+  primaryColor?: string;
 }
 
 const navItems = [
@@ -19,9 +20,12 @@ const navItems = [
   { href: '/ayuda', label: 'Ayuda', icon: HelpCircle },
 ];
 
-export function MemberNav({ clubName, clubSlug, clubLogo }: MemberNavProps) {
+export function MemberNav({ clubName, clubSlug, clubLogo, primaryColor }: MemberNavProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const accentStyle = primaryColor ? { color: primaryColor } : undefined;
+  const accentBgStyle = primaryColor ? { backgroundColor: `${primaryColor}15` } : undefined;
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg">
@@ -37,14 +41,23 @@ export function MemberNav({ clubName, clubSlug, clubLogo }: MemberNavProps) {
               />
             </div>
           ) : (
-            <div className="flex size-10 items-center justify-center rounded-lg bg-accent/10">
-              <span className="text-lg font-bold text-accent">
+            <div 
+              className="flex size-10 items-center justify-center rounded-lg"
+              style={accentBgStyle || { backgroundColor: 'hsl(var(--accent) / 0.1)' }}
+            >
+              <span 
+                className="text-lg font-bold"
+                style={accentStyle || { color: 'hsl(var(--accent))' }}
+              >
                 {clubName.charAt(0)}
               </span>
             </div>
           )}
           <div>
-            <h1 className="font-semibold group-hover:text-accent transition-colors">
+            <h1 
+              className="font-semibold transition-colors"
+              style={accentStyle}
+            >
               {clubName}
             </h1>
             <p className="text-xs text-muted-foreground">Portal de Socios</p>
@@ -65,12 +78,13 @@ export function MemberNav({ clubName, clubSlug, clubLogo }: MemberNavProps) {
                 className={cn(
                   'flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all',
                   isActive
-                    ? 'bg-accent/10 text-accent'
+                    ? 'bg-accent/10'
                     : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                 )}
+                style={isActive ? accentBgStyle : undefined}
               >
-                <Icon className="size-4" />
-                {item.label}
+                <Icon className="size-4" style={isActive ? accentStyle : undefined} />
+                <span style={isActive ? accentStyle : undefined}>{item.label}</span>
               </Link>
             );
           })}
@@ -105,12 +119,13 @@ export function MemberNav({ clubName, clubSlug, clubLogo }: MemberNavProps) {
                   className={cn(
                     'flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all',
                     isActive
-                      ? 'bg-accent/10 text-accent'
+                      ? 'bg-accent/10'
                       : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                   )}
+                  style={isActive ? accentBgStyle : undefined}
                 >
-                  <Icon className="size-5" />
-                  {item.label}
+                  <Icon className="size-5" style={isActive ? accentStyle : undefined} />
+                  <span style={isActive ? accentStyle : undefined}>{item.label}</span>
                 </Link>
               );
             })}

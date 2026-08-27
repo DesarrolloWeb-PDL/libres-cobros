@@ -36,11 +36,19 @@ export default async function ClubPaymentPage({ params, searchParams }: SlugPage
   const prefilledDni = typeof dni === 'string' ? dni : undefined;
 
   return (
-    <div className="flex min-h-full flex-col">
+    <div 
+      className="flex min-h-full flex-col"
+      style={{
+        '--club-primary': club.primaryColor,
+        '--club-secondary': club.secondaryColor,
+        '--club-accent': club.accentColor,
+      } as React.CSSProperties}
+    >
       <MemberNav 
         clubName={club.name}
         clubSlug={club.slug}
         clubLogo={club.logoUrl}
+        primaryColor={club.primaryColor}
       />
 
       <main className="flex-1 px-4 py-8">
@@ -49,6 +57,9 @@ export default async function ClubPaymentPage({ params, searchParams }: SlugPage
             clubName={club.name}
             slug={club.slug}
             prefilledDni={prefilledDni}
+            primaryColor={club.primaryColor}
+            secondaryColor={club.secondaryColor}
+            accentColor={club.accentColor}
           />
         </div>
       </main>
