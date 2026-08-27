@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { Search, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
 import { PaymentPortal } from './PaymentPortal';
 import { toast } from '@/components/ui/toast';
 import type { MemberFeesResponse } from '@/types/fee';
@@ -62,16 +61,32 @@ export function ClubPaymentPortal({ clubName, slug, prefilledDni }: ClubPaymentP
 
   return (
     <>
+      {/* Hero Section - estilo freelancer */}
       <div className="mb-8 text-center">
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{clubName}</h1>
-        <p className="mt-2 text-muted-foreground">
+        <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-4">
+          Portal de Pagos
+        </p>
+        <h1 className="text-4xl sm:text-4xl font-bold tracking-tight mb-3 text-accent">
+          {clubName}
+        </h1>
+        <p className="max-w-md text-muted-foreground leading-relaxed mb-8">
           Ingresá tu DNI para ver tus cuotas pendientes y realizar pagos.
         </p>
       </div>
 
-      <Card className="mb-8">
-        <CardContent className="p-4 sm:p-6">
-          <form onSubmit={handleSearch} className="flex flex-col gap-3 sm:flex-row">
+      {/* Search Section */}
+      <section className="relative py-8 px-6 border-t border-border">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-6 text-center">
+            <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-3">
+              Buscar Socio
+            </p>
+            <h2 className="text-2xl font-bold mb-6">
+              Consultá tus Cuotas
+            </h2>
+          </div>
+
+          <form onSubmit={handleSearch} className="flex flex-col gap-3 sm:flex-row max-w-xl mx-auto">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -84,7 +99,11 @@ export function ClubPaymentPortal({ clubName, slug, prefilledDni }: ClubPaymentP
                 disabled={loading}
               />
             </div>
-            <Button type="submit" className="h-11" disabled={loading}>
+            <Button 
+              type="submit" 
+              className="h-11 bg-accent hover:bg-accent-hover text-white" 
+              disabled={loading}
+            >
               {loading ? (
                 <Loader2 className="mr-2 size-4 animate-spin" />
               ) : (
@@ -95,13 +114,13 @@ export function ClubPaymentPortal({ clubName, slug, prefilledDni }: ClubPaymentP
           </form>
 
           {error && (
-            <div className="mt-4 flex items-center gap-2 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+            <div className="mt-4 flex items-center gap-2 rounded-lg bg-destructive/10 p-3 text-sm text-destructive max-w-xl mx-auto">
               <AlertCircle className="size-4 shrink-0" />
               <span>{error}</span>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
       {result && (
         <PaymentPortal

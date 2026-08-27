@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { UserRound } from 'lucide-react';
 import { prisma } from '@/lib/db';
 import { ClubDirectory } from '@/components/member/ClubDirectory';
+import { Logo } from '@/components/Logo';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,36 +19,46 @@ export default async function ClubesPage() {
 
   return (
     <div className="flex min-h-full flex-col">
-      <header className="border-b bg-card">
-        <div className="container mx-auto flex items-center justify-between px-4 py-4">
-          <div className="flex items-center gap-2">
-            <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <UserRound className="size-5" />
-            </div>
-            <span className="font-semibold">Portal de Socios</span>
-          </div>
-        </div>
+      {/* Hero Section - estilo freelancer */}
+      <header className="relative flex flex-col items-center justify-center min-h-[50vh] px-6 pt-16 sm:pt-0 text-center">
+        <Logo size={120} showScroll={false} />
+        <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-4 mt-6">
+          Portal de Socios
+        </p>
+        <h1 className="text-4xl sm:text-4xl font-bold tracking-tight mb-3 text-accent">
+          Club Libres
+        </h1>
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight mb-2">
+          Sistema de Cobros
+        </h2>
+        <p className="max-w-md text-muted-foreground leading-relaxed mb-8">
+          Seleccioná el club al que pertenecés para ver tus cuotas y realizar pagos.
+        </p>
       </header>
 
-      <main className="flex-1 px-4 py-8">
-        <div className="container mx-auto max-w-3xl">
+      {/* Clubes */}
+      <section className="relative py-12 px-6 border-t border-border">
+        <div className="max-w-4xl mx-auto">
           <div className="mb-8 text-center">
-            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Elegí tu club</h1>
-            <p className="mt-2 text-muted-foreground">
-              Seleccioná el club al que pertenecés para ver tus cuotas.
+            <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-3">
+              Elegí tu club
             </p>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-10">
+              Tus Clubes
+            </h2>
           </div>
 
           <ClubDirectory clubs={clubs} />
         </div>
-      </main>
+      </section>
 
-      <footer className="border-t bg-muted/30 py-4 text-center text-xs text-muted-foreground">
+      {/* Footer - estilo freelancer */}
+      <footer className="border-t bg-muted/30 py-6 text-center text-xs text-muted-foreground mt-auto">
         <div className="container mx-auto px-4 flex items-center justify-between">
           <span>Club Libres — Sistema de cobros. Ante cualquier duda, contactate con administración.</span>
           <Link
             href="/login"
-            className="text-muted-foreground hover:text-foreground transition-colors"
+            className="text-muted-foreground hover:text-accent transition-colors"
           >
             Admin
           </Link>

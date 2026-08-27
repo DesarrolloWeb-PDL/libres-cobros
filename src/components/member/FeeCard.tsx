@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { Calendar, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { PaymentMethodSelector } from './PaymentMethodSelector';
 import type { MemberFeeItem } from '@/types/fee';
@@ -53,38 +52,41 @@ export function FeeCard({ fee, memberDni, clubSlug }: FeeCardProps) {
 
   return (
     <>
-      <Card className="flex flex-col">
-        <CardHeader className="pb-3">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <CardTitle className="text-base">
-                {monthLabels[fee.month]} {fee.year}
-              </CardTitle>
-              <p className="text-xs text-muted-foreground">{fee.feeConfig.category}</p>
-            </div>
-            <Badge variant="outline" className={statusBadgeClasses[fee.status]}>
-              {statusLabels[fee.status] ?? fee.status}
-            </Badge>
+      <div className="flex flex-col p-6 rounded-xl border border-border bg-card hover:border-accent/50 transition-all duration-200">
+        <div className="flex items-start justify-between gap-3 mb-4">
+          <div>
+            <h3 className="text-lg font-semibold">
+              {monthLabels[fee.month]} {fee.year}
+            </h3>
+            <p className="text-sm text-muted-foreground">{fee.feeConfig.category}</p>
           </div>
-        </CardHeader>
-        <CardContent className="flex-1 pb-3">
-          <div className="flex items-baseline gap-1">
-            <span className="text-2xl font-bold">{currencyFormatter.format(fee.amount)}</span>
+          <Badge variant="outline" className={statusBadgeClasses[fee.status]}>
+            {statusLabels[fee.status] ?? fee.status}
+          </Badge>
+        </div>
+        
+        <div className="flex-1">
+          <div className="flex items-baseline gap-1 mb-3">
+            <span className="text-3xl font-bold text-accent">{currencyFormatter.format(fee.amount)}</span>
           </div>
-          <div className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <Calendar className="size-4" />
             <span>Vence el {new Date(fee.dueDate).toLocaleDateString('es-AR')}</span>
           </div>
-        </CardContent>
+        </div>
+
         {canPay && (
-          <CardFooter className="pt-0">
-            <Button className="w-full" onClick={() => setSelectorOpen(true)}>
+          <div className="mt-4 pt-4 border-t border-border">
+            <Button 
+              className="w-full bg-accent hover:bg-accent-hover text-white" 
+              onClick={() => setSelectorOpen(true)}
+            >
               <CreditCard className="mr-2 size-4" />
               Pagar ahora
             </Button>
-          </CardFooter>
+          </div>
         )}
-      </Card>
+      </div>
 
       <PaymentMethodSelector
         fee={fee}
