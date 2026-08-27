@@ -4,6 +4,35 @@ import { compare } from 'bcryptjs';
 import { prisma } from '@/lib/db';
 import type { ScopedRole } from '@/lib/access';
 
+// Extend next-auth types
+declare module 'next-auth' {
+  interface User {
+    id: string;
+    role?: string;
+    clubId?: string | null;
+    mustChangePassword?: boolean;
+  }
+  interface Session {
+    user: {
+      id: string;
+      name: string | null;
+      email: string | null;
+      role: ScopedRole;
+      clubId: string | null;
+      mustChangePassword: boolean;
+    };
+  }
+}
+
+declare module 'next-auth/jwt' {
+  interface JWT {
+    id?: string;
+    role?: string;
+    clubId?: string | null;
+    mustChangePassword?: boolean;
+  }
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -52,7 +81,7 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.role = user.role;
         token.clubId = user.clubId ?? null;
-        token.mustChangePassword = (user as any).mustChangePassword ?? false;
+        token.mustChangePassword = user.mustChangePassword ?? false;
       }
       return token;
     },
@@ -61,7 +90,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
         session.user.role = (token.role as ScopedRole) ?? 'ADMIN';
         session.user.clubId = (token.clubId as string | null) ?? null;
-        (session.user as any).mustChangePassword = token.mustChangePassword ?? false;
+        session.user.mustChangePassword = token.mustChangePassword ?? false;
       }
       return session;
     },

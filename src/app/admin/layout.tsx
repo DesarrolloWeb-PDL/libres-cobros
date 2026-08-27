@@ -11,7 +11,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   // Check if user must change password
-  if ((session.user as any).mustChangePassword) {
+  if (session.user.mustChangePassword) {
     redirect('/admin/change-password');
   }
 
