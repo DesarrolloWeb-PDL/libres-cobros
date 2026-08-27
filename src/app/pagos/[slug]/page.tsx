@@ -1,8 +1,8 @@
 import { notFound } from 'next/navigation';
-import { UserRound } from 'lucide-react';
 import Link from 'next/link';
 import { prisma } from '@/lib/db';
 import { ClubPaymentPortal } from '@/components/member/ClubPaymentPortal';
+import { MemberNav } from '@/components/member/MemberNav';
 
 interface SlugPageProps {
   params: Promise<{ slug: string }>;
@@ -17,7 +17,16 @@ export default async function ClubPaymentPage({ params, searchParams }: SlugPage
 
   const club = await prisma.club.findUnique({
     where: { slug },
-    select: { id: true, name: true, slug: true, status: true },
+    select: { 
+      id: true, 
+      name: true, 
+      slug: true, 
+      status: true,
+      logoUrl: true,
+      primaryColor: true,
+      secondaryColor: true,
+      accentColor: true,
+    },
   });
 
   if (!club || club.status !== 'ACTIVE') {
@@ -28,22 +37,11 @@ export default async function ClubPaymentPage({ params, searchParams }: SlugPage
 
   return (
     <div className="flex min-h-full flex-col">
-      <header className="border-b bg-card">
-        <div className="container mx-auto flex items-center justify-between px-4 py-4">
-          <div className="flex items-center gap-2">
-            <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <UserRound className="size-5" />
-            </div>
-            <span className="font-semibold">Portal de Socios</span>
-          </div>
-          <Link
-            href="/pagos/clubes"
-            className="text-sm text-muted-foreground hover:text-foreground"
-          >
-            Cambiar club
-          </Link>
-        </div>
-      </header>
+      <MemberNav 
+        clubName={club.name}
+        clubSlug={club.slug}
+        clubLogo={club.logoUrl}
+      />
 
       <main className="flex-1 px-4 py-8">
         <div className="container mx-auto max-w-3xl">
@@ -55,12 +53,13 @@ export default async function ClubPaymentPage({ params, searchParams }: SlugPage
         </div>
       </main>
 
-      <footer className="border-t bg-muted/30 py-4 text-center text-xs text-muted-foreground">
-        <div className="container mx-auto px-4 flex items-center justify-between">
-          <span>{club.name} — Sistema de cobros. Ante cualquier duda, contactate con administración.</span>
+      <footer className="border-t bg-muted/30 py-6 text-center text-xs text-muted-foreground mt-auto">
+        <div className="container mx-auto px-4">
+          <p>{club.name} — Sistema de cobros</p>
+          <p className="mt-1">Ante cualquier duda, contactate con administración.</p>
           <Link
             href="/login"
-            className="text-muted-foreground hover:text-foreground transition-colors"
+            className="mt-2 inline-block text-muted-foreground hover:text-accent transition-colors"
           >
             Admin
           </Link>

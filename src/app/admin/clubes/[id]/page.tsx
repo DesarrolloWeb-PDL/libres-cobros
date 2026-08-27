@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { adminFetch } from '@/lib/admin-fetch';
 import { ClubForm } from '@/components/admin/ClubForm';
+import { ClubCustomization } from '@/components/admin/ClubCustomization';
 import type { ClubListItem } from '@/types/club';
 
 export const dynamic = 'force-dynamic';
@@ -41,15 +42,17 @@ export default async function EditClubPage({ params }: EditClubPageProps) {
   }
 
   return (
-    <div className="space-y-6 max-w-xl">
+    <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Editar club</h1>
         <p className="text-muted-foreground">
-          Modificá los datos de {club.name}.
+          Modificá los datos y la apariencia de {club.name}.
         </p>
       </div>
 
       <ClubForm club={club} />
+      
+      <ClubCustomization club={club} />
     </div>
   );
 }

@@ -23,6 +23,13 @@ model Club {
   commissionType  ClubCommissionType  @default(PERCENTAGE)
   commissionValue Float               @default(0)
   status          String              @default("ACTIVE")
+  
+  // Club customization
+  logoUrl         String?
+  primaryColor    String              @default("#7c3aed")
+  secondaryColor  String              @default("#a78bfa")
+  accentColor     String              @default("#5b21b6")
+  
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
   members         Member[]

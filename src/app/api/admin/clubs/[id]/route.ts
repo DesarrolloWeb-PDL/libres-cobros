@@ -17,6 +17,11 @@ const UpdateClubSchema = z.object({
   commissionType: ClubCommissionTypeSchema.optional(),
   commissionValue: z.number().optional(),
   status: ClubStatusSchema.optional(),
+  // Club customization fields
+  logoUrl: z.string().url().nullable().optional(),
+  primaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  secondaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  accentColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
 });
 
 function validateCommission(
@@ -42,6 +47,10 @@ function serializeClub(club: {
   commissionType: string;
   commissionValue: number;
   status: string;
+  logoUrl?: string | null;
+  primaryColor?: string;
+  secondaryColor?: string;
+  accentColor?: string;
   createdAt: Date;
   updatedAt: Date;
 }) {
@@ -151,6 +160,11 @@ export async function PATCH(
           commissionValue: parsed.data.commissionValue,
         }),
         ...(parsed.data.status && { status: parsed.data.status }),
+        // Club customization fields
+        ...(parsed.data.logoUrl !== undefined && { logoUrl: parsed.data.logoUrl }),
+        ...(parsed.data.primaryColor && { primaryColor: parsed.data.primaryColor }),
+        ...(parsed.data.secondaryColor && { secondaryColor: parsed.data.secondaryColor }),
+        ...(parsed.data.accentColor && { accentColor: parsed.data.accentColor }),
       },
     });
 
