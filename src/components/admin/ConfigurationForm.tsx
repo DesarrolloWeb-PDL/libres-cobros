@@ -9,16 +9,15 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/components/ui/toast';
-import type { FeeConfigListItem, FeeConfigListResponse } from '@/types/fee';
 import type { SiteConfigListItem, SiteConfigListResponse } from '@/types/config';
 
 interface ConfigurationFormProps {
-  initialFeeConfigs: FeeConfigListResponse;
   initialSiteConfigs: SiteConfigListResponse;
 }
 
@@ -71,62 +70,15 @@ const siteConfigPlaceholders: Record<string, string> = {
 };
 
 export function ConfigurationForm({
-  initialFeeConfigs,
   initialSiteConfigs,
 }: ConfigurationFormProps) {
-  const [feeConfigs, setFeeConfigs] = useState<FeeConfigListItem[]>(initialFeeConfigs.data);
   const [siteConfigs, setSiteConfigs] = useState<SiteConfigListItem[]>(initialSiteConfigs.data);
-  const [isSavingFees, setIsSavingFees] = useState(false);
   const [isSavingSite, setIsSavingSite] = useState(false);
-
-  function updateFeeAmount(category: string, amount: string) {
-    setFeeConfigs((prev) =>
-      prev.map((config) =>
-        config.category === category ? { ...config, amount: parseFloat(amount) || 0 } : config
-      )
-    );
-  }
 
   function updateSiteConfig(key: string, value: string) {
     setSiteConfigs((prev) =>
       prev.map((config) => (config.key === key ? { ...config, value } : config))
     );
-  }
-
-  async function handleSaveFees(event: React.FormEvent) {
-    event.preventDefault();
-    setIsSavingFees(true);
-    try {
-      const response = await fetch('/api/admin/fee-configs', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          configs: feeConfigs.map((config) => ({
-            category: config.category,
-            amount: config.amount,
-          })),
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.error ?? 'Error al guardar los montos');
-      }
-
-      toast.add({
-        title: 'Guardado',
-        description: 'Los montos de cuotas se actualizaron correctamente',
-        type: 'success',
-      });
-    } catch (err) {
-      toast.add({
-        title: 'Error',
-        description: err instanceof Error ? err.message : 'No se pudieron guardar los montos',
-        type: 'error',
-      });
-    } finally {
-      setIsSavingFees(false);
-    }
   }
 
   async function handleSaveSiteConfig(event: React.FormEvent) {
@@ -168,38 +120,6 @@ export function ConfigurationForm({
 
   return (
     <div className="space-y-6">
-      <form onSubmit={handleSaveFees}>
-        <Card>
-          <CardHeader>
-            <CardTitle>Montos por categoría</CardTitle>
-            <CardDescription>
-              Valores que se usan como snapshot al generar las cuotas mensuales.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {feeConfigs.map((config) => (
-              <div key={config.category} className="grid gap-2 sm:grid-cols-2">
-                <Label htmlFor={`fee-${config.category}`} className="self-center">
-                  {config.category}
-                </Label>
-                <Input
-                  id={`fee-${config.category}`}
-                  type="number"
-                  min={0}
-                  step={0.01}
-                  value={config.amount}
-                  onChange={(e) => updateFeeAmount(config.category, e.target.value)}
-                />
-              </div>
-            ))}
-            <Button type="submit" disabled={isSavingFees} className="gap-2">
-              <Save className="size-4" />
-              {isSavingFees ? 'Guardando...' : 'Guardar montos'}
-            </Button>
-          </CardContent>
-        </Card>
-      </form>
-
       <form onSubmit={handleSaveSiteConfig}>
         <Card>
           <CardHeader>
@@ -250,11 +170,13 @@ export function ConfigurationForm({
                 </div>
               </div>
             ))}
+          </CardContent>
+          <CardFooter>
             <Button type="submit" disabled={isSavingSite} className="gap-2">
               <Save className="size-4" />
               {isSavingSite ? 'Guardando...' : 'Guardar configuración'}
             </Button>
-          </CardContent>
+          </CardFooter>
         </Card>
       </form>
     </div>

@@ -37,6 +37,7 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           role: user.role,
           clubId: user.clubId,
+          mustChangePassword: user.mustChangePassword,
         };
       },
     }),
@@ -51,6 +52,7 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.role = user.role;
         token.clubId = user.clubId ?? null;
+        token.mustChangePassword = (user as any).mustChangePassword ?? false;
       }
       return token;
     },
@@ -59,6 +61,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
         session.user.role = (token.role as ScopedRole) ?? 'ADMIN';
         session.user.clubId = (token.clubId as string | null) ?? null;
+        (session.user as any).mustChangePassword = token.mustChangePassword ?? false;
       }
       return session;
     },

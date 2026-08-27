@@ -228,13 +228,14 @@ model SiteConfig {
 }
 
 model AdminUser {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  name         String
-  passwordHash String
-  role         AdminRole @default(ADMIN)
-  clubId       String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  club         Club?    @relation(fields: [clubId], references: [id])
+  id                String   @id @default(cuid())
+  email             String   @unique
+  name              String
+  passwordHash      String
+  role              AdminRole @default(ADMIN)
+  clubId            String?
+  mustChangePassword Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  club              Club?    @relation(fields: [clubId], references: [id])
 }

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Key, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,6 +24,7 @@ interface ClubFormProps {
 export function ClubForm({ club }: ClubFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [name, setName] = useState(club.name);
   const [slug, setSlug] = useState(club.slug);
   const [commissionType, setCommissionType] = useState<'PERCENTAGE' | 'FIXED'>(
@@ -106,6 +107,38 @@ export function ClubForm({ club }: ClubFormProps) {
       });
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  async function handleResetPassword() {
+    if (!confirm('¿Blanquear la clave del administrador de este club? Se generará una contraseña temporal que deberá cambiar en el próximo login.')) return;
+
+    setIsResettingPassword(true);
+
+    try {
+      const response = await fetch(`/api/admin/clubs/${club.id}/reset-password`, {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al blanquear la clave');
+      }
+
+      toast.add({
+        title: 'Clave blanqueada',
+        description: `Nueva contraseña temporal: ${data.tempPassword}. Compartila con el administrador del club.`,
+        type: 'success',
+      });
+    } catch (error) {
+      toast.add({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'No se pudo blanquear la clave',
+        type: 'error',
+      });
+    } finally {
+      setIsResettingPassword(false);
     }
   }
 
@@ -201,6 +234,27 @@ export function ClubForm({ club }: ClubFormProps) {
           )}
         </div>
       </form>
+
+      {/* Password Reset Section */}
+      <div className="border-t pt-6">
+        <h3 className="text-lg font-semibold mb-2">Seguridad</h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          Blanquear la clave del administrador de este club. Se generará una contraseña temporal que deberá cambiar en el próximo login.
+        </p>
+        <Button
+          variant="outline"
+          onClick={handleResetPassword}
+          disabled={isResettingPassword}
+          className="gap-2"
+        >
+          {isResettingPassword ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Key className="size-4" />
+          )}
+          Blanquear clave
+        </Button>
+      </div>
     </div>
   );
 }
