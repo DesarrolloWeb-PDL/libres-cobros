@@ -57,6 +57,7 @@ export default async function ConfigurationPage() {
 
       <ConfigurationForm
         initialSiteConfigs={siteConfigs}
+        isSuperAdmin={isSuperAdmin}
       />
 
       {/* Club customization - only for club admins */}

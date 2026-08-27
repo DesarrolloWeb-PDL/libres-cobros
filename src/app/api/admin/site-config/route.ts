@@ -16,6 +16,12 @@ const UpdateSiteConfigSchema = z.object({
     .min(1),
 });
 
+const UpdateThemeSchema = z.object({
+  primaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+  secondaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+  accentColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+});
+
 const CONFIG_KEYS = [
   'commission_rate',
   'bank_alias',
@@ -59,7 +65,7 @@ export async function GET(request: NextRequest) {
         description: getConfigDescription(key),
         updatedAt: new Date().toISOString(),
       }));
-      return apiSuccess({ data: emptyConfigs });
+      return apiSuccess({ data: emptyConfigs, theme: null });
     }
 
     const configs = await prisma.siteConfig.findMany({
@@ -85,8 +91,17 @@ export async function GET(request: NextRequest) {
       a.key.localeCompare(b.key)
     );
 
+    // Get theme from first config record (they share the same theme)
+    const themeConfig = allConfigs[0];
+    const theme = themeConfig ? {
+      primaryColor: themeConfig.primaryColor,
+      secondaryColor: themeConfig.secondaryColor,
+      accentColor: themeConfig.accentColor,
+    } : null;
+
     const response: SiteConfigListResponse = {
       data: allConfigs.map(serializeConfig),
+      theme,
     };
 
     return apiSuccess(response);
@@ -112,6 +127,22 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
+    
+    // Check if it's a theme update
+    const themeParsed = UpdateThemeSchema.safeParse(body);
+    if (themeParsed.success) {
+      const { primaryColor, secondaryColor, accentColor } = themeParsed.data;
+      
+      // Update all config records for this club with the new theme
+      await prisma.siteConfig.updateMany({
+        where: { clubId: ctx.clubId },
+        data: { primaryColor, secondaryColor, accentColor },
+      });
+      
+      return apiSuccess({ message: 'Tema actualizado correctamente' });
+    }
+    
+    // Otherwise, process as config update
     const parsed = UpdateSiteConfigSchema.safeParse(body);
 
     if (!parsed.success) {

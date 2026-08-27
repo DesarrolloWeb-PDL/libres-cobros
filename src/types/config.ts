@@ -21,8 +21,15 @@ export interface SiteConfigListItem {
   updatedAt: string;
 }
 
+export interface SiteConfigTheme {
+  primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
+}
+
 export interface SiteConfigListResponse {
   data: SiteConfigListItem[];
+  theme?: SiteConfigTheme | null;
 }
 
 export interface ConfigSection {

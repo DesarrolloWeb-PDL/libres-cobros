@@ -221,6 +221,12 @@ model SiteConfig {
   clubId    String
   key       String
   value     String
+  
+  // Super admin theme customization
+  primaryColor    String  @default("#7c3aed")
+  secondaryColor  String  @default("#a78bfa")
+  accentColor     String  @default("#5b21b6")
+  
   updatedAt DateTime @updatedAt
   club      Club     @relation(fields: [clubId], references: [id])
 

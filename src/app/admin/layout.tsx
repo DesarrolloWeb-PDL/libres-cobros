@@ -23,6 +23,21 @@ async function getClubData(clubId: string | null) {
   return club;
 }
 
+async function getSuperAdminTheme(clubId: string | null) {
+  if (!clubId) return null;
+  
+  const config = await prisma.siteConfig.findFirst({
+    where: { clubId },
+    select: {
+      primaryColor: true,
+      secondaryColor: true,
+      accentColor: true,
+    },
+  });
+  
+  return config;
+}
+
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
 
@@ -35,16 +50,22 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect('/admin/change-password');
   }
 
-  // Fetch club data for club admins
-  const club = await getClubData(session.user.clubId);
   const isSuperAdmin = session.user.role === 'SUPER_ADMIN';
 
-  // For club admins, set club color as the accent
+  // For club admins, fetch their club data
+  const club = await getClubData(session.user.clubId);
+  
+  // For super admins, fetch theme from site config
+  const superAdminTheme = isSuperAdmin ? await getSuperAdminTheme(session.user.clubId) : null;
+
+  // Determine which color to use
   const clubColor = !isSuperAdmin && club?.primaryColor ? club.primaryColor : null;
+  const superAdminColor = isSuperAdmin && superAdminTheme?.primaryColor ? superAdminTheme.primaryColor : null;
+  const themeColor = clubColor || superAdminColor;
 
   return (
     <>
-      {clubColor && <ClubThemeInjector primaryColor={clubColor} />}
+      {themeColor && <ClubThemeInjector primaryColor={themeColor} />}
       <div className="flex min-h-full bg-muted/30">
         <AdminSidebar club={club} />
         <main className="flex-1 pt-14 lg:pt-0 min-w-0">
