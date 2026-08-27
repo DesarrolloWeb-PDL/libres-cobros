@@ -9,9 +9,12 @@ import { v4 as uuidv4 } from 'uuid';
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions);
 
-  if (!session?.user?.role || session.user.role !== 'SUPER_ADMIN') {
+  if (!session?.user?.role) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+
+  const userRole = session.user.role;
+  const userClubId = session.user.clubId;
 
   try {
     const formData = await request.formData();
@@ -20,6 +23,11 @@ export async function POST(request: NextRequest) {
 
     if (!file || !clubId) {
       return NextResponse.json({ error: 'Missing file or clubId' }, { status: 400 });
+    }
+
+    // Authorization: SUPER_ADMIN can update any club, ADMIN only their own
+    if (userRole === 'ADMIN' && userClubId !== clubId) {
+      return NextResponse.json({ error: 'No autorizado para editar este club' }, { status: 403 });
     }
 
     // Validate file type

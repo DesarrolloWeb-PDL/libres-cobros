@@ -100,11 +100,12 @@ export async function PATCH(
   try {
     const ctx = await requireClub(request);
 
-    if (ctx.role !== 'SUPER_ADMIN') {
-      return apiError('No autorizado', 403, 'Solo SUPER_ADMIN puede gestionar clubes', 'FORBIDDEN');
-    }
-
     const { id } = await params;
+
+    // Authorization: SUPER_ADMIN can update any club, ADMIN only their own
+    if (ctx.role === 'ADMIN' && ctx.clubId !== id) {
+      return apiError('No autorizado', 403, 'Solo podés editar tu propio club', 'FORBIDDEN');
+    }
 
     const existing = await prisma.club.findUnique({
       where: { id },
