@@ -26,6 +26,11 @@ export interface ClubListItem {
   commissionType: string;
   commissionValue: number;
   status: string;
+  // Club customization fields
+  logoUrl?: string | null;
+  primaryColor?: string;
+  secondaryColor?: string;
+  accentColor?: string;
   createdAt: string;
   updatedAt: string;
 }
