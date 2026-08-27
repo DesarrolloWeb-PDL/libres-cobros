@@ -36,7 +36,20 @@ const navItems = [
   { href: '/admin/configuracion', label: 'Configuración', icon: Settings, roles: ['SUPER_ADMIN', 'ADMIN'] as const },
 ];
 
-export function AdminSidebar() {
+interface ClubData {
+  id: string;
+  name: string;
+  logoUrl?: string | null;
+  primaryColor?: string;
+  secondaryColor?: string;
+  accentColor?: string;
+}
+
+interface AdminSidebarProps {
+  club?: ClubData | null;
+}
+
+export function AdminSidebar({ club }: AdminSidebarProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -44,20 +57,40 @@ export function AdminSidebar() {
 
   const userRole = session?.user?.role as string | undefined;
   const userName = session?.user?.name || session?.user?.email || 'Admin';
+  const isSuperAdmin = userRole === 'SUPER_ADMIN';
 
   const filteredNavItems = userRole
     ? navItems.filter((item) => item.roles.some((r) => r === userRole))
     : [];
 
+  // Club colors for admin
+  const primaryColor = club?.primaryColor || '#7c3aed';
+  const accentStyle = { color: primaryColor };
+  const accentBgStyle = { backgroundColor: primaryColor };
+
   return (
     <>
       {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 flex h-14 items-center justify-between border-b bg-background/80 backdrop-blur-lg px-4">
+      <div 
+        className="lg:hidden fixed top-0 left-0 right-0 z-40 flex h-14 items-center justify-between border-b bg-background/80 backdrop-blur-lg px-4"
+        style={isSuperAdmin ? undefined : accentBgStyle}
+      >
         <Link href="/admin" className="flex items-center gap-2">
-          <div className="flex size-8 items-center justify-center rounded-lg bg-accent">
-            <Palette className="size-4 text-white" />
-          </div>
-          <span className="font-semibold">Libres Cobros</span>
+          {club?.logoUrl ? (
+            <div className="flex size-8 items-center justify-center rounded-lg overflow-hidden border border-border">
+              <img src={club.logoUrl} alt={club.name} className="size-full object-cover" />
+            </div>
+          ) : (
+            <div 
+              className="flex size-8 items-center justify-center rounded-lg"
+              style={isSuperAdmin ? accentBgStyle : { backgroundColor: primaryColor }}
+            >
+              <Palette className="size-4 text-white" />
+            </div>
+          )}
+          <span className="font-semibold" style={isSuperAdmin ? undefined : accentStyle}>
+            {isSuperAdmin ? 'Libres Cobros' : club?.name || 'Admin'}
+          </span>
         </Link>
         <Button
           variant="ghost"
@@ -80,10 +113,24 @@ export function AdminSidebar() {
           {/* Logo */}
           <div className="flex h-14 items-center border-b px-4">
             <Link href="/admin" className="flex items-center gap-2 group">
-              <div className="flex size-8 items-center justify-center rounded-lg bg-accent group-hover:scale-105 transition-transform">
-                <Palette className="size-4 text-white" />
-              </div>
-              <span className="font-semibold group-hover:text-accent transition-colors">Libres Cobros</span>
+              {club?.logoUrl ? (
+                <div className="flex size-8 items-center justify-center rounded-lg overflow-hidden border border-border group-hover:scale-105 transition-transform">
+                  <img src={club.logoUrl} alt={club.name} className="size-full object-cover" />
+                </div>
+              ) : (
+                <div 
+                  className="flex size-8 items-center justify-center rounded-lg group-hover:scale-105 transition-transform"
+                  style={isSuperAdmin ? accentBgStyle : { backgroundColor: primaryColor }}
+                >
+                  <Palette className="size-4 text-white" />
+                </div>
+              )}
+              <span 
+                className="font-semibold transition-colors"
+                style={isSuperAdmin ? undefined : accentStyle}
+              >
+                {isSuperAdmin ? 'Libres Cobros' : club?.name || 'Admin'}
+              </span>
             </Link>
           </div>
 
@@ -101,9 +148,10 @@ export function AdminSidebar() {
                   className={cn(
                     'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
                     isActive
-                      ? 'bg-accent text-white shadow-md shadow-accent/20'
+                      ? 'text-white shadow-md'
                       : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                   )}
+                  style={isActive ? accentBgStyle : undefined}
                 >
                   <Icon className="size-4" />
                   {item.label}
@@ -113,7 +161,7 @@ export function AdminSidebar() {
           </nav>
 
           {/* Club Selector */}
-          {userRole === 'SUPER_ADMIN' && <ClubSelector userRole={userRole} />}
+          {isSuperAdmin && <ClubSelector userRole={userRole} />}
 
           {/* User Menu */}
           <div className="border-t p-3">
@@ -123,8 +171,14 @@ export function AdminSidebar() {
                 className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
               >
-                <div className="flex size-8 items-center justify-center rounded-full bg-accent/10">
-                  <span className="text-sm font-medium text-accent">
+                <div 
+                  className="flex size-8 items-center justify-center rounded-full"
+                  style={isSuperAdmin ? { backgroundColor: 'hsl(var(--accent) / 0.1)' } : { backgroundColor: `${primaryColor}15` }}
+                >
+                  <span 
+                    className="text-sm font-medium"
+                    style={isSuperAdmin ? accentStyle : accentStyle}
+                  >
                     {userName.charAt(0).toUpperCase()}
                   </span>
                 </div>

@@ -1,7 +1,26 @@
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/db';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
+
+async function getClubData(clubId: string | null) {
+  if (!clubId) return null;
+  
+  const club = await prisma.club.findUnique({
+    where: { id: clubId },
+    select: {
+      id: true,
+      name: true,
+      logoUrl: true,
+      primaryColor: true,
+      secondaryColor: true,
+      accentColor: true,
+    },
+  });
+  
+  return club;
+}
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
@@ -15,9 +34,19 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect('/admin/change-password');
   }
 
+  // Fetch club data for club admins
+  const club = await getClubData(session.user.clubId);
+
   return (
-    <div className="flex min-h-full bg-muted/30">
-      <AdminSidebar />
+    <div 
+      className="flex min-h-full bg-muted/30"
+      style={{
+        '--admin-primary': club?.primaryColor,
+        '--admin-secondary': club?.secondaryColor,
+        '--admin-accent': club?.accentColor,
+      } as React.CSSProperties}
+    >
+      <AdminSidebar club={club} />
       <main className="flex-1 pt-14 lg:pt-0 min-w-0">
         <div className="p-4 sm:p-6 lg:p-8">{children}</div>
       </main>
