@@ -41,18 +41,34 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   // For club admins, set club color as the accent
   const clubColor = !isSuperAdmin && club?.primaryColor ? club.primaryColor : null;
 
+  // For club admins, inject style overrides
+  const clubStyles = clubColor ? `
+    html[data-club-theme] {
+      --accent: ${clubColor} !important;
+      --accent-hover: ${clubColor} !important;
+      --primary: ${clubColor} !important;
+      --ring: ${clubColor} !important;
+      --sidebar-primary: ${clubColor} !important;
+      --sidebar-ring: ${clubColor} !important;
+      --chart-1: ${clubColor} !important;
+    }
+  ` : '';
+
   return (
-    <div className="flex min-h-full bg-muted/30">
-      <AdminSidebar club={club} />
-      <main className="flex-1 pt-14 lg:pt-0 min-w-0">
-        <div 
-          className="p-4 sm:p-6 lg:p-8"
-          {...(clubColor ? { 'data-club-theme': '' } : {})}
-          style={clubColor ? { '--club-primary': clubColor } as React.CSSProperties : undefined}
-        >
-          {children}
-        </div>
-      </main>
-    </div>
+    <>
+      {clubStyles && (
+        <style dangerouslySetInnerHTML={{ __html: clubStyles }} />
+      )}
+      <div 
+        className="flex min-h-full bg-muted/30"
+        {...(clubColor ? { 'data-club-theme': '' } : {})}
+        style={clubColor ? { '--club-primary': clubColor } as React.CSSProperties : undefined}
+      >
+        <AdminSidebar club={club} />
+        <main className="flex-1 pt-14 lg:pt-0 min-w-0">
+          <div className="p-4 sm:p-6 lg:p-8">{children}</div>
+        </main>
+      </div>
+    </>
   );
 }

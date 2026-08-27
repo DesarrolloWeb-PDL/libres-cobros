@@ -79,8 +79,8 @@
   --sidebar-ring: #7c3aed;
 }
 
-/* Club admin theme overrides */
-[data-club-theme] {
+/* Club admin theme overrides - html level for max specificity */
+html[data-club-theme] {
   --accent: var(--club-primary, #7c3aed) !important;
   --accent-hover: var(--club-accent, #6d28d9) !important;
   --primary: var(--club-primary, #7c3aed) !important;
@@ -92,21 +92,26 @@
   --sidebar-ring: var(--club-primary, #7c3aed) !important;
 }
 
-/* Force override Tailwind generated colors */
-[data-club-theme] .bg-accent {
+/* Force override Tailwind generated utility classes */
+html[data-club-theme] .bg-accent,
+html[data-club-theme] a.bg-accent,
+html[data-club-theme] button.bg-accent {
   background-color: var(--club-primary, #7c3aed) !important;
 }
-[data-club-theme] .text-accent {
+html[data-club-theme] .text-accent {
   color: var(--club-primary, #7c3aed) !important;
 }
-[data-club-theme] .hover\:bg-accent-hover:hover {
+html[data-club-theme] .hover\:bg-accent-hover:hover {
   background-color: var(--club-primary, #6d28d9) !important;
 }
-[data-club-theme] .border-accent {
+html[data-club-theme] .border-accent {
   border-color: var(--club-primary, #7c3aed) !important;
 }
-[data-club-theme] .ring-accent {
+html[data-club-theme] .ring-accent {
   --tw-ring-color: var(--club-primary, #7c3aed) !important;
+}
+html[data-club-theme] .shadow-accent\/20 {
+  --tw-shadow-color: var(--club-primary, #7c3aed) !important;
 }
 
 .dark {
