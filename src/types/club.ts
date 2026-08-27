@@ -5,6 +5,7 @@ export const ClubStatusSchema = z.enum(['ACTIVE', 'INACTIVE']);
 
 export const CreateClubSchema = z.object({
   name: z.string().min(1, 'El nombre es obligatorio'),
+  siglas: z.string().optional(),
   slug: z
     .string()
     .min(1, 'El slug es obligatorio')
@@ -22,6 +23,7 @@ export type UpdateClubInput = z.infer<typeof UpdateClubSchema>;
 export interface ClubListItem {
   id: string;
   name: string;
+  siglas?: string | null;
   slug: string;
   commissionType: string;
   commissionValue: number;

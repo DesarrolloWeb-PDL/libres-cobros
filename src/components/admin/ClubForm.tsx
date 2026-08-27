@@ -26,6 +26,7 @@ export function ClubForm({ club }: ClubFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [name, setName] = useState(club.name);
+  const [siglas, setSiglas] = useState(club.siglas || '');
   const [slug, setSlug] = useState(club.slug);
   const [commissionType, setCommissionType] = useState<'PERCENTAGE' | 'FIXED'>(
     club.commissionType as 'PERCENTAGE' | 'FIXED'
@@ -45,6 +46,7 @@ export function ClubForm({ club }: ClubFormProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name,
+          siglas: siglas || null,
           slug,
           commissionType,
           commissionValue: Number(commissionValue),
@@ -158,6 +160,20 @@ export function ClubForm({ club }: ClubFormProps) {
             onChange={(e) => setName(e.target.value)}
             required
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="siglas">Siglas (opcional)</Label>
+          <Input
+            id="siglas"
+            value={siglas}
+            onChange={(e) => setSiglas(e.target.value)}
+            placeholder="Ej: LDC"
+            maxLength={10}
+          />
+          <p className="text-xs text-muted-foreground">
+            Acrónimo que se muestra en el selector de clubes
+          </p>
         </div>
 
         <div className="space-y-2">

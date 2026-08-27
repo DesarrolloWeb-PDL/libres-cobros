@@ -19,6 +19,7 @@ enum AdminRole {
 model Club {
   id              String              @id @default(cuid())
   name            String
+  siglas          String?             // Abbreviation for selector
   slug            String              @unique
   commissionType  ClubCommissionType  @default(PERCENTAGE)
   commissionValue Float               @default(0)

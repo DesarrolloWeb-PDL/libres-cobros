@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 interface Club {
   id: string;
   name: string;
+  siglas?: string | null;
   slug: string;
   status: string;
 }
@@ -40,7 +41,7 @@ export function ClubSelector({ userRole }: ClubSelectorProps) {
   if (!isSuperAdmin || !mounted) return null;
 
   const activeClub = clubs.find((c) => c.id === activeClubId);
-  const displayName = activeClub?.name ?? 'Todos los clubes';
+  const displayName = activeClub?.siglas || activeClub?.name || 'Todos los clubes';
 
   function handleSelectClub(clubId: string | null) {
     const days = 365;
@@ -99,7 +100,12 @@ export function ClubSelector({ userRole }: ClubSelectorProps) {
                         : 'hover:bg-muted'
                     )}
                   >
-                    {club.name}
+                    {club.siglas ? (
+                      <span className="font-medium">{club.siglas}</span>
+                    ) : null}
+                    <span className={club.siglas ? 'text-muted-foreground' : ''}>
+                      {club.name}
+                    </span>
                   </button>
                 ))}
             </div>

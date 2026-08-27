@@ -9,6 +9,7 @@ const ClubStatusSchema = z.enum(['ACTIVE', 'INACTIVE']);
 
 const CreateClubSchema = z.object({
   name: z.string().min(1, 'El nombre es obligatorio'),
+  siglas: z.string().optional(),
   slug: z
     .string()
     .min(1, 'El slug es obligatorio')
@@ -37,6 +38,7 @@ function validateCommission(
 function serializeClub(club: {
   id: string;
   name: string;
+  siglas?: string | null;
   slug: string;
   commissionType: string;
   commissionValue: number;
@@ -114,6 +116,7 @@ export async function POST(request: NextRequest) {
     const club = await prisma.club.create({
       data: {
         name: parsed.data.name,
+        siglas: parsed.data.siglas,
         slug: parsed.data.slug,
         commissionType,
         commissionValue,

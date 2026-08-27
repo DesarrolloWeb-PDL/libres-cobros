@@ -9,6 +9,7 @@ const ClubStatusSchema = z.enum(['ACTIVE', 'INACTIVE']);
 
 const UpdateClubSchema = z.object({
   name: z.string().min(1, 'El nombre es obligatorio').optional(),
+  siglas: z.string().optional(),
   slug: z
     .string()
     .min(1, 'El slug es obligatorio')
@@ -43,6 +44,7 @@ function validateCommission(
 function serializeClub(club: {
   id: string;
   name: string;
+  siglas?: string | null;
   slug: string;
   commissionType: string;
   commissionValue: number;
@@ -154,6 +156,7 @@ export async function PATCH(
       where: { id },
       data: {
         ...(parsed.data.name && { name: parsed.data.name }),
+        ...(parsed.data.siglas !== undefined && { siglas: parsed.data.siglas }),
         ...(parsed.data.slug && { slug: parsed.data.slug }),
         ...(parsed.data.commissionType && { commissionType: parsed.data.commissionType }),
         ...(parsed.data.commissionValue !== undefined && {
