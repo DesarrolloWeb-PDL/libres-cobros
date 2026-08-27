@@ -29,8 +29,8 @@ export default async function ConfigurationPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Configuración</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Configuración</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">
           Administrar tasa de comisión, datos bancarios y credenciales de mensajería (WhatsApp o SMS).
         </p>
       </div>

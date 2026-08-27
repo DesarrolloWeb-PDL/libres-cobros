@@ -33,10 +33,16 @@ export default async function AdminDashboardPage() {
   const data = await getDashboardData();
 
   const quickActions = [
-    { href: '/admin/socios', label: 'Gestionar Socios', icon: Users, color: 'bg-blue-500' },
-    { href: '/admin/pagos', label: 'Ver Pagos', icon: CreditCard, color: 'bg-green-500' },
-    { href: '/admin/reportes', label: 'Reportes', icon: FileText, color: 'bg-purple-500' },
+    { href: '/admin/socios', label: 'Gestionar Socios', icon: Users, color: 'bg-blue-500', roles: ['ADMIN'] as const },
+    { href: '/admin/pagos', label: 'Ver Pagos', icon: CreditCard, color: 'bg-green-500', roles: ['ADMIN'] as const },
+    { href: '/admin/reportes', label: 'Reportes', icon: FileText, color: 'bg-purple-500', roles: ['ADMIN'] as const },
+    { href: '/admin/clubes', label: 'Gestionar Clubes', icon: Users, color: 'bg-blue-500', roles: ['SUPER_ADMIN'] as const },
+    { href: '/admin/usuarios', label: 'Gestionar Usuarios', icon: Users, color: 'bg-green-500', roles: ['SUPER_ADMIN'] as const },
   ];
+
+  const filteredQuickActions = quickActions.filter(action => 
+    action.roles.some(r => r === session.user.role)
+  );
 
   return (
     <div className="space-y-8">
@@ -59,8 +65,8 @@ export default async function AdminDashboardPage() {
       {/* Quick Actions */}
       <div>
         <h2 className="text-lg font-semibold mb-4">Accesos Rápidos</h2>
-        <div className="grid gap-4 sm:grid-cols-3">
-          {quickActions.map((action) => {
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredQuickActions.map((action) => {
             const Icon = action.icon;
             return (
               <Link
@@ -68,14 +74,14 @@ export default async function AdminDashboardPage() {
                 href={action.href}
                 className="group flex items-center gap-4 rounded-xl border bg-card p-4 hover:shadow-md transition-all"
               >
-                <div className={`flex size-10 items-center justify-center rounded-lg ${action.color} text-white`}>
+                <div className={`flex size-10 shrink-0 items-center justify-center rounded-lg ${action.color} text-white`}>
                   <Icon className="size-5" />
                 </div>
-                <div>
-                  <h3 className="font-semibold group-hover:text-accent transition-colors">
+                <div className="min-w-0">
+                  <h3 className="font-semibold group-hover:text-accent transition-colors truncate">
                     {action.label}
                   </h3>
-                  <p className="text-sm text-muted-foreground">Ir a {action.label.toLowerCase()}</p>
+                  <p className="text-sm text-muted-foreground truncate">Ir a {action.label.toLowerCase()}</p>
                 </div>
               </Link>
             );

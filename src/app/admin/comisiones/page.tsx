@@ -36,8 +36,8 @@ export default async function CommissionsPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Comisiones</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Comisiones</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Reporte de comisiones generadas por pagos confirmados.
           </p>
         </div>

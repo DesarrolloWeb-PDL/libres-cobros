@@ -26,8 +26,8 @@ export default async function PaymentsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Pagos</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Pagos</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">
           Historial de pagos, transferencias pendientes y confirmaciones.
         </p>
       </div>

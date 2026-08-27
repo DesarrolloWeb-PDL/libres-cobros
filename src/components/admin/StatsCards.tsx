@@ -65,22 +65,22 @@ const cards = [
 
 export function StatsCards({ data }: StatsCardsProps) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+    <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
       {cards.map((card) => {
         const Icon = card.icon;
         return (
           <Card key={card.key} className="hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 p-4">
+              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground truncate">
                 {card.label}
               </CardTitle>
-              <div className={cn('flex size-8 items-center justify-center rounded-lg', card.bgColor)}>
-                <Icon className={cn('size-4', card.color)} />
+              <div className={cn('flex size-7 sm:size-8 shrink-0 items-center justify-center rounded-lg', card.bgColor)}>
+                <Icon className={cn('size-3.5 sm:size-4', card.color)} />
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 pt-0">
               <div className="flex items-end justify-between">
-                <div className="text-3xl font-bold">{data[card.key]}</div>
+                <div className="text-2xl sm:text-3xl font-bold">{data[card.key]}</div>
                 <div className={cn(
                   'flex items-center gap-1 text-xs font-medium',
                   card.trend === 'up' && 'text-green-600',
