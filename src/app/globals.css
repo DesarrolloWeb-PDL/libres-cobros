@@ -81,15 +81,32 @@
 
 /* Club admin theme overrides */
 [data-club-theme] {
-  --accent: var(--club-primary, #7c3aed);
-  --accent-hover: var(--club-accent, #6d28d9);
-  --primary: var(--club-primary, #7c3aed);
-  --primary-foreground: #ffffff;
-  --ring: var(--club-primary, #7c3aed);
-  --chart-1: var(--club-primary, #7c3aed);
-  --sidebar-primary: var(--club-primary, #7c3aed);
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-ring: var(--club-primary, #7c3aed);
+  --accent: var(--club-primary, #7c3aed) !important;
+  --accent-hover: var(--club-accent, #6d28d9) !important;
+  --primary: var(--club-primary, #7c3aed) !important;
+  --primary-foreground: #ffffff !important;
+  --ring: var(--club-primary, #7c3aed) !important;
+  --chart-1: var(--club-primary, #7c3aed) !important;
+  --sidebar-primary: var(--club-primary, #7c3aed) !important;
+  --sidebar-primary-foreground: #ffffff !important;
+  --sidebar-ring: var(--club-primary, #7c3aed) !important;
+}
+
+/* Force override Tailwind generated colors */
+[data-club-theme] .bg-accent {
+  background-color: var(--club-primary, #7c3aed) !important;
+}
+[data-club-theme] .text-accent {
+  color: var(--club-primary, #7c3aed) !important;
+}
+[data-club-theme] .hover\:bg-accent-hover:hover {
+  background-color: var(--club-primary, #6d28d9) !important;
+}
+[data-club-theme] .border-accent {
+  border-color: var(--club-primary, #7c3aed) !important;
+}
+[data-club-theme] .ring-accent {
+  --tw-ring-color: var(--club-primary, #7c3aed) !important;
 }
 
 .dark {
