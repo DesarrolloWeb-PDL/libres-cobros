@@ -79,6 +79,19 @@
   --sidebar-ring: #7c3aed;
 }
 
+/* Club admin theme overrides */
+[data-club-theme] {
+  --accent: var(--club-primary, #7c3aed);
+  --accent-hover: var(--club-accent, #6d28d9);
+  --primary: var(--club-primary, #7c3aed);
+  --primary-foreground: #ffffff;
+  --ring: var(--club-primary, #7c3aed);
+  --chart-1: var(--club-primary, #7c3aed);
+  --sidebar-primary: var(--club-primary, #7c3aed);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-ring: var(--club-primary, #7c3aed);
+}
+
 .dark {
   --background: #0a0a0a;
   --foreground: #ededed;
