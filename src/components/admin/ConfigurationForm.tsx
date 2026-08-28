@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Save, Building2, MessageSquare, Percent, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -70,6 +70,22 @@ export function ConfigurationForm({
     accentColor: initialSiteConfigs.theme?.accentColor ?? '#5b21b6',
   });
 
+  // For super admin, fetch theme from dedicated endpoint
+  useEffect(() => {
+    if (isSuperAdmin) {
+      fetch('/api/admin/theme')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.data) {
+            setTheme(data.data);
+          }
+        })
+        .catch(() => {
+          // Use default theme
+        });
+    }
+  }, [isSuperAdmin]);
+
   function updateSiteConfig(key: string, value: string) {
     setSiteConfigs((prev) =>
       prev.map((config) => (config.key === key ? { ...config, value } : config))
@@ -116,7 +132,7 @@ export function ConfigurationForm({
   async function handleSaveTheme() {
     setIsSavingTheme(true);
     try {
-      const response = await fetch('/api/admin/site-config', {
+      const response = await fetch('/api/admin/theme', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(theme),

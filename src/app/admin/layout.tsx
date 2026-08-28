@@ -23,11 +23,9 @@ async function getClubData(clubId: string | null) {
   return club;
 }
 
-async function getSuperAdminTheme(clubId: string | null) {
-  if (!clubId) return null;
-  
+async function getSuperAdminTheme() {
   const config = await prisma.siteConfig.findFirst({
-    where: { clubId },
+    where: { clubId: 'system', key: 'theme' },
     select: {
       primaryColor: true,
       secondaryColor: true,
@@ -56,7 +54,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const club = await getClubData(session.user.clubId);
   
   // For super admins, fetch theme from site config
-  const superAdminTheme = isSuperAdmin ? await getSuperAdminTheme(session.user.clubId) : null;
+  const superAdminTheme = isSuperAdmin ? await getSuperAdminTheme() : null;
 
   // Determine which color to use
   const clubColor = !isSuperAdmin && club?.primaryColor ? club.primaryColor : null;
