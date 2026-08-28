@@ -47,9 +47,10 @@ interface ClubData {
 
 interface AdminSidebarProps {
   club?: ClubData | null;
+  themeColor?: string | null;
 }
 
-export function AdminSidebar({ club }: AdminSidebarProps) {
+export function AdminSidebar({ club, themeColor }: AdminSidebarProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -63,8 +64,8 @@ export function AdminSidebar({ club }: AdminSidebarProps) {
     ? navItems.filter((item) => item.roles.some((r) => r === userRole))
     : [];
 
-  // Club colors for admin
-  const primaryColor = club?.primaryColor || '#7c3aed';
+  // Club colors for admin - use themeColor for super admin
+  const primaryColor = themeColor || club?.primaryColor || '#7c3aed';
   const accentStyle = { color: primaryColor };
   const accentBgStyle = { backgroundColor: primaryColor };
 
@@ -73,7 +74,7 @@ export function AdminSidebar({ club }: AdminSidebarProps) {
       {/* Mobile Header */}
       <div 
         className="lg:hidden fixed top-0 left-0 right-0 z-40 flex h-14 items-center justify-between border-b bg-background/80 backdrop-blur-lg px-4"
-        style={isSuperAdmin ? undefined : accentBgStyle}
+        style={accentBgStyle}
       >
         <Link href="/admin" className="flex items-center gap-2">
           {club?.logoUrl ? (
@@ -83,12 +84,12 @@ export function AdminSidebar({ club }: AdminSidebarProps) {
           ) : (
             <div 
               className="flex size-8 items-center justify-center rounded-lg"
-              style={isSuperAdmin ? accentBgStyle : { backgroundColor: primaryColor }}
+              style={accentBgStyle}
             >
               <Palette className="size-4 text-white" />
             </div>
           )}
-          <span className="font-semibold" style={isSuperAdmin ? undefined : accentStyle}>
+          <span className="font-semibold text-white" style={accentStyle}>
             {isSuperAdmin ? 'Libres Cobros' : club?.name || 'Admin'}
           </span>
         </Link>
@@ -97,6 +98,7 @@ export function AdminSidebar({ club }: AdminSidebarProps) {
           size="icon"
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label={mobileOpen ? 'Cerrar menú' : 'Abrir menú'}
+          className="text-white hover:bg-white/20"
         >
           {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
         </Button>
@@ -108,27 +110,24 @@ export function AdminSidebar({ club }: AdminSidebarProps) {
           'fixed inset-y-0 left-0 z-30 w-64 transform border-r bg-background transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-auto',
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         )}
+        style={accentBgStyle}
       >
         <div className="flex h-full flex-col">
           {/* Logo */}
-          <div className="flex h-14 items-center border-b px-4">
+          <div className="flex h-14 items-center border-b border-white/20 px-4">
             <Link href="/admin" className="flex items-center gap-2 group">
               {club?.logoUrl ? (
-                <div className="flex size-8 items-center justify-center rounded-lg overflow-hidden border border-border group-hover:scale-105 transition-transform">
+                <div className="flex size-8 items-center justify-center rounded-lg overflow-hidden border border-white/30 group-hover:scale-105 transition-transform">
                   <img src={club.logoUrl} alt={club.name} className="size-full object-cover" />
                 </div>
               ) : (
                 <div 
-                  className="flex size-8 items-center justify-center rounded-lg group-hover:scale-105 transition-transform"
-                  style={isSuperAdmin ? accentBgStyle : { backgroundColor: primaryColor }}
+                  className="flex size-8 items-center justify-center rounded-lg bg-white/20 group-hover:scale-105 transition-transform"
                 >
                   <Palette className="size-4 text-white" />
                 </div>
               )}
-              <span 
-                className="font-semibold transition-colors"
-                style={isSuperAdmin ? undefined : accentStyle}
-              >
+              <span className="font-semibold text-white transition-colors">
                 {isSuperAdmin ? 'Libres Cobros' : club?.name || 'Admin'}
               </span>
             </Link>
@@ -149,9 +148,9 @@ export function AdminSidebar({ club }: AdminSidebarProps) {
                     'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
                     isActive
                       ? 'text-white shadow-md'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                      : 'text-white/70 hover:bg-white/10 hover:text-white'
                   )}
-                  style={isActive ? accentBgStyle : undefined}
+                  style={isActive ? { backgroundColor: 'rgba(255,255,255,0.2)' } : undefined}
                 >
                   <Icon className="size-4" />
                   {item.label}
@@ -164,21 +163,15 @@ export function AdminSidebar({ club }: AdminSidebarProps) {
           {isSuperAdmin && <ClubSelector userRole={userRole} />}
 
           {/* User Menu */}
-          <div className="border-t p-3">
+          <div className="border-t border-white/20 p-3">
             <div className="relative">
               <Button
                 variant="ghost"
-                className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
+                className="w-full justify-start gap-3 text-white/70 hover:bg-white/10 hover:text-white"
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
               >
-                <div 
-                  className="flex size-8 items-center justify-center rounded-full"
-                  style={isSuperAdmin ? { backgroundColor: 'hsl(var(--accent) / 0.1)' } : { backgroundColor: `${primaryColor}15` }}
-                >
-                  <span 
-                    className="text-sm font-medium"
-                    style={isSuperAdmin ? accentStyle : accentStyle}
-                  >
+                <div className="flex size-8 items-center justify-center rounded-full bg-white/20">
+                  <span className="text-sm font-medium text-white">
                     {userName.charAt(0).toUpperCase()}
                   </span>
                 </div>

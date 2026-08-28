@@ -65,7 +65,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <>
       {themeColor && <ClubThemeInjector primaryColor={themeColor} />}
       <div className="flex min-h-full bg-muted/30">
-        <AdminSidebar club={club} />
+        <AdminSidebar club={club} themeColor={themeColor} />
         <main className="flex-1 pt-14 lg:pt-0 min-w-0">
           <div className="p-4 sm:p-6 lg:p-8">{children}</div>
         </main>
