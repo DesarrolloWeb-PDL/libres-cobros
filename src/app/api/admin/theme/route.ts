@@ -19,16 +19,15 @@ export async function GET(request: NextRequest) {
       return apiError('No autorizado', 403, 'Solo super admin puede acceder', 'FORBIDDEN');
     }
 
-    // Find or create a system config for super admin theme
-    // We use a special clubId "system" for super admin settings
+    // Find theme config with null clubId (system-wide)
     let config = await prisma.siteConfig.findFirst({
-      where: { clubId: 'system', key: 'theme' },
+      where: { clubId: null, key: 'theme' },
     });
 
     if (!config) {
       config = await prisma.siteConfig.create({
         data: {
-          clubId: 'system',
+          clubId: null,
           key: 'theme',
           value: 'default',
           primaryColor: '#7c3aed',
@@ -74,9 +73,9 @@ export async function PUT(request: NextRequest) {
 
     const { primaryColor, secondaryColor, accentColor } = parsed.data;
 
-    // Find or create a system config for super admin theme
+    // Find theme config with null clubId (system-wide)
     let config = await prisma.siteConfig.findFirst({
-      where: { clubId: 'system', key: 'theme' },
+      where: { clubId: null, key: 'theme' },
     });
 
     if (config) {
@@ -87,7 +86,7 @@ export async function PUT(request: NextRequest) {
     } else {
       await prisma.siteConfig.create({
         data: {
-          clubId: 'system',
+          clubId: null,
           key: 'theme',
           value: 'default',
           primaryColor,

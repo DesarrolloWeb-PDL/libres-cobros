@@ -25,7 +25,7 @@ async function getClubData(clubId: string | null) {
 
 async function getSuperAdminTheme() {
   const config = await prisma.siteConfig.findFirst({
-    where: { clubId: 'system', key: 'theme' },
+    where: { clubId: null, key: 'theme' },
     select: {
       primaryColor: true,
       secondaryColor: true,

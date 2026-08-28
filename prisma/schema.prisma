@@ -218,7 +218,7 @@ model SmsLog {
 
 model SiteConfig {
   id        String   @id @default(cuid())
-  clubId    String
+  clubId    String?
   key       String
   value     String
   
@@ -228,7 +228,7 @@ model SiteConfig {
   accentColor     String  @default("#5b21b6")
   
   updatedAt DateTime @updatedAt
-  club      Club     @relation(fields: [clubId], references: [id])
+  club      Club?    @relation(fields: [clubId], references: [id])
 
   @@unique([clubId, key])
   @@index([clubId])
