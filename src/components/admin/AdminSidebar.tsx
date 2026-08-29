@@ -18,11 +18,11 @@ import {
   X,
   LogOut,
   ChevronDown,
-  Palette,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ClubSelector } from './ClubSelector';
+import { Logo } from '@/components/Logo';
 
 const navItems = [
   { href: '/admin', label: 'Panel', icon: LayoutDashboard, roles: ['SUPER_ADMIN', 'ADMIN'] as const },
@@ -82,11 +82,8 @@ export function AdminSidebar({ club, themeColor }: AdminSidebarProps) {
               <img src={club.logoUrl} alt={club.name} className="size-full object-cover" />
             </div>
           ) : (
-            <div 
-              className="flex size-8 items-center justify-center rounded-lg"
-              style={accentBgStyle}
-            >
-              <Palette className="size-4 text-white" />
+            <div className="flex size-8 items-center justify-center">
+              <Logo size={32} showScroll={false} />
             </div>
           )}
           <span className="font-semibold text-white" style={accentStyle}>
@@ -121,10 +118,8 @@ export function AdminSidebar({ club, themeColor }: AdminSidebarProps) {
                   <img src={club.logoUrl} alt={club.name} className="size-full object-cover" />
                 </div>
               ) : (
-                <div 
-                  className="flex size-8 items-center justify-center rounded-lg bg-white/20 group-hover:scale-105 transition-transform"
-                >
-                  <Palette className="size-4 text-white" />
+                <div className="flex size-8 items-center justify-center group-hover:scale-105 transition-transform">
+                  <Logo size={32} showScroll={false} />
                 </div>
               )}
               <span className="font-semibold text-white transition-colors">
