@@ -83,7 +83,7 @@ export function AdminSidebar({ club, themeColor }: AdminSidebarProps) {
             </div>
           ) : (
             <div className="flex size-8 items-center justify-center">
-              <Logo size={32} showScroll={false} />
+              <Logo size={32} showScroll={false} color="white" />
             </div>
           )}
           <span className="font-semibold text-white" style={accentStyle}>
@@ -119,7 +119,7 @@ export function AdminSidebar({ club, themeColor }: AdminSidebarProps) {
                 </div>
               ) : (
                 <div className="flex size-8 items-center justify-center group-hover:scale-105 transition-transform">
-                  <Logo size={32} showScroll={false} />
+                  <Logo size={32} showScroll={false} color="white" />
                 </div>
               )}
               <span className="font-semibold text-white transition-colors">

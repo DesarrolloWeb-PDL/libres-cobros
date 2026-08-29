@@ -26,9 +26,10 @@ interface LogoProps {
   size?: number;
   showScroll?: boolean;
   className?: string;
+  color?: string;
 }
 
-export function Logo({ size = 180, showScroll = true, className = "" }: LogoProps) {
+export function Logo({ size = 180, showScroll = true, className = "", color }: LogoProps) {
   const heroRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -69,6 +70,9 @@ export function Logo({ size = 180, showScroll = true, className = "" }: LogoProp
   const opacity = showScroll ? 1 - scrollProgress * 0.85 : 1;
   const blur = showScroll ? scrollProgress * 12 : 0;
   const opacities = getOpacities(mouse.x, mouse.y);
+  const gradId = color ? `logoGrad-${color.replace('#', '')}` : 'violetGrad';
+  const color1 = color || '#7c3aed';
+  const color2 = color ? `${color}cc` : '#a78bfa';
 
   return (
     <div ref={heroRef} className={`flex justify-center py-5 ${className}`}>
@@ -80,18 +84,16 @@ export function Logo({ size = 180, showScroll = true, className = "" }: LogoProp
         className="cursor-pointer"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width={size} height={size}>
-          {/* Violet gradient definition */}
           <defs>
-            <linearGradient id="violetGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#7c3aed" />
-              <stop offset="100%" stopColor="#a78bfa" />
+            <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor={color1} />
+              <stop offset="100%" stopColor={color2} />
             </linearGradient>
           </defs>
-          {/* Cubos con opacidad interactiva */}
-          <rect x="4" y="4" width="11" height="11" rx="2" fill="url(#violetGrad)" opacity={opacities[0]} style={{ transition: "opacity 0.25s ease-out" }} />
-          <rect x="17" y="4" width="11" height="11" rx="2" fill="url(#violetGrad)" opacity={opacities[1]} style={{ transition: "opacity 0.25s ease-out" }} />
-          <rect x="4" y="17" width="11" height="11" rx="2" fill="url(#violetGrad)" opacity={opacities[2]} style={{ transition: "opacity 0.25s ease-out" }} />
-          <rect x="17" y="17" width="11" height="11" rx="2" fill="url(#violetGrad)" opacity={opacities[3]} style={{ transition: "opacity 0.25s ease-out" }} />
+          <rect x="4" y="4" width="11" height="11" rx="2" fill={`url(#${gradId})`} opacity={opacities[0]} style={{ transition: "opacity 0.25s ease-out" }} />
+          <rect x="17" y="4" width="11" height="11" rx="2" fill={`url(#${gradId})`} opacity={opacities[1]} style={{ transition: "opacity 0.25s ease-out" }} />
+          <rect x="4" y="17" width="11" height="11" rx="2" fill={`url(#${gradId})`} opacity={opacities[2]} style={{ transition: "opacity 0.25s ease-out" }} />
+          <rect x="17" y="17" width="11" height="11" rx="2" fill={`url(#${gradId})`} opacity={opacities[3]} style={{ transition: "opacity 0.25s ease-out" }} />
         </svg>
       </div>
     </div>
