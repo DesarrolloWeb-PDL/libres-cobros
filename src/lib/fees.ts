@@ -6,7 +6,7 @@ export function buildDueDate(year: number, month: number): Date {
 }
 
 /**
- * Generates monthly fees for a single club: one Fee per ACTIVE member of that
+ * Generates monthly fees for a single club: one Fee per ACTIVE or INACTIVE member of that
  * club, using that club's own FeeConfigs ([clubId, category] composite, never
  * another club's configs) and carrying the clubId on every created row.
  *
@@ -20,9 +20,9 @@ export async function generateMonthlyFees(
   month: number,
   year: number
 ): Promise<GenerateFeesResult> {
-  const [activeMembers, feeConfigs, existingFees] = await Promise.all([
+  const [members, feeConfigs, existingFees] = await Promise.all([
     prisma.member.findMany({
-      where: { clubId, status: 'ACTIVE' },
+      where: { clubId, status: { in: ['ACTIVE', 'INACTIVE'] } },
       select: { id: true, category: true },
     }),
     prisma.feeConfig.findMany({
@@ -38,7 +38,7 @@ export async function generateMonthlyFees(
   const configByCategory = new Map(feeConfigs.map((config) => [config.category, config]));
   const existingMemberIds = new Set(existingFees.map((fee) => fee.memberId));
 
-  const membersToCreate = activeMembers.filter(
+  const membersToCreate = members.filter(
     (member) => configByCategory.has(member.category) && !existingMemberIds.has(member.id)
   );
 
@@ -64,7 +64,7 @@ export async function generateMonthlyFees(
 
   return {
     created: membersToCreate.length,
-    skipped: activeMembers.length - membersToCreate.length,
+    skipped: members.length - membersToCreate.length,
     month,
     year,
   };

@@ -70,11 +70,17 @@ export async function GET(request: NextRequest) {
 
     const buffer = xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' });
 
+    const clubSlug = ctx.clubId
+      ? (await prisma.club.findUnique({ where: { id: ctx.clubId }, select: { slug: true } }))?.slug ?? 'club'
+      : 'club';
+    const date = new Date().toISOString().slice(0, 10);
+    const filename = `socios_${clubSlug}_${date}.xlsx`;
+
     return new Response(buffer, {
       status: 200,
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'Content-Disposition': 'attachment; filename="socios.xlsx"',
+        'Content-Disposition': `attachment; filename="${filename}"`,
       },
     });
   } catch (error) {

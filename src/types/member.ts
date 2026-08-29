@@ -4,7 +4,7 @@ export const MemberCategorySchema = z.enum(['ADULT', 'FAMILY', 'MINOR']);
 export const MemberStatusSchema = z.enum(['ACTIVE', 'INACTIVE']);
 
 export const MemberFormSchema = z.object({
-  dni: z.string().min(1, 'El DNI es obligatorio'),
+  dni: z.string().min(1, 'El DNI es obligatorio').regex(/^\d+$/, 'El DNI debe ser numérico'),
   firstName: z.string().min(1, 'El nombre es obligatorio'),
   lastName: z.string().min(1, 'El apellido es obligatorio'),
   email: z.string().email('El email no es válido').optional().or(z.literal('')),

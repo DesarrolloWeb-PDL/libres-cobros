@@ -137,7 +137,17 @@ export async function sendWhatsAppReminder(memberId: string): Promise<WhatsAppBu
     const { clubId } = member;
 
     if (!member.phone || member.phone.trim() === '') {
-      result.skipped += 1;
+      result.failed += 1;
+      await prisma.smsLog.create({
+        data: {
+          clubId: member.clubId,
+          memberId: member.id,
+          type: 'MISSING_PHONE',
+          message: '',
+          status: 'FAILED',
+          error: 'Member has no phone number',
+        },
+      });
       return result;
     }
 

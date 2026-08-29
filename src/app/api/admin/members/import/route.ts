@@ -127,6 +127,7 @@ export async function POST(request: NextRequest) {
       const rawDni = cellToString(row[fieldIndexes.dni]);
 
       if (!rawDni) {
+        errors.push({ row: rowNumber, message: 'DNI es obligatorio' });
         continue;
       }
 
