@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { InstitutionSelector } from './InstitutionSelector';
 import { Logo } from '@/components/Logo';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const navItems = [
   { href: '/admin', label: 'Panel', icon: LayoutDashboard, roles: ['SUPER_ADMIN', 'ADMIN'] as const },
@@ -160,6 +161,10 @@ export function AdminSidebar({ institution, themeColor }: AdminSidebarProps) {
           {/* User Menu */}
           <div className="border-t border-white/15 p-2.5">
             <div className="relative">
+              <div className="flex items-center gap-2 mb-2">
+                <ThemeToggle />
+                <span className="text-xs text-white/40">Tema</span>
+              </div>
               <Button
                 variant="ghost"
                 className="w-full justify-start gap-3 text-white/60 hover:bg-white/8 hover:text-white h-auto py-2"

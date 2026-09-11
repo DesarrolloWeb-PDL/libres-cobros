@@ -7,6 +7,7 @@ import { Home, CreditCard, HelpCircle, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 interface MemberNavProps {
   institutionName: string;
@@ -91,6 +92,9 @@ export function MemberNav({ institutionName, institutionSlug, institutionLogo, p
               </Link>
             );
           })}
+          <div className="ml-2">
+            <ThemeToggle />
+          </div>
         </nav>
 
         {/* Mobile Menu Button */}
@@ -132,6 +136,12 @@ export function MemberNav({ institutionName, institutionSlug, institutionLogo, p
                 </Link>
               );
             })}
+            <div className="pt-2 border-t border-border">
+              <div className="flex items-center gap-2 px-4 py-2">
+                <ThemeToggle />
+                <span className="text-sm text-muted-foreground">Tema</span>
+              </div>
+            </div>
           </nav>
         </div>
       )}
