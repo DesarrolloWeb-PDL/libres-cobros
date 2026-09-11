@@ -12,6 +12,9 @@ export const metadata: Metadata = {
   title: "Libres Cobros",
   description:
     "Sistema de gestión de cobro",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

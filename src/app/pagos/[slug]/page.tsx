@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { prisma } from '@/lib/db';
-import { ClubPaymentPortal } from '@/components/member/ClubPaymentPortal';
+import { InstitutionPaymentPortal } from '@/components/member/InstitutionPaymentPortal';
 import { MemberNav } from '@/components/member/MemberNav';
 
 interface SlugPageProps {
@@ -11,11 +11,11 @@ interface SlugPageProps {
 
 export const dynamic = 'force-dynamic';
 
-export default async function ClubPaymentPage({ params, searchParams }: SlugPageProps) {
+export default async function InstitutionPaymentPage({ params, searchParams }: SlugPageProps) {
   const { slug } = await params;
   const { dni } = await searchParams;
 
-  const club = await prisma.club.findUnique({
+  const institution = await prisma.club.findUnique({
     where: { slug },
     select: {
       id: true,
@@ -29,7 +29,7 @@ export default async function ClubPaymentPage({ params, searchParams }: SlugPage
     },
   });
 
-  if (!club || club.status !== 'ACTIVE') {
+  if (!institution || institution.status !== 'ACTIVE') {
     notFound();
   }
 
@@ -39,34 +39,34 @@ export default async function ClubPaymentPage({ params, searchParams }: SlugPage
     <div
       className="flex min-h-full flex-col"
       style={{
-        '--club-primary': club.primaryColor,
-        '--club-secondary': club.secondaryColor,
-        '--club-accent': club.accentColor,
+        '--institution-primary': institution.primaryColor,
+        '--institution-secondary': institution.secondaryColor,
+        '--institution-accent': institution.accentColor,
       } as React.CSSProperties}
     >
       <MemberNav
-        institutionName={club.name}
-        institutionSlug={club.slug}
-        institutionLogo={club.logoUrl}
-        primaryColor={club.primaryColor}
+        institutionName={institution.name}
+        institutionSlug={institution.slug}
+        institutionLogo={institution.logoUrl}
+        primaryColor={institution.primaryColor}
       />
 
       <main className="flex-1 px-4 py-10">
         <div className="container mx-auto max-w-2xl">
-          <ClubPaymentPortal
-            clubName={club.name}
-            slug={club.slug}
+          <InstitutionPaymentPortal
+            clubName={institution.name}
+            slug={institution.slug}
             prefilledDni={prefilledDni}
-            primaryColor={club.primaryColor}
-            secondaryColor={club.secondaryColor}
-            accentColor={club.accentColor}
+            primaryColor={institution.primaryColor}
+            secondaryColor={institution.secondaryColor}
+            accentColor={institution.accentColor}
           />
         </div>
       </main>
 
       <footer className="border-t bg-muted/20 py-5 text-center text-xs text-muted-foreground mt-auto">
         <div className="container mx-auto px-4">
-          <p className="font-medium">{club.name} — Sistema de cobros</p>
+          <p className="font-medium">{institution.name} — Sistema de cobros</p>
           <p className="mt-1">Ante cualquier duda, contactate con administración.</p>
           <Link
             href="/login"

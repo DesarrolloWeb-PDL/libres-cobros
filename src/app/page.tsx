@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Logo } from '@/components/Logo';
+import { prisma } from '@/lib/db';
 import { Building2, Users, CreditCard, BarChart3, Shield, Zap } from 'lucide-react';
 
 const features = [
@@ -35,13 +36,39 @@ const features = [
   },
 ];
 
-export default function LandingPage() {
+async function getSuperAdminTheme() {
+  const config = await prisma.siteConfig.findFirst({
+    where: { clubId: null, key: 'theme' },
+    select: {
+      primaryColor: true,
+      secondaryColor: true,
+      accentColor: true,
+    },
+  });
+  
+  return config;
+}
+
+export default async function LandingPage() {
+  const theme = await getSuperAdminTheme();
+  
+  const primaryColor = theme?.primaryColor || '#7c3aed';
+  const secondaryColor = theme?.secondaryColor || '#a78bfa';
+  const accentColor = theme?.accentColor || '#5b21b6';
+
   return (
-    <div className="flex min-h-screen flex-col">
+    <div
+      className="flex min-h-screen flex-col"
+      style={{
+        '--landing-primary': primaryColor,
+        '--landing-secondary': secondaryColor,
+        '--landing-accent': accentColor,
+      } as React.CSSProperties}
+    >
       {/* Hero */}
       <header className="relative flex flex-col items-center justify-center min-h-[70vh] px-6 text-center">
-        <Logo size={140} showScroll={false} />
-        <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-4 mt-6">
+        <Logo size={140} showScroll={false} color={primaryColor} />
+        <p className="font-mono text-xs tracking-[0.2em] uppercase mb-4 mt-6" style={{ color: primaryColor }}>
           Sistema de Administración
         </p>
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-3">
@@ -56,7 +83,8 @@ export default function LandingPage() {
         <div className="flex flex-col sm:flex-row gap-4">
           <Link
             href="/login"
-            className="inline-flex items-center justify-center px-8 py-3 rounded-lg bg-accent text-white font-medium hover:bg-accent/90 transition-colors"
+            className="inline-flex items-center justify-center px-8 py-3 rounded-lg text-white font-medium transition-colors"
+            style={{ backgroundColor: primaryColor }}
           >
             Iniciar Sesión
           </Link>
@@ -73,7 +101,7 @@ export default function LandingPage() {
       <section className="py-20 px-6 border-t border-border">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-3">
+            <p className="font-mono text-xs tracking-[0.2em] uppercase mb-3" style={{ color: primaryColor }}>
               Funcionalidades
             </p>
             <h2 className="text-3xl sm:text-4xl font-bold">
@@ -88,8 +116,8 @@ export default function LandingPage() {
                   key={feature.title}
                   className="p-6 rounded-xl border border-border bg-card hover:shadow-lg transition-shadow"
                 >
-                  <div className="flex size-12 items-center justify-center rounded-lg bg-accent/10 mb-4">
-                    <Icon className="size-6 text-accent" />
+                  <div className="flex size-12 items-center justify-center rounded-lg mb-4" style={{ backgroundColor: `${primaryColor}15` }}>
+                    <Icon className="size-6" style={{ color: primaryColor }} />
                   </div>
                   <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
