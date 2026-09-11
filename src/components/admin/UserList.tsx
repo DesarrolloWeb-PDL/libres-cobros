@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, MoreHorizontal } from 'lucide-react';
+import { Plus, MoreHorizontal, KeyRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -103,6 +103,34 @@ export function UserList({ initialData }: UserListProps) {
     }
   }
 
+  async function resetPassword(user: UserListItem) {
+    if (!confirm(`¿Blanquear la contraseña de ${user.email}?\nSe generará una contraseña temporal que deberá cambiar en el próximo login.`)) return;
+
+    try {
+      const response = await fetch(`/api/admin/users/${user.id}/reset-password`, {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al blanquear la contraseña');
+      }
+
+      toast.add({
+        title: 'Contraseña blanqueada',
+        description: `Contraseña temporal: ${data.tempPassword}\nEl usuario deberá cambiarla en el próximo login.`,
+        type: 'success',
+      });
+    } catch (error) {
+      toast.add({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'No se pudo blanquear la contraseña',
+        type: 'error',
+      });
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -161,6 +189,10 @@ export function UserList({ initialData }: UserListProps) {
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => toggleRole(user)}>
                           {user.role === 'ADMIN' ? 'Promover a Super Admin' : 'Degradar a Admin'}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => resetPassword(user)}>
+                          <KeyRound className="mr-2 size-4" />
+                          Blanquear contraseña
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => deleteUser(user)} className="text-destructive">
                           Eliminar

@@ -78,10 +78,20 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
+        // Initial login - set all fields from the user
         token.id = user.id;
         token.role = user.role;
         token.institutionId = user.institutionId ?? null;
         token.mustChangePassword = user.mustChangePassword ?? false;
+      } else if (token.id) {
+        // Subsequent requests - refresh mustChangePassword from database
+        const dbUser = await prisma.adminUser.findUnique({
+          where: { id: token.id as string },
+          select: { mustChangePassword: true },
+        });
+        if (dbUser) {
+          token.mustChangePassword = dbUser.mustChangePassword;
+        }
       }
       return token;
     },
