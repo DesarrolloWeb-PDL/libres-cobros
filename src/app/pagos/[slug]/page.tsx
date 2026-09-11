@@ -38,6 +38,7 @@ export default async function InstitutionPaymentPage({ params, searchParams }: S
   return (
     <div
       className="flex min-h-full flex-col"
+      data-institution-theme=""
       style={{
         '--institution-primary': institution.primaryColor,
         '--institution-secondary': institution.secondaryColor,

@@ -14,6 +14,8 @@ export const metadata: Metadata = {
     "Sistema de gestión de cobro",
   icons: {
     icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
   },
 };
 
