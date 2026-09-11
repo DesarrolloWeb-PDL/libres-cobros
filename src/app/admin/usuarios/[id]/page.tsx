@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, KeyRound } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/components/ui/toast';
 
 interface Club {
@@ -25,6 +26,7 @@ export default function EditarUsuarioPage({ params }: { params: Promise<{ id: st
   const { id } = use(params);
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
@@ -32,13 +34,14 @@ export default function EditarUsuarioPage({ params }: { params: Promise<{ id: st
   const [role, setRole] = useState<'ADMIN' | 'SUPER_ADMIN'>('ADMIN');
   const [clubs, setClubs] = useState<Club[]>([]);
   const [loadingClubs, setLoadingClubs] = useState(true);
+  const [tempPassword, setTempPassword] = useState('');
 
   useEffect(() => {
     async function loadData() {
       try {
         const [userRes, clubsRes] = await Promise.all([
           fetch(`/api/admin/users/${id}`),
-          fetch('/api/admin/clubs'),
+          fetch('/api/admin/institutions'),
         ]);
 
         if (!userRes.ok) {
@@ -98,6 +101,41 @@ export default function EditarUsuarioPage({ params }: { params: Promise<{ id: st
       });
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  async function handleResetPassword() {
+    if (!confirm(`¿Blanquear la contraseña de ${email}?\nSe generará una contraseña temporal que deberá cambiar en el próximo login.`)) return;
+
+    setIsResettingPassword(true);
+    setTempPassword('');
+
+    try {
+      const response = await fetch(`/api/admin/users/${id}/reset-password`, {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al blanquear la contraseña');
+      }
+
+      setTempPassword(data.tempPassword);
+
+      toast.add({
+        title: 'Contraseña blanqueada',
+        description: `Contraseña temporal generada. El usuario deberá cambiarla en el próximo login.`,
+        type: 'success',
+      });
+    } catch (error) {
+      toast.add({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'No se pudo blanquear la contraseña',
+        type: 'error',
+      });
+    } finally {
+      setIsResettingPassword(false);
     }
   }
 
@@ -161,10 +199,10 @@ export default function EditarUsuarioPage({ params }: { params: Promise<{ id: st
 
         {role === 'ADMIN' && (
           <div className="space-y-2">
-            <Label>Club</Label>
+            <Label>Institución</Label>
             <Select value={clubId} onValueChange={(v) => setClubId(v ?? '')} disabled={loadingClubs}>
               <SelectTrigger>
-                <SelectValue placeholder={loadingClubs ? 'Cargando clubs...' : 'Seleccioná un club'} />
+                <SelectValue placeholder={loadingClubs ? 'Cargando instituciones...' : 'Seleccioná una institución'} />
               </SelectTrigger>
               <SelectContent>
                 {clubs.map((club) => (
@@ -186,6 +224,61 @@ export default function EditarUsuarioPage({ params }: { params: Promise<{ id: st
           </Button>
         </div>
       </form>
+
+      {/* Password Reset Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <KeyRound className="size-5" />
+            Contraseña
+          </CardTitle>
+          <CardDescription>
+            Blanquear la contraseña del usuario. Se generará una contraseña temporal que deberá cambiar en el próximo login.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {tempPassword ? (
+            <div className="space-y-3">
+              <div className="rounded-md bg-muted p-4">
+                <p className="text-sm font-medium mb-2">Contraseña temporal generada:</p>
+                <p className="text-2xl font-mono font-bold text-accent">{tempPassword}</p>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Enviá esta contraseña al usuario. Deberá cambiarla en el próximo login.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  navigator.clipboard.writeText(tempPassword);
+                  toast.add({ title: 'Copiado', description: 'Contraseña copiada al portapapeles', type: 'success' });
+                }}
+              >
+                Copiar contraseña
+              </Button>
+            </div>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleResetPassword}
+              disabled={isResettingPassword}
+            >
+              {isResettingPassword ? (
+                <>
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  Generando...
+                </>
+              ) : (
+                <>
+                  <KeyRound className="mr-2 size-4" />
+                  Blanquear contraseña
+                </>
+              )}
+            </Button>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

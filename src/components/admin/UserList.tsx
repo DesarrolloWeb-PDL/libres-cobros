@@ -40,40 +40,6 @@ export function UserList({ initialData }: UserListProps) {
   const router = useRouter();
   const [users, setUsers] = useState<UserListItem[]>(initialData);
 
-  async function toggleRole(user: UserListItem) {
-    const newRole = user.role === 'ADMIN' ? 'SUPER_ADMIN' : 'ADMIN';
-    const actionLabel = newRole === 'ADMIN' ? 'degradado a Admin' : 'promovido a Super Admin';
-
-    try {
-      const response = await fetch(`/api/admin/users/${user.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: newRole }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Error al actualizar el rol');
-      }
-
-      toast.add({
-        title: 'Rol actualizado',
-        description: `El usuario fue ${actionLabel}`,
-        type: 'success',
-      });
-
-      setUsers((prev) =>
-        prev.map((u) => (u.id === user.id ? { ...u, role: newRole } : u))
-      );
-    } catch (error) {
-      toast.add({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'No se pudo actualizar el rol',
-        type: 'error',
-      });
-    }
-  }
-
   async function deleteUser(user: UserListItem) {
     if (!confirm(`¿Eliminar al usuario ${user.email}?`)) return;
 
@@ -186,9 +152,6 @@ export function UserList({ initialData }: UserListProps) {
                       <DropdownMenuContent>
                         <DropdownMenuItem onClick={() => router.push(`/admin/usuarios/${user.id}`)}>
                           Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => toggleRole(user)}>
-                          {user.role === 'ADMIN' ? 'Promover a Super Admin' : 'Degradar a Admin'}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => resetPassword(user)}>
                           <KeyRound className="mr-2 size-4" />
