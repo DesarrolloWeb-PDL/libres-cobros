@@ -11,7 +11,7 @@ const manrope = Manrope({
 export const metadata: Metadata = {
   title: "Libres Cobros",
   description:
-    "Sistema de gestión de cobros para instituciones. Socios, cuotas y pagos en un solo lugar.",
+    "Sistema de gestión de cobros para clubes. Socios, cuotas y pagos en un solo lugar.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
