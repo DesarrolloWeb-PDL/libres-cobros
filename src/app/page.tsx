@@ -48,10 +48,10 @@ export default function LandingPage() {
           Libres Cobros
         </h1>
         <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight mb-6 text-muted-foreground">
-          Gestión integral de clubes
+          Gestión integral de cobros
         </h2>
         <p className="max-w-lg text-muted-foreground leading-relaxed mb-8">
-          Administra socios, cuotas, pagos y reportes de tus clubes de forma simple y organizada.
+          Administra socios, cuotas, pagos y reportes de tu institución de forma simple y organizada.
         </p>
         <div className="flex flex-col sm:flex-row gap-4">
           <Link
