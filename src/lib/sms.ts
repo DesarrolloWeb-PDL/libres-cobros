@@ -43,7 +43,7 @@ async function getSiteConfig(
 }
 
 /**
- * Detecta el canal de mensajería configurado para un club.
+ * Detecta el canal de mensajería configurado para una institución.
  * Prioridad: WhatsApp > SMS (si ambos están configurados, usa WhatsApp)
  */
 export async function getConfiguredChannel(clubId: string): Promise<MessageChannel> {
@@ -79,13 +79,13 @@ export async function sendSms(
 ): Promise<{ externalId: string | null }> {
   if (!accountSid || !authToken || !fromNumber) {
     throw new Error(
-      'Configuración de Twilio incompleta. Verificá Account SID, Auth Token y número de teléfono en Configuración del club.'
+      'Configuración de Twilio incompleta. Verificá Account SID, Auth Token y número de teléfono en Configuración de la institución.'
     );
   }
 
   if (!accountSid.startsWith('AC')) {
     throw new Error(
-      'Account SID inválido. Debe empezar con "AC". Verificá la configuración en Configuración del club.'
+      'Account SID inválido. Debe empezar con "AC". Verificá la configuración en Configuración de la institución.'
     );
   }
 
@@ -118,7 +118,7 @@ export async function sendMessage(
 
     if (!phoneNumberId || !accessToken) {
       throw new Error(
-        'Configuración de WhatsApp incompleta. Verificá Phone Number ID y Access Token en Configuración del club.'
+        'Configuración de WhatsApp incompleta. Verificá Phone Number ID y Access Token en Configuración de la institución.'
       );
     }
 
@@ -135,7 +135,7 @@ export async function sendMessage(
 
   if (!accountSid || !authToken || !fromNumber) {
     throw new Error(
-      'Configuración de Twilio incompleta. Verificá Account SID, Auth Token y número de teléfono en Configuración del club.'
+      'Configuración de Twilio incompleta. Verificá Account SID, Auth Token y número de teléfono en Configuración de la institución.'
     );
   }
 

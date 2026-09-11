@@ -1,12 +1,12 @@
 import { NextRequest } from 'next/server';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
-import { requireClub, AuthError } from '@/lib/access';
+import { requireInstitution, AuthError } from '@/lib/access';
 import { generateDebtReport } from '@/lib/reports';
 import { DebtReportQuerySchema } from '@/types/report';
 
 export async function GET(request: NextRequest) {
   try {
-    const ctx = await requireClub(request);
+    const ctx = await requireInstitution(request);
 
     const { searchParams } = request.nextUrl;
 
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 
     const { month, year, category, page, limit } = parsed.data;
 
-    const report = await generateDebtReport({ clubId: ctx.clubId, month, year, category, page, limit });
+    const report = await generateDebtReport({ clubId: ctx.institutionId, month, year, category, page, limit });
 
     return apiSuccess(report);
   } catch (error) {

@@ -1,17 +1,17 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
-import { requireClub, clubWhere, AuthError } from '@/lib/access';
+import { requireInstitution, institutionWhere, AuthError } from '@/lib/access';
 
 export async function GET(request: NextRequest) {
   try {
-    const ctx = await requireClub(request);
+    const ctx = await requireInstitution(request);
 
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
-    const scope = clubWhere(ctx.clubId);
+    const scope = institutionWhere(ctx.institutionId);
 
     const [
       totalSocios,

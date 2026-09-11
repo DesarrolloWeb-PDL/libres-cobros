@@ -3,17 +3,17 @@ import { z } from 'zod';
 import { hashSync } from 'bcryptjs';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
-import { requireClub, AuthError } from '@/lib/access';
+import { requireInstitution, AuthError } from '@/lib/access';
 
 const CreateAdminUserSchema = z.object({
   email: z.string().email('Email inválido'),
   password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
   name: z.string().min(1, 'El nombre es obligatorio'),
   role: z.enum(['ADMIN', 'SUPER_ADMIN']).default('ADMIN'),
-  clubId: z.string().cuid('Club ID inválido').optional(),
+  clubId: z.string().cuid('Institution ID inválido').optional(),
 }).refine(
   (data) => data.role === 'SUPER_ADMIN' || !!data.clubId,
-  { message: 'Club es obligatorio para roles de admin de club', path: ['clubId'] }
+  { message: 'Institución es obligatoria para roles de admin de institución', path: ['clubId'] }
 );
 
 function serializeUser(user: {
@@ -40,7 +40,7 @@ function serializeUser(user: {
 
 export async function GET(request: NextRequest) {
   try {
-    const ctx = await requireClub(request);
+    const ctx = await requireInstitution(request);
 
     if (ctx.role !== 'SUPER_ADMIN') {
       return apiError('No autorizado', 403, 'Solo SUPER_ADMIN puede gestionar usuarios', 'FORBIDDEN');
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const ctx = await requireClub(request);
+    const ctx = await requireInstitution(request);
 
     if (ctx.role !== 'SUPER_ADMIN') {
       return apiError('No autorizado', 403, 'Solo SUPER_ADMIN puede gestionar usuarios', 'FORBIDDEN');
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
       });
 
       if (!club) {
-        return apiError('Club no encontrado', 404, 'Club ID inválido', 'CLUB_NOT_FOUND');
+        return apiError('Institución no encontrada', 404, 'ID de institución inválido', 'INSTITUTION_NOT_FOUND');
       }
     }
 

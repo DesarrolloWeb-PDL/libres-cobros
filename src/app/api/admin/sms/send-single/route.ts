@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
-import { requireClub, AuthError } from '@/lib/access';
+import { requireInstitution, AuthError } from '@/lib/access';
 import { sendBulkReminders, getConfiguredChannel } from '@/lib/sms';
 
 const SendSingleSchema = z.object({
@@ -12,7 +12,7 @@ const SendSingleSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const ctx = await requireClub(request);
+    const ctx = await requireInstitution(request);
 
     const body = await request.json();
     const parsed = SendSingleSchema.safeParse(body);
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verificar que el socio pertenece al club
+    // Verificar que el socio pertenece a la institución
     const member = await prisma.member.findUnique({
       where: { id: parsed.data.memberId },
       select: { id: true, clubId: true, phone: true, firstName: true },
@@ -36,8 +36,8 @@ export async function POST(request: NextRequest) {
       return apiError('Socio no encontrado', 404, 'ID de socio inválido', 'MEMBER_NOT_FOUND');
     }
 
-    if (ctx.clubId && member.clubId !== ctx.clubId) {
-      return apiError('No autorizado', 403, 'El socio no pertenece a tu club', 'FORBIDDEN');
+    if (ctx.institutionId && member.clubId !== ctx.institutionId) {
+      return apiError('No autorizado', 403, 'El socio no pertenece a tu institución', 'FORBIDDEN');
     }
 
     if (!member.phone || member.phone.trim() === '') {
@@ -45,8 +45,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Detectar canal configurado
-    const configuredChannel = ctx.clubId
-      ? await getConfiguredChannel(ctx.clubId)
+    const configuredChannel = ctx.institutionId
+      ? await getConfiguredChannel(ctx.institutionId)
       : parsed.data.channel ?? 'whatsapp';
 
     const result = await sendBulkReminders([parsed.data.memberId]);

@@ -21,15 +21,6 @@ interface Club {
   name: string;
 }
 
-interface UserData {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-  clubId: string | null;
-  clubName: string | null;
-}
-
 export default function EditarUsuarioPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();

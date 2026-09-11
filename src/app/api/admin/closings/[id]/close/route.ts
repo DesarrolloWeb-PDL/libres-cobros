@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
-import { requireClub, AuthError } from '@/lib/access';
+import { requireInstitution, AuthError } from '@/lib/access';
 
 function getMonthBounds(month: number, year: number) {
   const start = new Date(year, month - 1, 1, 0, 0, 0, 0);
@@ -26,7 +26,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const ctx = await requireClub(request);
+    const ctx = await requireInstitution(request);
 
     const { id } = await params;
 
@@ -40,8 +40,8 @@ export async function POST(
         return { success: false, error: 'Cierre no encontrado', status: 404 };
       }
 
-      // Scope check: the closing must belong to the caller's club.
-      if (ctx.clubId && closing.clubId !== ctx.clubId) {
+      // Scope check: the closing must belong to the caller's institution.
+      if (ctx.institutionId && closing.clubId !== ctx.institutionId) {
         return { success: false, error: 'Cierre no encontrado', status: 404 };
       }
 
@@ -52,7 +52,7 @@ export async function POST(
       const { start, end } = getMonthBounds(closing.month, closing.year);
 
       if (closing.club.commissionType === 'FIXED') {
-        // FIXED clubs charge no per-payment commission; closing generates a
+        // FIXED institutions charge no per-payment commission; closing generates a
         // single ProviderInvoice for the period (upsert: never duplicated).
         await tx.providerInvoice.upsert({
           where: {
@@ -94,8 +94,8 @@ export async function POST(
         };
       }
 
-      // PERCENTAGE club: collect this club's unassigned commissions of the
-      // period. Other clubs' commissions are excluded via clubId.
+      // PERCENTAGE institution: collect this institution's unassigned commissions of the
+      // period. Other institutions' commissions are excluded via clubId.
       const commissions = await tx.commission.findMany({
         where: {
           clubId: closing.clubId,

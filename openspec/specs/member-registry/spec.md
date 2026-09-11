@@ -1,7 +1,7 @@
 # Especificación: Registro de Socios
 
 ## Propósito
-Gestionar el catálogo de socios del club, sus categorías y estados, permitiendo altas, bajas, modificaciones, importación masiva y exportación de datos.
+Gestionar el catálogo de socios de la institución, sus categorías y estados, permitiendo altas, bajas, modificaciones, importación masiva y exportación de datos.
 
 ## Modelo de datos
 

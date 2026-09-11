@@ -23,9 +23,9 @@ function getCurrentPeriod(): { month: number; year: number } {
 }
 
 /**
- * Iterates ACTIVE clubs and generates monthly fees per club using each club's
- * own FeeConfigs. Per-club generation is idempotent, so re-runs report zero
- * new fees for clubs that already generated the period.
+ * Iterates ACTIVE institutions and generates monthly fees per institution using each institution's
+ * own FeeConfigs. Per-institution generation is idempotent, so re-runs report zero
+ * new fees for institutions that already generated the period.
  */
 async function generateFeesForAllClubs(month: number, year: number) {
   const clubs = await prisma.club.findMany({

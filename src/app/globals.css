@@ -47,22 +47,22 @@
 }
 
 :root {
-  --background: #fafafa;
-  --foreground: #171717;
+  --background: #f8f9fb;
+  --foreground: #111827;
   --accent: #7c3aed;
   --accent-hover: #6d28d9;
-  --muted: #737373;
-  --muted-foreground: #525252;
-  --border: #e5e5e5;
+  --muted: #6b7280;
+  --muted-foreground: #6b7280;
+  --border: #e5e7eb;
   --card: #ffffff;
-  --card-foreground: #171717;
+  --card-foreground: #111827;
   --primary: #7c3aed;
   --primary-foreground: #ffffff;
   --secondary: #f3f4f6;
-  --secondary-foreground: #171717;
+  --secondary-foreground: #111827;
   --destructive: #dc2626;
   --ring: #7c3aed;
-  --input: #e5e5e5;
+  --input: #e5e7eb;
   --chart-1: #7c3aed;
   --chart-2: #a78bfa;
   --chart-3: #c4b5fd;
@@ -70,47 +70,47 @@
   --chart-5: #4c1d95;
   --radius: 0.625rem;
   --sidebar: #fafafa;
-  --sidebar-foreground: #171717;
+  --sidebar-foreground: #111827;
   --sidebar-primary: #7c3aed;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #f3f4f6;
-  --sidebar-accent-foreground: #171717;
-  --sidebar-border: #e5e5e5;
+  --sidebar-accent-foreground: #111827;
+  --sidebar-border: #e5e7eb;
   --sidebar-ring: #7c3aed;
 }
 
-/* Club admin theme overrides - simplified, JS handles the variables */
-[data-club-theme] .bg-accent,
-[data-club-theme] .bg-accent\/10 {
-  background-color: var(--club-primary, #7c3aed) !important;
+/* Institution admin theme overrides - simplified, JS handles the variables */
+[data-institution-theme] .bg-accent,
+[data-institution-theme] .bg-accent\/10 {
+  background-color: var(--institution-primary, #7c3aed) !important;
 }
-[data-club-theme] .text-accent {
-  color: var(--club-primary, #7c3aed) !important;
+[data-institution-theme] .text-accent {
+  color: var(--institution-primary, #7c3aed) !important;
 }
-[data-club-theme] .hover\:bg-accent:hover {
-  background-color: var(--club-primary, #6d28d9) !important;
+[data-institution-theme] .hover\:bg-accent:hover {
+  background-color: var(--institution-primary, #6d28d9) !important;
 }
-[data-club-theme] .border-accent {
-  border-color: var(--club-primary, #7c3aed) !important;
+[data-institution-theme] .border-accent {
+  border-color: var(--institution-primary, #7c3aed) !important;
 }
-[data-club-theme] .ring-accent {
-  --tw-ring-color: var(--club-primary, #7c3aed) !important;
+[data-institution-theme] .ring-accent {
+  --tw-ring-color: var(--institution-primary, #7c3aed) !important;
 }
 
 .dark {
   --background: #0a0a0a;
-  --foreground: #ededed;
+  --foreground: #e5e7eb;
   --accent: #a78bfa;
   --accent-hover: #c4b5fd;
-  --muted: #a1a1aa;
-  --muted-foreground: #a1a1aa;
+  --muted: #9ca3af;
+  --muted-foreground: #9ca3af;
   --border: #262626;
   --card: #141414;
-  --card-foreground: #ededed;
+  --card-foreground: #e5e7eb;
   --primary: #a78bfa;
   --primary-foreground: #0a0a0a;
   --secondary: #262626;
-  --secondary-foreground: #ededed;
+  --secondary-foreground: #e5e7eb;
   --destructive: #ef4444;
   --ring: #a78bfa;
   --input: #262626;
@@ -120,11 +120,11 @@
   --chart-4: #c4b5fd;
   --chart-5: #ddd6fe;
   --sidebar: #141414;
-  --sidebar-foreground: #ededed;
+  --sidebar-foreground: #e5e7eb;
   --sidebar-primary: #a78bfa;
   --sidebar-primary-foreground: #0a0a0a;
   --sidebar-accent: #262626;
-  --sidebar-accent-foreground: #ededed;
+  --sidebar-accent-foreground: #e5e7eb;
   --sidebar-border: #262626;
   --sidebar-ring: #a78bfa;
 }
@@ -141,27 +141,42 @@
   }
 }
 
-/* Custom scrollbar for violet theme */
+/* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--background);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--accent);
-  border-radius: 4px;
+  background: #d1d5db;
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-hover);
+  background: #9ca3af;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #374151;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #4b5563;
 }
 
 /* Selection color */
 ::selection {
   background: var(--accent);
   color: white;
+}
+
+/* Smooth transitions for interactive elements */
+a, button, input, select, textarea {
+  transition-property: color, background-color, border-color, box-shadow, opacity;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }

@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
-import { requireClub, clubWhere, AuthError } from '@/lib/access';
+import { requireInstitution, institutionWhere, AuthError } from '@/lib/access';
 
 const CreateClosingSchema = z.object({
   month: z.coerce.number().int().min(1).max(12),
@@ -31,10 +31,10 @@ function serializeClosing(closing: {
 
 export async function GET(request: NextRequest) {
   try {
-    const ctx = await requireClub(request);
+    const ctx = await requireInstitution(request);
 
     const closings = await prisma.monthlyClosing.findMany({
-      where: clubWhere(ctx.clubId),
+      where: institutionWhere(ctx.institutionId),
       orderBy: [{ year: 'desc' }, { month: 'desc' }],
     });
 
@@ -49,14 +49,14 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const ctx = await requireClub(request);
+    const ctx = await requireInstitution(request);
 
-    if (!ctx.clubId) {
+    if (!ctx.institutionId) {
       return apiError(
-        'Seleccione un club',
+        'Seleccione una institución',
         400,
-        'Se requiere un club para crear el cierre',
-        'CLUB_REQUIRED'
+        'Se requiere una institución para crear el cierre',
+        'INSTITUTION_REQUIRED'
       );
     }
 
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
     const { month, year } = parsed.data;
 
     const existing = await prisma.monthlyClosing.findUnique({
-      where: { clubId_month_year: { clubId: ctx.clubId, month, year } },
+      where: { clubId_month_year: { clubId: ctx.institutionId, month, year } },
     });
 
     if (existing) {
@@ -88,16 +88,16 @@ export async function POST(request: NextRequest) {
     }
 
     const club = await prisma.club.findUnique({
-      where: { id: ctx.clubId },
+      where: { id: ctx.institutionId },
     });
 
     if (!club) {
-      return apiError('Club no encontrado', 404, 'Club ID inválido', 'CLUB_NOT_FOUND');
+      return apiError('Institución no encontrada', 404, 'ID de institución inválido', 'INSTITUTION_NOT_FOUND');
     }
 
     const closing = await prisma.monthlyClosing.create({
       data: {
-        clubId: ctx.clubId,
+        clubId: ctx.institutionId,
         month,
         year,
         status: 'OPEN',

@@ -5,8 +5,8 @@ import { Building2, Users, CreditCard, BarChart3, Shield, Zap } from 'lucide-rea
 const features = [
   {
     icon: Building2,
-    title: 'Gestión de Clubes',
-    description: 'Administrar múltiples clubes desde un solo panel centralizado.',
+    title: 'Gestión de Instituciones',
+    description: 'Administrar múltiples instituciones desde un solo panel centralizado.',
   },
   {
     icon: Users,
@@ -48,10 +48,10 @@ export default function LandingPage() {
           Libres Cobros
         </h1>
         <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight mb-6 text-muted-foreground">
-          Gestión integral de clubes
+          Gestión integral de instituciones
         </h2>
         <p className="max-w-lg text-muted-foreground leading-relaxed mb-8">
-          Administra socios, cuotas, pagos y reportes de tus clubes de forma simple y organizada.
+          Administra socios, cuotas, pagos y reportes de tus instituciones de forma simple y organizada.
         </p>
         <div className="flex flex-col sm:flex-row gap-4">
           <Link
@@ -61,7 +61,7 @@ export default function LandingPage() {
             Iniciar Sesión
           </Link>
           <Link
-            href="/pagos/clubes"
+            href="/pagos/instituciones"
             className="inline-flex items-center justify-center px-8 py-3 rounded-lg border border-border font-medium hover:bg-muted transition-colors"
           >
             Portal de Socios
@@ -105,7 +105,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-t bg-muted/30 py-6 text-center text-xs text-muted-foreground mt-auto">
         <div className="container mx-auto px-4">
-          <span>Libres Cobros — Sistema de administración de clubes</span>
+          <span>Libres Cobros — Sistema de administración de instituciones</span>
         </div>
       </footer>
     </div>

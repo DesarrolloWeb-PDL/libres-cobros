@@ -3,13 +3,13 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
-import { ClubThemeInjector } from '@/components/admin/ClubThemeInjector';
+import { InstitutionThemeInjector } from '@/components/admin/InstitutionThemeInjector';
 
-async function getClubData(clubId: string | null) {
-  if (!clubId) return null;
+async function getInstitutionData(institutionId: string | null) {
+  if (!institutionId) return null;
   
-  const club = await prisma.club.findUnique({
-    where: { id: clubId },
+  const institution = await prisma.club.findUnique({
+    where: { id: institutionId },
     select: {
       id: true,
       name: true,
@@ -20,7 +20,7 @@ async function getClubData(clubId: string | null) {
     },
   });
   
-  return club;
+  return institution;
 }
 
 async function getSuperAdminTheme() {
@@ -50,22 +50,22 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   const isSuperAdmin = session.user.role === 'SUPER_ADMIN';
 
-  // For club admins, fetch their club data
-  const club = await getClubData(session.user.clubId);
+  // For institution admins, fetch their institution data
+  const institution = await getInstitutionData(session.user.institutionId);
   
   // For super admins, fetch theme from site config
   const superAdminTheme = isSuperAdmin ? await getSuperAdminTheme() : null;
 
   // Determine which color to use
-  const clubColor = !isSuperAdmin && club?.primaryColor ? club.primaryColor : null;
+  const institutionColor = !isSuperAdmin && institution?.primaryColor ? institution.primaryColor : null;
   const superAdminColor = isSuperAdmin && superAdminTheme?.primaryColor ? superAdminTheme.primaryColor : null;
-  const themeColor = clubColor || superAdminColor;
+  const themeColor = institutionColor || superAdminColor;
 
   return (
     <>
-      {themeColor && <ClubThemeInjector primaryColor={themeColor} />}
+      {themeColor && <InstitutionThemeInjector primaryColor={themeColor} />}
       <div className="flex min-h-full bg-muted/30">
-        <AdminSidebar club={club} themeColor={themeColor} />
+        <AdminSidebar institution={institution} themeColor={themeColor} />
         <main className="flex-1 pt-14 lg:pt-0 min-w-0">
           <div className="p-4 sm:p-6 lg:p-8">{children}</div>
         </main>

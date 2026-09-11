@@ -12,8 +12,8 @@ export interface ConfirmPaymentOptions {
 
 /**
  * Marks a payment (and its fee) PAID inside a transaction and runs the
- * club-driven commission logic. The club is resolved from the payment's own
- * clubId, so commission rates always come from the club that owns the payment.
+ * institution-driven commission logic. The institution is resolved from the payment's own
+ * clubId, so commission rates always come from the institution that owns the payment.
  */
 export async function confirmPayment(
   paymentId: string,
@@ -38,7 +38,7 @@ export async function confirmPayment(
     });
 
     if (!club) {
-      throw new Error(`Club ${payment.clubId} not found for payment ${paymentId}`);
+      throw new Error(`Institution ${payment.clubId} not found for payment ${paymentId}`);
     }
 
     const updatedPayment = await tx.payment.update({

@@ -10,9 +10,9 @@ export interface CreateMercadoPagoPreferenceInput {
   feeId: string;
   amount: number;
   memberName: string;
-  /** Club slug carried in preference metadata for webhook club resolution. */
+  /** Institution slug carried in preference metadata for webhook institution resolution. */
   clubSlug: string;
-  /** Per-club access token resolved from the club's SiteConfig. */
+  /** Per-institution access token resolved from the institution's SiteConfig. */
   accessToken: string;
   successUrl: string;
   failureUrl: string;
@@ -29,7 +29,7 @@ export async function createMercadoPagoPreference(
     items: [
       {
         id: input.feeId,
-        title: 'Cuota mensual del club',
+        title: 'Cuota mensual de la institución',
         description: `Cuota - Ref: ${input.feeId}`,
         quantity: 1,
         currency_id: 'ARS',
@@ -89,8 +89,8 @@ export interface VerifyMercadoPagoWebhookInput {
 }
 
 /**
- * Validates the MercadoPago IPN signature against the club's client secret.
- * The secret is resolved per club from SiteConfig BEFORE any payment lookup.
+ * Validates the MercadoPago IPN signature against the institution's client secret.
+ * The secret is resolved per institution from SiteConfig BEFORE any payment lookup.
  */
 export function verifyMercadoPagoWebhook(
   input: VerifyMercadoPagoWebhookInput,

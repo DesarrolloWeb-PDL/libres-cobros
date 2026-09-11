@@ -1,18 +1,18 @@
 import { describe, it, expect } from 'vitest';
-import { clubWhere, AuthError } from '@/lib/access';
+import { institutionWhere, AuthError } from '@/lib/access';
 
-describe('clubWhere', () => {
-  it('returns { clubId } when clubId is provided', () => {
-    expect(clubWhere('club-123')).toEqual({ clubId: 'club-123' });
+describe('institutionWhere', () => {
+  it('returns { institutionId } when institutionId is provided', () => {
+    expect(institutionWhere('institution-123')).toEqual({ institutionId: 'institution-123' });
   });
 
-  it('returns empty object when clubId is null', () => {
-    expect(clubWhere(null)).toEqual({});
+  it('returns empty object when institutionId is null', () => {
+    expect(institutionWhere(null)).toEqual({});
   });
 
-  it('returns { clubId } for an empty string (truthy check)', () => {
+  it('returns { institutionId } for an empty string (truthy check)', () => {
     // Empty string is falsy in JS, so it returns {}
-    expect(clubWhere('')).toEqual({});
+    expect(institutionWhere('')).toEqual({});
   });
 });
 

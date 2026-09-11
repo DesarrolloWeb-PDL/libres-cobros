@@ -12,9 +12,9 @@ export interface CreateStripeCheckoutSessionInput {
   feeId: string;
   memberId: string;
   amount: number;
-  /** Club slug carried in session metadata for webhook club resolution. */
+  /** Institution slug carried in session metadata for webhook institution resolution. */
   clubSlug: string;
-  /** Per-club secret key resolved from the club's SiteConfig. */
+  /** Per-institution secret key resolved from the institution's SiteConfig. */
   secretKey: string;
   successUrl: string;
   cancelUrl: string;
@@ -33,7 +33,7 @@ export async function createStripeCheckoutSession(
           currency: 'ars',
           product_data: {
             name: 'Cuota mensual',
-            description: `Cuota del club - Ref: ${input.feeId}`,
+            description: `Cuota de la institución - Ref: ${input.feeId}`,
           },
           unit_amount: Math.round(input.amount * 100),
         },
@@ -56,8 +56,8 @@ export async function createStripeCheckoutSession(
 }
 
 /**
- * Verifies a Stripe webhook signature against the club's webhook secret.
- * The secret must be passed explicitly (resolved per club BEFORE parsing the
+ * Verifies a Stripe webhook signature against the institution's webhook secret.
+ * The secret must be passed explicitly (resolved per institution BEFORE parsing the
  * payload, because constructEvent needs the secret to decrypt the signature).
  */
 export async function verifyStripeWebhook(

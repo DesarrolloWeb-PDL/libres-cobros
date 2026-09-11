@@ -1,7 +1,7 @@
 # Exploration: libres-cobros Architecture Design
 
 ## Project Context
-**libres-cobros** — Club fee management system for 200+ members
+**libres-cobros** — Institution fee management system for 200+ members
 **Location**: C:\Users\Usuario\Documents\PROYECTOS\libres-cobros
 **Stack**: Next.js 14+ (App Router) + Prisma + PostgreSQL + TypeScript + Tailwind CSS
 

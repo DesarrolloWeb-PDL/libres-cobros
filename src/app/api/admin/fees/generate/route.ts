@@ -1,15 +1,15 @@
 import { NextRequest } from 'next/server';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
-import { requireClub, AuthError } from '@/lib/access';
+import { requireInstitution, AuthError } from '@/lib/access';
 import { generateMonthlyFees } from '@/lib/fees';
 import { GenerateFeesSchema } from '@/types/fee';
 
 export async function POST(request: NextRequest) {
   try {
-    const { clubId } = await requireClub(request);
+    const { institutionId } = await requireInstitution(request);
 
-    if (!clubId) {
-      return apiError('Seleccione un club para generar cuotas', 400);
+    if (!institutionId) {
+      return apiError('Seleccione una institución para generar cuotas', 400);
     }
 
     const body = await request.json();
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { month, year } = parsed.data;
-    const result = await generateMonthlyFees(clubId, month, year);
+    const result = await generateMonthlyFees(institutionId, month, year);
 
     return apiSuccess(result);
   } catch (error) {

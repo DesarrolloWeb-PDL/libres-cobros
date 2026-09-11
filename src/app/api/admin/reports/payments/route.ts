@@ -1,12 +1,12 @@
 import { NextRequest } from 'next/server';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
-import { requireClub, AuthError } from '@/lib/access';
+import { requireInstitution, AuthError } from '@/lib/access';
 import { generatePaymentReport } from '@/lib/reports';
 import { PaymentReportQuerySchema } from '@/types/report';
 
 export async function GET(request: NextRequest) {
   try {
-    const ctx = await requireClub(request);
+    const ctx = await requireInstitution(request);
 
     const { searchParams } = request.nextUrl;
 
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     const { memberId, method, from, to, page, limit } = parsed.data;
 
     const report = await generatePaymentReport({
-      clubId: ctx.clubId,
+      clubId: ctx.institutionId,
       memberId,
       method,
       from,

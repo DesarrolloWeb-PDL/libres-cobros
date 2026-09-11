@@ -11,14 +11,14 @@ const adapter = new PrismaPg({ connectionString });
 const prisma = new PrismaClient({ adapter });
 
 const DEFAULT_CLUB = {
-  name: 'Club Libres',
-  slug: 'club-libres',
+  name: 'Institución Libres',
+  slug: 'institucion-libres',
   commissionType: 'PERCENTAGE',
   commissionValue: 0,
   status: 'ACTIVE',
 } as const;
 
-// Canonical SiteConfig keys per club. `commission_rate` is gone (superseded by
+// Canonical SiteConfig keys per institution. `commission_rate` is gone (superseded by
 // Club.commissionValue); `bank_holder` and `whatsapp_access_token` are canonical
 // (legacy `bank_account_holder` / `whatsapp_token` variants are merged by the
 // backfill script and must not be re-created here).
@@ -59,7 +59,7 @@ async function main() {
       commissionType: DEFAULT_CLUB.commissionType,
     },
   });
-  console.log(`Default club ensured: ${club.name} (${club.slug}).`);
+  console.log(`Default institution ensured: ${club.name} (${club.slug}).`);
 
   const feeConfigs = [
     { category: 'ADULT', amount: 15000, description: 'Socio adulto' },
@@ -74,7 +74,7 @@ async function main() {
       create: { ...config, clubId: club.id },
     });
   }
-  console.log(`Default fee configs ensured for club ${club.slug}.`);
+  console.log(`Default fee configs ensured for institution ${club.slug}.`);
 
   for (const key of SITE_CONFIG_KEYS) {
     await prisma.siteConfig.upsert({
@@ -83,7 +83,7 @@ async function main() {
       create: { clubId: club.id, key, value: '' },
     });
   }
-  console.log(`Site config keys ensured for club ${club.slug}.`);
+  console.log(`Site config keys ensured for institution ${club.slug}.`);
 }
 
 main()

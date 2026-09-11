@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
-import { requireClub, AuthError } from '@/lib/access';
+import { requireInstitution, AuthError } from '@/lib/access';
 
 const UpdateThemeSchema = z.object({
   primaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
@@ -13,7 +13,7 @@ const UpdateThemeSchema = z.object({
 // GET: Get super admin theme
 export async function GET(request: NextRequest) {
   try {
-    const ctx = await requireClub(request);
+    const ctx = await requireInstitution(request);
 
     if (ctx.role !== 'SUPER_ADMIN') {
       return apiError('No autorizado', 403, 'Solo super admin puede acceder', 'FORBIDDEN');
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
 // PUT: Update super admin theme
 export async function PUT(request: NextRequest) {
   try {
-    const ctx = await requireClub(request);
+    const ctx = await requireInstitution(request);
 
     if (ctx.role !== 'SUPER_ADMIN') {
       return apiError('No autorizado', 403, 'Solo super admin puede actualizar el tema', 'FORBIDDEN');
@@ -74,7 +74,7 @@ export async function PUT(request: NextRequest) {
     const { primaryColor, secondaryColor, accentColor } = parsed.data;
 
     // Find theme config with null clubId (system-wide)
-    let config = await prisma.siteConfig.findFirst({
+    const config = await prisma.siteConfig.findFirst({
       where: { clubId: null, key: 'theme' },
     });
 

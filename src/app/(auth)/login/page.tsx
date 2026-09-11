@@ -70,7 +70,7 @@ export default function AdminLoginPage() {
           <Logo size={64} showScroll={false} />
           <div className="text-center">
             <h1 className="text-2xl font-bold">Libres Cobros</h1>
-            <p className="text-sm text-muted-foreground">Sistema de administración de clubes</p>
+            <p className="text-sm text-muted-foreground">Sistema de administración de instituciones</p>
           </div>
         </div>
         

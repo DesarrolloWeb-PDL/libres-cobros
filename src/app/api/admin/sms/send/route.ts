@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
-import { requireClub, clubWhere, AuthError } from '@/lib/access';
+import { requireInstitution, institutionWhere, AuthError } from '@/lib/access';
 import { sendBulkReminders, getConfiguredChannel } from '@/lib/sms';
 import { MemberCategorySchema } from '@/types/member';
 import { FeeStatusSchema } from '@/types/fee';
@@ -17,7 +17,7 @@ const SendBulkSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const ctx = await requireClub(request);
+    const ctx = await requireInstitution(request);
 
     const body = await request.json();
     const parsed = SendBulkSchema.safeParse(body);
@@ -34,8 +34,8 @@ export async function POST(request: NextRequest) {
     const { category, status, month, year } = parsed.data;
 
     // Detectar canal configurado
-    const configuredChannel = ctx.clubId
-      ? await getConfiguredChannel(ctx.clubId)
+    const configuredChannel = ctx.institutionId
+      ? await getConfiguredChannel(ctx.institutionId)
       : parsed.data.channel ?? 'whatsapp';
 
     const now = new Date();
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
 
     const members = await prisma.member.findMany({
       where: {
-        ...clubWhere(ctx.clubId),
+        ...institutionWhere(ctx.institutionId),
         phone: { not: null },
         ...(category && { category }),
         fees: {

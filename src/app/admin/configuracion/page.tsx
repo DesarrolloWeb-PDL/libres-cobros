@@ -51,7 +51,7 @@ export default async function ConfigurationPage() {
         <p className="text-sm sm:text-base text-muted-foreground">
           {isSuperAdmin
             ? 'Administrar tasa de comisión, datos bancarios y credenciales de mensajería.'
-            : 'Administrar datos bancarios, mensajería y apariencia de tu club.'}
+            : 'Administrar datos bancarios, mensajería y apariencia de tu institución.'}
         </p>
       </div>
 

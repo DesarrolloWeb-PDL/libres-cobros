@@ -1,26 +1,26 @@
 import { z } from 'zod';
 
-export const ClubCommissionTypeSchema = z.enum(['PERCENTAGE', 'FIXED']);
-export const ClubStatusSchema = z.enum(['ACTIVE', 'INACTIVE']);
+export const InstitutionCommissionTypeSchema = z.enum(['PERCENTAGE', 'FIXED']);
+export const InstitutionStatusSchema = z.enum(['ACTIVE', 'INACTIVE']);
 
-export const CreateClubSchema = z.object({
+export const CreateInstitutionSchema = z.object({
   name: z.string().min(1, 'El nombre es obligatorio'),
   siglas: z.string().optional(),
   slug: z
     .string()
     .min(1, 'El slug es obligatorio')
     .regex(/^[a-z0-9-]+$/, 'El slug solo admite minúsculas, números y guiones'),
-  commissionType: ClubCommissionTypeSchema.default('PERCENTAGE'),
+  commissionType: InstitutionCommissionTypeSchema.default('PERCENTAGE'),
   commissionValue: z.number().default(0),
-  status: ClubStatusSchema.default('ACTIVE'),
+  status: InstitutionStatusSchema.default('ACTIVE'),
 });
 
-export const UpdateClubSchema = CreateClubSchema.partial();
+export const UpdateInstitutionSchema = CreateInstitutionSchema.partial();
 
-export type CreateClubInput = z.infer<typeof CreateClubSchema>;
-export type UpdateClubInput = z.infer<typeof UpdateClubSchema>;
+export type CreateInstitutionInput = z.infer<typeof CreateInstitutionSchema>;
+export type UpdateInstitutionInput = z.infer<typeof UpdateInstitutionSchema>;
 
-export interface ClubListItem {
+export interface InstitutionListItem {
   id: string;
   name: string;
   siglas?: string | null;
@@ -28,7 +28,7 @@ export interface ClubListItem {
   commissionType: string;
   commissionValue: number;
   status: string;
-  // Club customization fields
+  // Institution customization fields
   logoUrl?: string | null;
   primaryColor?: string;
   secondaryColor?: string;
@@ -37,6 +37,16 @@ export interface ClubListItem {
   updatedAt: string;
 }
 
-export interface ClubListResponse {
-  data: ClubListItem[];
+export interface InstitutionListResponse {
+  data: InstitutionListItem[];
 }
+
+// Backward-compatible aliases
+export const ClubCommissionTypeSchema = InstitutionCommissionTypeSchema;
+export const ClubStatusSchema = InstitutionStatusSchema;
+export const CreateClubSchema = CreateInstitutionSchema;
+export const UpdateClubSchema = UpdateInstitutionSchema;
+export type CreateClubInput = CreateInstitutionInput;
+export type UpdateClubInput = UpdateInstitutionInput;
+export type ClubListItem = InstitutionListItem;
+export type ClubListResponse = InstitutionListResponse;

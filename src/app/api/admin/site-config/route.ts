@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
-import { requireClub, AuthError } from '@/lib/access';
+import { requireInstitution, AuthError } from '@/lib/access';
 import type { SiteConfigListItem, SiteConfigListResponse } from '@/types/config';
 
 const UpdateSiteConfigSchema = z.object({
@@ -54,10 +54,10 @@ function serializeConfig(config: {
 
 export async function GET(request: NextRequest) {
   try {
-    const ctx = await requireClub(request);
+    const ctx = await requireInstitution(request);
 
-    // Si no hay club seleccionado, devolver configs vacías para evitar crash
-    if (!ctx.clubId) {
+    // Si no hay institución seleccionada, devolver configs vacías para evitar crash
+    if (!ctx.institutionId) {
       const emptyConfigs: SiteConfigListItem[] = CONFIG_KEYS.map((key) => ({
         id: '',
         key,
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
     }
 
     const configs = await prisma.siteConfig.findMany({
-      where: { clubId: ctx.clubId, key: { in: CONFIG_KEYS } },
+      where: { clubId: ctx.institutionId, key: { in: CONFIG_KEYS } },
       orderBy: { key: 'asc' },
     });
 
@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
       CONFIG_KEYS.filter((key) => !configMap.has(key)).map((key) =>
         prisma.siteConfig.create({
           data: {
-            clubId: ctx.clubId!,
+            clubId: ctx.institutionId!,
             key,
             value: '',
           },
@@ -115,14 +115,14 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const ctx = await requireClub(request);
+    const ctx = await requireInstitution(request);
 
-    if (!ctx.clubId) {
+    if (!ctx.institutionId) {
       return apiError(
-        'Seleccione un club',
+        'Seleccione una institución',
         400,
-        'Se requiere un club para actualizar la configuración',
-        'CLUB_REQUIRED'
+        'Se requiere una institución para actualizar la configuración',
+        'INSTITUTION_REQUIRED'
       );
     }
 
@@ -135,7 +135,7 @@ export async function PUT(request: NextRequest) {
       
       // Update all config records for this club with the new theme
       await prisma.siteConfig.updateMany({
-        where: { clubId: ctx.clubId },
+        where: { clubId: ctx.institutionId },
         data: { primaryColor, secondaryColor, accentColor },
       });
       
@@ -182,10 +182,10 @@ export async function PUT(request: NextRequest) {
     const updated = await prisma.$transaction(
       configs.map((config) =>
         prisma.siteConfig.upsert({
-          where: { clubId_key: { clubId: ctx.clubId!, key: config.key } },
+          where: { clubId_key: { clubId: ctx.institutionId!, key: config.key } },
           update: { value: config.value },
           create: {
-            clubId: ctx.clubId!,
+            clubId: ctx.institutionId!,
             key: config.key,
             value: config.value,
           },

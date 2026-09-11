@@ -37,7 +37,7 @@
    - Asignar permisos de WhatsApp
    - Generar un token con los permisos necesarios
 
-### 5. Configurar en el Club
+### 5. Configurar en la Institución
 
 En la base de datos `siteConfig`, agregar:
 
@@ -48,7 +48,7 @@ VALUES
   ('2', 'TU_CLUB_ID', 'whatsapp_access_token', 'TU_ACCESS_TOKEN', NOW());
 ```
 
-O usar el panel de administración del club (pendiente de implementar).
+O usar el panel de administración de la institución (pendiente de implementar).
 
 ### 6. Verificar Número
 
@@ -80,4 +80,4 @@ O usar el panel de administración del club (pendiente de implementar).
 
 - Los recordatorios de pago son **conversaciones transaccionales** (responden a una solicitud del usuario)
 - No necesitan plantilla aprobada
-- El límite de 1,000 conversaciones/mes es más que suficiente para un club de pádel
+- El límite de 1,000 conversaciones/mes es más que suficiente para una institución

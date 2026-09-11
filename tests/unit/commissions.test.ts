@@ -1,13 +1,13 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createCommission } from '@/lib/commissions';
-import type { Club } from '@prisma/client';
+import type { Club, Prisma } from '@prisma/client';
 
-function makeClub(overrides: Partial<Club> = {}): Club {
+function makeInstitution(overrides: Partial<Club> = {}): Club {
   return {
-    id: 'club-1',
-    name: 'Test Club',
+    id: 'institution-1',
+    name: 'Test Institution',
     siglas: null,
-    slug: 'test-club',
+    slug: 'test-institution',
     commissionType: 'PERCENTAGE',
     commissionValue: 10,
     status: 'ACTIVE',
@@ -25,7 +25,7 @@ function makePayment(overrides = {}) {
   return {
     id: 'pay-1',
     feeId: 'fee-1',
-    clubId: 'club-1',
+    clubId: 'institution-1',
     amount: 5000,
     ...overrides,
   };
@@ -36,12 +36,12 @@ function mockTx() {
     commission: {
       create: vi.fn().mockResolvedValue({ id: 'comm-1' }),
     },
-  } as any;
+  } as unknown as Prisma.TransactionClient;
 }
 
 describe('createCommission', () => {
   it('returns null for FIXED commission type', async () => {
-    const club = makeClub({ commissionType: 'FIXED' });
+    const club = makeInstitution({ commissionType: 'FIXED' });
     const tx = mockTx();
 
     const result = await createCommission(tx, makePayment(), club);
@@ -51,14 +51,14 @@ describe('createCommission', () => {
   });
 
   it('calculates PERCENTAGE commission correctly', async () => {
-    const club = makeClub({ commissionType: 'PERCENTAGE', commissionValue: 10 });
+    const club = makeInstitution({ commissionType: 'PERCENTAGE', commissionValue: 10 });
     const tx = mockTx();
 
     await createCommission(tx, makePayment({ amount: 5000 }), club);
 
     expect(tx.commission.create).toHaveBeenCalledWith({
       data: {
-        clubId: 'club-1',
+        clubId: 'institution-1',
         paymentId: 'pay-1',
         feeId: 'fee-1',
         amount: 500, // 5000 * 10 / 100
@@ -68,7 +68,7 @@ describe('createCommission', () => {
   });
 
   it('rounds the amount to nearest integer', async () => {
-    const club = makeClub({ commissionType: 'PERCENTAGE', commissionValue: 7.5 });
+    const club = makeInstitution({ commissionType: 'PERCENTAGE', commissionValue: 7.5 });
     const tx = mockTx();
 
     await createCommission(tx, makePayment({ amount: 1000 }), club);
@@ -82,7 +82,7 @@ describe('createCommission', () => {
   });
 
   it('handles zero payment amount', async () => {
-    const club = makeClub({ commissionType: 'PERCENTAGE', commissionValue: 10 });
+    const club = makeInstitution({ commissionType: 'PERCENTAGE', commissionValue: 10 });
     const tx = mockTx();
 
     await createCommission(tx, makePayment({ amount: 0 }), club);
@@ -95,7 +95,7 @@ describe('createCommission', () => {
   });
 
   it('handles 100% commission rate', async () => {
-    const club = makeClub({ commissionType: 'PERCENTAGE', commissionValue: 100 });
+    const club = makeInstitution({ commissionType: 'PERCENTAGE', commissionValue: 100 });
     const tx = mockTx();
 
     await createCommission(tx, makePayment({ amount: 3000 }), club);

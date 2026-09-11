@@ -1,14 +1,14 @@
 import { prisma } from '@/lib/db';
 
 /**
- * Per-club SiteConfig access (composite unique `[clubId, key]`).
+ * Per-institution SiteConfig access (composite unique `[clubId, key]`).
  *
  * Payment credentials (Stripe keys, MercadoPago tokens) and bank info live in
- * each club's own SiteConfig rows. Consumers resolve them through these
+ * each institution's own SiteConfig rows. Consumers resolve them through these
  * helpers instead of reading global env vars, which are dev-only fallbacks.
  */
 
-export async function getClubSiteConfigValues(
+export async function getInstitutionSiteConfigValues(
   clubId: string,
   keys: string[]
 ): Promise<Record<string, string>> {
@@ -18,7 +18,7 @@ export async function getClubSiteConfigValues(
   return Object.fromEntries(configs.map((c) => [c.key, c.value]));
 }
 
-export async function getClubSiteConfigValue(
+export async function getInstitutionSiteConfigValue(
   clubId: string,
   key: string,
   defaultValue = ''
@@ -28,3 +28,7 @@ export async function getClubSiteConfigValue(
   });
   return config?.value ?? defaultValue;
 }
+
+// Backward-compatible aliases
+export { getInstitutionSiteConfigValues as getClubSiteConfigValues };
+export { getInstitutionSiteConfigValue as getClubSiteConfigValue };

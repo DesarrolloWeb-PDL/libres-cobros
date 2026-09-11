@@ -49,23 +49,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { feeId, method, memberDni, clubSlug } = parsed.data;
+    const { feeId, method, memberDni, institutionSlug } = parsed.data;
 
-    // Resolve the club that owns the checkout; only ACTIVE clubs are payable.
-    const club = await getEffectiveClub(clubSlug);
+    // Resolve the institution that owns the checkout; only ACTIVE institutions are payable.
+    const club = await getEffectiveClub(institutionSlug);
 
     if (!club) {
-      return apiError('Club no encontrado', 404, 'Club slug inválido o inactivo', 'CLUB_NOT_FOUND');
+      return apiError('Institución no encontrada', 404, 'Institution slug inválido o inactivo', 'INSTITUTION_NOT_FOUND');
     }
 
-    // Member must belong to this club. A DNI registered in another club is
+    // Member must belong to this institution. A DNI registered in another institution is
     // indistinguishable from an unknown DNI (404, never revealed).
     const member = await prisma.member.findUnique({
       where: { clubId_dni: { clubId: club.id, dni: memberDni } },
     });
 
     if (!member) {
-      return apiError('Socio no encontrado', 404, 'DNI inválido para este club', 'MEMBER_NOT_FOUND');
+      return apiError('Socio no encontrado', 404,         'DNI inválido para esta institución', 'MEMBER_NOT_FOUND');
     }
 
     const fee = await prisma.fee.findUnique({
@@ -79,10 +79,10 @@ export async function POST(request: NextRequest) {
 
     if (fee.clubId !== club.id) {
       return apiError(
-        'La cuota pertenece a otro club',
+        'La cuota pertenece a otra institución',
         409,
-        'Cross-club fee checkout rejected',
-        'FEE_CLUB_MISMATCH'
+        'Cross-institution fee checkout rejected',
+        'FEE_INSTITUTION_MISMATCH'
       );
     }
 
@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
 
       if (!secretKey) {
         return apiError(
-          'Stripe no configurado para este club',
+          'Stripe no configurado para esta institución',
           500,
           'stripe_secret_key no configurado',
           'STRIPE_NOT_CONFIGURED'
@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
 
       if (!accessToken) {
         return apiError(
-          'MercadoPago no configurado para este club',
+          'MercadoPago no configurado para esta institución',
           500,
           'mercadopago_access_token no configurado',
           'MERCADOPAGO_NOT_CONFIGURED'

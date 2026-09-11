@@ -28,8 +28,8 @@ export async function GET(request: NextRequest) {
 
     const today = getTodayUtc();
 
-    // Iterate ACTIVE clubs and mark each club's overdue fees scoped by clubId,
-    // so one club's pass never touches another club's fees.
+    // Iterate ACTIVE institutions and mark each institution's overdue fees scoped by clubId,
+    // so one institution's pass never touches another institution's fees.
     const clubs = await prisma.club.findMany({
       where: { status: 'ACTIVE' },
       select: { id: true, slug: true, name: true },

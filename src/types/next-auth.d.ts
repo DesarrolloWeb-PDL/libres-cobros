@@ -6,18 +6,24 @@ declare module 'next-auth' {
     user: {
       id: string;
       role: ScopedRole;
+      institutionId: string | null;
+      /** @deprecated Use institutionId */
       clubId: string | null;
     } & DefaultSession['user'];
   }
 
   interface User {
     role?: ScopedRole;
+    institutionId?: string | null;
+    /** @deprecated Use institutionId */
     clubId?: string | null;
   }
 
   interface JWT {
     id?: string;
     role?: ScopedRole;
+    institutionId?: string | null;
+    /** @deprecated Use institutionId */
     clubId?: string | null;
   }
 }
@@ -26,6 +32,8 @@ declare module 'next-auth/jwt' {
   interface JWT {
     id?: string;
     role?: ScopedRole;
+    institutionId?: string | null;
+    /** @deprecated Use institutionId */
     clubId?: string | null;
   }
 }

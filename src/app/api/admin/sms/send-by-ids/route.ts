@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
-import { requireClub, AuthError } from '@/lib/access';
+import { requireInstitution, AuthError } from '@/lib/access';
 import { sendBulkReminders, getConfiguredChannel } from '@/lib/sms';
 
 const SendBulkByIdsSchema = z.object({
@@ -11,7 +11,7 @@ const SendBulkByIdsSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const ctx = await requireClub(request);
+    const ctx = await requireInstitution(request);
 
     const body = await request.json();
     const parsed = SendBulkByIdsSchema.safeParse(body);
@@ -26,8 +26,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Detectar canal configurado
-    const configuredChannel = ctx.clubId
-      ? await getConfiguredChannel(ctx.clubId)
+    const configuredChannel = ctx.institutionId
+      ? await getConfiguredChannel(ctx.institutionId)
       : parsed.data.channel ?? 'whatsapp';
 
     const result = await sendBulkReminders(parsed.data.memberIds);

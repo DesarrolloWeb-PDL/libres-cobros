@@ -10,11 +10,11 @@ export async function POST(request: NextRequest) {
     const slug = request.nextUrl.searchParams.get('club_slug');
 
     // IPN notifications carry `?club_slug=` (set on the preference
-    // notification_url at checkout). Without it the club cannot be identified
+    // notification_url at checkout). Without it the institution cannot be identified
     // and the signature cannot be verified against the right secret.
     if (!slug) {
       return apiError(
-        'Club no identificado',
+        'Institución no identificada',
         401,
         'Falta el parámetro club_slug',
         'UNKNOWN_CLUB'
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     const club = await prisma.club.findUnique({ where: { slug } });
 
     if (!club) {
-      return apiError('Club desconocido', 401, 'club_slug desconocido', 'UNKNOWN_CLUB');
+      return apiError('Institución desconocida', 401, 'club_slug desconocido', 'UNKNOWN_INSTITUTION');
     }
 
     const [clientSecret, accessToken] = await Promise.all([
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
 
     if (!clientSecret || !accessToken) {
       return apiError(
-        'MercadoPago no configurado para este club',
+        'MercadoPago no configurado para esta institución',
         401,
         'mercadopago_client_secret o mercadopago_access_token no configurado',
         'MERCADOPAGO_NOT_CONFIGURED'

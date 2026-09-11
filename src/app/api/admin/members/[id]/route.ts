@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
-import { requireClub, clubWhere, AuthError } from '@/lib/access';
+import { requireInstitution, institutionWhere, AuthError } from '@/lib/access';
 import { UpdateMemberSchema } from '@/types/member';
 
 function serializeMember(member: {
@@ -27,12 +27,12 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const ctx = await requireClub(request);
+    const ctx = await requireInstitution(request);
 
     const { id } = await params;
 
     const member = await prisma.member.findFirst({
-      where: { id, ...clubWhere(ctx.clubId) },
+      where: { id, ...institutionWhere(ctx.institutionId) },
     });
 
     if (!member) {
@@ -53,12 +53,12 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const ctx = await requireClub(request);
+    const ctx = await requireInstitution(request);
 
     const { id } = await params;
 
     const existing = await prisma.member.findFirst({
-      where: { id, ...clubWhere(ctx.clubId) },
+      where: { id, ...institutionWhere(ctx.institutionId) },
     });
 
     if (!existing) {
@@ -122,12 +122,12 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const ctx = await requireClub(request);
+    const ctx = await requireInstitution(request);
 
     const { id } = await params;
 
     const member = await prisma.member.findFirst({
-      where: { id, ...clubWhere(ctx.clubId) },
+      where: { id, ...institutionWhere(ctx.institutionId) },
       include: {
         _count: {
           select: { fees: true, payments: true },

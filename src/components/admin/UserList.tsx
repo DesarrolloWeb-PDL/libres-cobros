@@ -122,7 +122,7 @@ export function UserList({ initialData }: UserListProps) {
               <TableHead>Nombre</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Rol</TableHead>
-              <TableHead>Club</TableHead>
+              <TableHead>Institución</TableHead>
               <TableHead className="w-16">Acciones</TableHead>
             </TableRow>
           </TableHeader>
@@ -144,7 +144,7 @@ export function UserList({ initialData }: UserListProps) {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {user.clubName ?? '—'}
+                    {user.institutionName ?? '—'}
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>

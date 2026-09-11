@@ -20,12 +20,12 @@ interface ResolvedEvent {
 }
 
 /**
- * Resolves the club that owns this webhook event and verifies its signature.
+ * Resolves the institution that owns this webhook event and verifies its signature.
  *
- * Primary: `?club_slug=` query param (set in each club's Stripe dashboard).
+ * Primary: `?club_slug=` query param (set in each institution's Stripe dashboard).
  * `constructEvent` needs the webhook secret BEFORE the payload can be parsed
  * (chicken-and-egg with metadata), so the query param gives a direct
- * club -> secret lookup. Fallback (no query param): iterate ACTIVE clubs'
+ * institution -> secret lookup. Fallback (no query param): iterate ACTIVE institutions'
  * webhook secrets until one verifies, cross-checking `metadata.clubSlug`.
  *
  * Returns null for any path that must answer 401 without touching state.
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
       return apiError(
         'Firma inválida',
         401,
-        'No se pudo verificar el evento contra ningún secreto de club',
+        'No se pudo verificar el evento contra ningún secreto de institución',
         'INVALID_SIGNATURE'
       );
     }

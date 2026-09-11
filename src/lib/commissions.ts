@@ -1,11 +1,11 @@
 import type { Prisma, Club, Commission } from '@prisma/client';
 
 /**
- * Club-driven commission creation.
+ * Institution-driven commission creation.
  *
- * PERCENTAGE clubs charge `club.commissionValue` percent of each confirmed
+ * PERCENTAGE institutions charge `club.commissionValue` percent of each confirmed
  * payment; the rate is snapshotted on the Commission row so later rate changes
- * do not alter historical commissions. FIXED clubs charge nothing per payment
+ * do not alter historical commissions. FIXED institutions charge nothing per payment
  * (they generate one ProviderInvoice per month at closing) and return null.
  */
 export async function createCommission(

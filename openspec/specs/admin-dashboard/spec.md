@@ -1,7 +1,7 @@
 # Especificación: Dashboard Administrativo
 
 ## Propósito
-Ofrecer a los administradores una vista centralizada del estado del club, con estadísticas, listados filtrables de socios, cuotas y pagos, y acceso a reportes.
+Ofrecer a los administradores una vista centralizada del estado de la institución, con estadísticas, listados filtrables de socios, cuotas y pagos, y acceso a reportes.
 
 ## Modelo de datos
 Ver modelos `Member`, `Fee`, `Payment`, `Commission`, `MonthlyClosing` y `SiteConfig` en las especificaciones correspondientes.

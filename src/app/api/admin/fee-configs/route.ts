@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
-import { requireClub, clubWhere, AuthError } from '@/lib/access';
+import { requireInstitution, institutionWhere, AuthError } from '@/lib/access';
 import { UpdateFeeConfigsSchema } from '@/types/fee';
 import type { FeeConfigListItem, FeeConfigListResponse } from '@/types/fee';
 
@@ -23,10 +23,10 @@ function serializeConfig(config: {
 
 export async function GET(request: NextRequest) {
   try {
-    const ctx = await requireClub(request);
+    const ctx = await requireInstitution(request);
 
     const configs = await prisma.feeConfig.findMany({
-      where: clubWhere(ctx.clubId),
+      where: institutionWhere(ctx.institutionId),
       orderBy: { category: 'asc' },
     });
 
@@ -45,14 +45,14 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const ctx = await requireClub(request);
+    const ctx = await requireInstitution(request);
 
-    if (!ctx.clubId) {
+    if (!ctx.institutionId) {
       return apiError(
-        'Seleccione un club',
+        'Seleccione una institución',
         400,
-        'Se requiere un club para actualizar las configuraciones',
-        'CLUB_REQUIRED'
+        'Se requiere una institución para actualizar las configuraciones',
+        'INSTITUTION_REQUIRED'
       );
     }
 
@@ -73,7 +73,7 @@ export async function PUT(request: NextRequest) {
     const updated = await prisma.$transaction(
       configs.map((config) =>
         prisma.feeConfig.update({
-          where: { clubId_category: { clubId: ctx.clubId!, category: config.category } },
+          where: { clubId_category: { clubId: ctx.institutionId!, category: config.category } },
           data: { amount: config.amount },
         })
       )

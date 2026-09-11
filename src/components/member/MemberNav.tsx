@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Home, CreditCard, HelpCircle, Menu, X } from 'lucide-react';
 import { useState } from 'react';
@@ -8,9 +9,9 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
 interface MemberNavProps {
-  clubName: string;
-  clubSlug: string;
-  clubLogo?: string | null;
+  institutionName: string;
+  institutionSlug: string;
+  institutionLogo?: string | null;
   primaryColor?: string;
 }
 
@@ -20,7 +21,7 @@ const navItems = [
   { href: '/ayuda', label: 'Ayuda', icon: HelpCircle },
 ];
 
-export function MemberNav({ clubName, clubSlug, clubLogo, primaryColor }: MemberNavProps) {
+export function MemberNav({ institutionName, institutionSlug, institutionLogo, primaryColor }: MemberNavProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -30,13 +31,15 @@ export function MemberNav({ clubName, clubSlug, clubLogo, primaryColor }: Member
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg">
       <div className="container mx-auto flex items-center justify-between px-4 py-3">
-        {/* Logo & Club Name */}
-        <Link href={`/pagos/${clubSlug}`} className="flex items-center gap-3 group">
-          {clubLogo ? (
+        {/* Logo & Institution Name */}
+        <Link href={`/pagos/${institutionSlug}`} className="flex items-center gap-3 group">
+          {institutionLogo ? (
             <div className="size-10 overflow-hidden rounded-lg border border-border">
-              <img 
-                src={clubLogo} 
-                alt={clubName} 
+              <Image 
+                src={institutionLogo} 
+                alt={institutionName} 
+                width={40}
+                height={40}
                 className="h-full w-full object-cover"
               />
             </div>
@@ -49,7 +52,7 @@ export function MemberNav({ clubName, clubSlug, clubLogo, primaryColor }: Member
                 className="text-lg font-bold"
                 style={accentStyle || { color: 'hsl(var(--accent))' }}
               >
-                {clubName.charAt(0)}
+                {institutionName.charAt(0)}
               </span>
             </div>
           )}
@@ -58,7 +61,7 @@ export function MemberNav({ clubName, clubSlug, clubLogo, primaryColor }: Member
               className="font-semibold transition-colors"
               style={accentStyle}
             >
-              {clubName}
+              {institutionName}
             </h1>
             <p className="text-xs text-muted-foreground">Portal de Socios</p>
           </div>
@@ -68,13 +71,13 @@ export function MemberNav({ clubName, clubSlug, clubLogo, primaryColor }: Member
         <nav className="hidden md:flex items-center gap-1">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname === `/pagos/${clubSlug}` || 
-                           pathname.startsWith(`/pagos/${clubSlug}${item.href}`);
+            const isActive = pathname === `/pagos/${institutionSlug}` || 
+                           pathname.startsWith(`/pagos/${institutionSlug}${item.href}`);
             
             return (
               <Link
                 key={item.href}
-                href={`/pagos/${clubSlug}${item.href}`}
+                href={`/pagos/${institutionSlug}${item.href}`}
                 className={cn(
                   'flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all',
                   isActive
@@ -108,13 +111,13 @@ export function MemberNav({ clubName, clubSlug, clubLogo, primaryColor }: Member
           <nav className="container mx-auto px-4 py-3 space-y-1">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive = pathname === `/pagos/${clubSlug}` || 
-                             pathname.startsWith(`/pagos/${clubSlug}${item.href}`);
+              const isActive = pathname === `/pagos/${institutionSlug}` || 
+                             pathname.startsWith(`/pagos/${institutionSlug}${item.href}`);
               
               return (
                 <Link
                   key={item.href}
-                  href={`/pagos/${clubSlug}${item.href}`}
+                  href={`/pagos/${institutionSlug}${item.href}`}
                   onClick={() => setMobileOpen(false)}
                   className={cn(
                     'flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all',

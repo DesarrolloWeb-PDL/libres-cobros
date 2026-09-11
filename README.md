@@ -1,6 +1,6 @@
 # Libres Cobros
 
-A club fee management system built for Argentine sports and social clubs. Administrators manage members, generate monthly fees, track payments, and run commission reports. Members look up their dues by DNI and pay online via Stripe, MercadoPago, or bank transfer.
+A institution fee management system built for Argentine institutions, clubs, organizations. Administrators manage members, generate monthly fees, track payments, and run commission reports. Members look up their dues by DNI and pay online via Stripe, MercadoPago, or bank transfer.
 
 ## Tech Stack
 

@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
-import { requireClub, AuthError } from '@/lib/access';
+import { requireInstitution, AuthError } from '@/lib/access';
 import { confirmPayment } from '@/lib/payments';
 
 export async function POST(
@@ -9,7 +9,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const ctx = await requireClub(request);
+    const ctx = await requireInstitution(request);
 
     const { id } = await params;
 
@@ -22,8 +22,8 @@ export async function POST(
       return apiError('Pago no encontrado', 404, 'Payment ID inválido', 'PAYMENT_NOT_FOUND');
     }
 
-    // Scope check: the payment must belong to the caller's club.
-    if (ctx.clubId && payment.clubId !== ctx.clubId) {
+    // Scope check: the payment must belong to the caller's institution.
+    if (ctx.institutionId && payment.clubId !== ctx.institutionId) {
       return apiError('Pago no encontrado', 404, 'Payment ID inválido', 'PAYMENT_NOT_FOUND');
     }
 

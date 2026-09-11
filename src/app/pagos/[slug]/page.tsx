@@ -17,10 +17,10 @@ export default async function ClubPaymentPage({ params, searchParams }: SlugPage
 
   const club = await prisma.club.findUnique({
     where: { slug },
-    select: { 
-      id: true, 
-      name: true, 
-      slug: true, 
+    select: {
+      id: true,
+      name: true,
+      slug: true,
       status: true,
       logoUrl: true,
       primaryColor: true,
@@ -36,7 +36,7 @@ export default async function ClubPaymentPage({ params, searchParams }: SlugPage
   const prefilledDni = typeof dni === 'string' ? dni : undefined;
 
   return (
-    <div 
+    <div
       className="flex min-h-full flex-col"
       style={{
         '--club-primary': club.primaryColor,
@@ -44,15 +44,15 @@ export default async function ClubPaymentPage({ params, searchParams }: SlugPage
         '--club-accent': club.accentColor,
       } as React.CSSProperties}
     >
-      <MemberNav 
-        clubName={club.name}
-        clubSlug={club.slug}
-        clubLogo={club.logoUrl}
+      <MemberNav
+        institutionName={club.name}
+        institutionSlug={club.slug}
+        institutionLogo={club.logoUrl}
         primaryColor={club.primaryColor}
       />
 
-      <main className="flex-1 px-4 py-8">
-        <div className="container mx-auto max-w-3xl">
+      <main className="flex-1 px-4 py-10">
+        <div className="container mx-auto max-w-2xl">
           <ClubPaymentPortal
             clubName={club.name}
             slug={club.slug}
@@ -64,13 +64,13 @@ export default async function ClubPaymentPage({ params, searchParams }: SlugPage
         </div>
       </main>
 
-      <footer className="border-t bg-muted/30 py-6 text-center text-xs text-muted-foreground mt-auto">
+      <footer className="border-t bg-muted/20 py-5 text-center text-xs text-muted-foreground mt-auto">
         <div className="container mx-auto px-4">
-          <p>{club.name} — Sistema de cobros</p>
+          <p className="font-medium">{club.name} — Sistema de cobros</p>
           <p className="mt-1">Ante cualquier duda, contactate con administración.</p>
           <Link
             href="/login"
-            className="mt-2 inline-block text-muted-foreground hover:text-accent transition-colors"
+            className="mt-2 inline-block text-muted-foreground/60 hover:text-accent transition-colors"
           >
             Admin
           </Link>

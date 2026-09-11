@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { apiError, apiDbError } from '@/lib/api-response';
-import { requireClub, AuthError } from '@/lib/access';
+import { requireInstitution, AuthError } from '@/lib/access';
 import { generateDebtReport, generatePaymentReport, generateCommissionReport } from '@/lib/reports';
 import { generateExcel } from '@/lib/excel';
 import { ExportReportQuerySchema } from '@/types/report';
@@ -165,7 +165,7 @@ async function generateCommissionsExcel(filters: {
 
 export async function GET(request: NextRequest) {
   try {
-    const ctx = await requireClub(request);
+    const ctx = await requireInstitution(request);
 
     const { searchParams } = request.nextUrl;
 
@@ -197,13 +197,13 @@ export async function GET(request: NextRequest) {
 
     switch (type) {
       case 'debts':
-        result = await generateDebtsExcel({ clubId: ctx.clubId, month, year, category });
+        result = await generateDebtsExcel({ clubId: ctx.institutionId, month, year, category });
         break;
       case 'payments':
-        result = await generatePaymentsExcel({ clubId: ctx.clubId, memberId, method, from, to });
+        result = await generatePaymentsExcel({ clubId: ctx.institutionId, memberId, method, from, to });
         break;
       case 'commissions':
-        result = await generateCommissionsExcel({ clubId: ctx.clubId, month, year, periodId });
+        result = await generateCommissionsExcel({ clubId: ctx.institutionId, month, year, periodId });
         break;
       default:
         return apiError('Tipo de reporte no soportado', 400);

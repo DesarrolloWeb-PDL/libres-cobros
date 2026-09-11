@@ -9,7 +9,7 @@ declare module 'next-auth' {
   interface User {
     id: string;
     role?: string;
-    clubId?: string | null;
+    institutionId?: string | null;
     mustChangePassword?: boolean;
   }
   interface Session {
@@ -18,7 +18,7 @@ declare module 'next-auth' {
       name: string | null;
       email: string | null;
       role: ScopedRole;
-      clubId: string | null;
+      institutionId: string | null;
       mustChangePassword: boolean;
     };
   }
@@ -28,7 +28,7 @@ declare module 'next-auth/jwt' {
   interface JWT {
     id?: string;
     role?: string;
-    clubId?: string | null;
+    institutionId?: string | null;
     mustChangePassword?: boolean;
   }
 }
@@ -65,7 +65,7 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           role: user.role,
-          clubId: user.clubId,
+          institutionId: user.clubId,
           mustChangePassword: user.mustChangePassword,
         };
       },
@@ -80,7 +80,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.role = user.role;
-        token.clubId = user.clubId ?? null;
+        token.institutionId = user.institutionId ?? null;
         token.mustChangePassword = user.mustChangePassword ?? false;
       }
       return token;
@@ -89,7 +89,7 @@ export const authOptions: NextAuthOptions = {
       if (token && session.user) {
         session.user.id = token.id as string;
         session.user.role = (token.role as ScopedRole) ?? 'ADMIN';
-        session.user.clubId = (token.clubId as string | null) ?? null;
+        session.user.institutionId = (token.institutionId as string | null) ?? null;
         session.user.mustChangePassword = token.mustChangePassword ?? false;
       }
       return session;

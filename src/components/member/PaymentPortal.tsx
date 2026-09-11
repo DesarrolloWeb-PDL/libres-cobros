@@ -12,10 +12,10 @@ interface PaymentPortalProps {
     lastName: string;
   };
   fees: MemberFeeItem[];
-  clubSlug?: string;
+  institutionSlug?: string;
 }
 
-export function PaymentPortal({ member, fees, clubSlug }: PaymentPortalProps) {
+export function PaymentPortal({ member, fees, institutionSlug }: PaymentPortalProps) {
   const pendingFees = fees.filter((fee) => fee.status === 'PENDING' || fee.status === 'OVERDUE');
   const totalPending = pendingFees.reduce((sum, fee) => sum + fee.amount, 0);
 
@@ -27,25 +27,25 @@ export function PaymentPortal({ member, fees, clubSlug }: PaymentPortalProps) {
   return (
     <div className="space-y-8">
       {/* Member Info Section */}
-      <section className="relative py-8 px-6 border-t border-border">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center gap-6 p-6 rounded-xl border border-border bg-card">
-            <div className="flex size-16 shrink-0 items-center justify-center rounded-xl bg-accent/10">
-              <User className="size-8 text-accent" />
+      <section className="relative py-6 px-6 border-t border-border">
+        <div className="max-w-lg mx-auto">
+          <div className="flex items-center gap-5 p-5 rounded-xl border border-border bg-card">
+            <div className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-accent/10">
+              <User className="size-6 text-accent" />
             </div>
             <div className="min-w-0">
-              <h2 className="text-2xl font-bold">
+              <h2 className="text-lg font-bold">
                 {member.firstName} {member.lastName}
               </h2>
-              <p className="text-muted-foreground">DNI {member.dni}</p>
+              <p className="text-sm text-muted-foreground">DNI {member.dni}</p>
               {pendingFees.length > 0 && (
-                <p className="mt-2 text-sm font-medium text-destructive">
+                <p className="mt-1.5 text-sm font-medium text-destructive">
                   Tenés {pendingFees.length} cuota{pendingFees.length === 1 ? '' : 's'} pendiente
                   {pendingFees.length === 1 ? '' : 's'} por {currencyFormatter.format(totalPending)}
                 </p>
               )}
               {pendingFees.length === 0 && fees.length > 0 && (
-                <p className="mt-2 text-sm font-medium text-green-600">
+                <p className="mt-1.5 text-sm font-medium text-emerald-600">
                   No tenés cuotas pendientes
                 </p>
               )}
@@ -55,34 +55,34 @@ export function PaymentPortal({ member, fees, clubSlug }: PaymentPortalProps) {
       </section>
 
       {/* Fees Section */}
-      <section className="relative py-8 px-6 border-t border-border">
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-6 text-center">
-            <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-3">
+      <section className="relative py-6 px-6 border-t border-border">
+        <div className="max-w-lg mx-auto">
+          <div className="mb-5 text-center">
+            <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-2">
               Cuotas
             </p>
-            <h2 className="text-2xl font-bold mb-6">
+            <h2 className="text-xl font-bold">
               Tus Cuotas
             </h2>
           </div>
 
-          <div className="flex items-center gap-2 mb-6">
-            <Receipt className="size-5 text-accent" />
-            <h3 className="font-semibold text-lg">Detalle de Cuotas</h3>
+          <div className="flex items-center gap-2 mb-5">
+            <Receipt className="size-4 text-accent" />
+            <h3 className="font-semibold text-sm">Detalle de Cuotas</h3>
           </div>
 
           {fees.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border p-12 text-center">
-              <AlertCircle className="mb-4 size-12 text-muted-foreground" />
-              <p className="font-semibold text-lg mb-2">No encontramos cuotas</p>
-              <p className="text-muted-foreground">
+            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border p-10 text-center">
+              <AlertCircle className="mb-3 size-10 text-muted-foreground/50" />
+              <p className="font-semibold mb-1">No encontramos cuotas</p>
+              <p className="text-sm text-muted-foreground">
                 Tu cuenta no tiene cuotas generadas por el momento.
               </p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {fees.map((fee) => (
-                <FeeCard key={fee.id} fee={fee} memberDni={member.dni} clubSlug={clubSlug} />
+                <FeeCard key={fee.id} fee={fee} memberDni={member.dni} institutionSlug={institutionSlug} />
               ))}
             </div>
           )}

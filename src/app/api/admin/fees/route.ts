@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
-import { requireClub, clubWhere, AuthError } from '@/lib/access';
+import { requireInstitution, institutionWhere, AuthError } from '@/lib/access';
 import { FeeListQuerySchema } from '@/types/fee';
 import type { FeeListItem, FeeListResponse } from '@/types/fee';
 
@@ -29,7 +29,7 @@ function serializeFee(fee: {
 
 export async function GET(request: NextRequest) {
   try {
-    const ctx = await requireClub(request);
+    const ctx = await requireInstitution(request);
 
     const { searchParams } = request.nextUrl;
 
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     const { memberId, search, status, month, year, page, limit } = parsed.data;
 
     const where: Record<string, unknown> = {
-      ...clubWhere(ctx.clubId),
+      ...institutionWhere(ctx.institutionId),
     };
 
     if (memberId) {

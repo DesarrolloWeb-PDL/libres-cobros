@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import * as xlsx from 'xlsx';
 import { prisma } from '@/lib/db';
 import { apiError, apiDbError } from '@/lib/api-response';
-import { requireClub, clubWhere, AuthError } from '@/lib/access';
+import { requireInstitution, institutionWhere, AuthError } from '@/lib/access';
 
 const CATEGORY_LABELS: Record<string, string> = {
   ADULT: 'Adulto',
@@ -17,7 +17,7 @@ const STATUS_LABELS: Record<string, string> = {
 
 export async function GET(request: NextRequest) {
   try {
-    const ctx = await requireClub(request);
+    const ctx = await requireInstitution(request);
 
     const { searchParams } = request.nextUrl;
 
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
 
     const where: Record<string, unknown> = {
-      ...clubWhere(ctx.clubId),
+      ...institutionWhere(ctx.institutionId),
     };
 
     if (category && ['ADULT', 'FAMILY', 'MINOR'].includes(category)) {
@@ -70,11 +70,11 @@ export async function GET(request: NextRequest) {
 
     const buffer = xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' });
 
-    const clubSlug = ctx.clubId
-      ? (await prisma.club.findUnique({ where: { id: ctx.clubId }, select: { slug: true } }))?.slug ?? 'club'
-      : 'club';
+    const institutionSlug = ctx.institutionId
+      ? (await prisma.club.findUnique({ where: { id: ctx.institutionId }, select: { slug: true } }))?.slug ?? 'institucion'
+      : 'institucion';
     const date = new Date().toISOString().slice(0, 10);
-    const filename = `socios_${clubSlug}_${date}.xlsx`;
+    const filename = `socios_${institutionSlug}_${date}.xlsx`;
 
     return new Response(buffer, {
       status: 200,

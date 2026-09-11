@@ -7,7 +7,7 @@ import type { MemberFeeItem, MemberFeesResponse } from '@/types/fee';
 
 const MemberDniQuerySchema = z.object({
   dni: z.string().min(1, 'El DNI es obligatorio'),
-  clubSlug: z.string().min(1, 'El club es obligatorio'),
+  clubSlug: z.string().min(1, 'La institución es obligatoria'),
 });
 
 function serializeFee(fee: {
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
 
     const club = await getEffectiveClub(clubSlug);
     if (!club) {
-      return apiError('Club no encontrado', 404, 'Club slug inválido o inactivo', 'CLUB_NOT_FOUND');
+      return apiError('Institución no encontrada', 404, 'Institution slug inválido o inactivo', 'INSTITUTION_NOT_FOUND');
     }
 
     const member = await prisma.member.findUnique({

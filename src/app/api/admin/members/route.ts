@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
-import { requireClub, clubWhere, AuthError } from '@/lib/access';
+import { requireInstitution, institutionWhere, AuthError } from '@/lib/access';
 import { CreateMemberSchema } from '@/types/member';
 
 function serializeMember(member: {
@@ -24,14 +24,14 @@ function serializeMember(member: {
 
 export async function POST(request: NextRequest) {
   try {
-    const ctx = await requireClub(request);
+    const ctx = await requireInstitution(request);
 
-    if (!ctx.clubId) {
+    if (!ctx.institutionId) {
       return apiError(
-        'Seleccione un club',
+        'Seleccione una institución',
         400,
-        'Se requiere un club para crear el socio',
-        'CLUB_REQUIRED'
+        'Se requiere una institución para crear el socio',
+        'INSTITUTION_REQUIRED'
       );
     }
 
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     const normalizedEmail = email && email.trim() !== '' ? email.trim() : null;
 
     const existingDni = await prisma.member.findUnique({
-      where: { clubId_dni: { clubId: ctx.clubId, dni: data.dni } },
+      where: { clubId_dni: { clubId: ctx.institutionId, dni: data.dni } },
     });
 
     if (existingDni) {
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
 
     if (normalizedEmail) {
       const existingEmail = await prisma.member.findUnique({
-        where: { clubId_email: { clubId: ctx.clubId, email: normalizedEmail } },
+        where: { clubId_email: { clubId: ctx.institutionId, email: normalizedEmail } },
       });
 
       if (existingEmail) {
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
       data: {
         ...data,
         email: normalizedEmail,
-        clubId: ctx.clubId,
+        clubId: ctx.institutionId,
       },
     });
 
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const ctx = await requireClub(request);
+    const ctx = await requireInstitution(request);
 
     const { searchParams } = request.nextUrl;
 
@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') ?? '20', 10)));
 
     const where: Record<string, unknown> = {
-      ...clubWhere(ctx.clubId),
+      ...institutionWhere(ctx.institutionId),
     };
 
     if (category && ['ADULT', 'FAMILY', 'MINOR'].includes(category)) {

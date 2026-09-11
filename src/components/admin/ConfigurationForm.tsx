@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Save, Building2, MessageSquare, Percent, Palette } from 'lucide-react';
+import { Save, Building2, MessageSquare, Percent, Palette, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -190,7 +190,7 @@ export function ConfigurationForm({
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="bank" className="mt-4">
+              <TabsContent value="bank" className="mt-5">
                 <div className="space-y-4">
                   <div className="mb-4">
                     <h3 className="text-sm font-medium">Datos bancarios</h3>
@@ -204,13 +204,16 @@ export function ConfigurationForm({
                       if (!config) return null;
                       return (
                         <div key={key} className="space-y-2">
-                          <Label htmlFor={`site-${key}`}>{siteConfigLabels[key] ?? key}</Label>
+                          <Label htmlFor={`site-${key}`} className="text-sm font-medium">
+                            {siteConfigLabels[key] ?? key}
+                          </Label>
                           <Input
                             id={`site-${key}`}
                             type="text"
                             placeholder={siteConfigPlaceholders[key] ?? ''}
                             value={config.value}
                             onChange={(e) => updateSiteConfig(key, e.target.value)}
+                            className="h-10"
                           />
                         </div>
                       );
@@ -219,13 +222,13 @@ export function ConfigurationForm({
                 </div>
               </TabsContent>
 
-              <TabsContent value="messaging" className="mt-4">
+              <TabsContent value="messaging" className="mt-5">
                 <div className="space-y-6">
                   <div className="space-y-4">
                     <div className="mb-4">
                       <div className="flex items-center gap-2">
                         <h3 className="text-sm font-medium">WhatsApp (Recomendado)</h3>
-                        <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                        <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
                           GRATIS
                         </span>
                       </div>
@@ -239,13 +242,16 @@ export function ConfigurationForm({
                         if (!config) return null;
                         return (
                           <div key={key} className="space-y-2">
-                            <Label htmlFor={`site-${key}`}>{siteConfigLabels[key] ?? key}</Label>
+                            <Label htmlFor={`site-${key}`} className="text-sm font-medium">
+                              {siteConfigLabels[key] ?? key}
+                            </Label>
                             <Input
                               id={`site-${key}`}
                               type="text"
                               placeholder={siteConfigPlaceholders[key] ?? ''}
                               value={config.value}
                               onChange={(e) => updateSiteConfig(key, e.target.value)}
+                              className="h-10"
                             />
                           </div>
                         );
@@ -271,13 +277,16 @@ export function ConfigurationForm({
                         if (!config) return null;
                         return (
                           <div key={key} className="space-y-2">
-                            <Label htmlFor={`site-${key}`}>{siteConfigLabels[key] ?? key}</Label>
+                            <Label htmlFor={`site-${key}`} className="text-sm font-medium">
+                              {siteConfigLabels[key] ?? key}
+                            </Label>
                             <Input
                               id={`site-${key}`}
                               type="text"
                               placeholder={siteConfigPlaceholders[key] ?? ''}
                               value={config.value}
                               onChange={(e) => updateSiteConfig(key, e.target.value)}
+                              className="h-10"
                             />
                           </div>
                         );
@@ -287,7 +296,7 @@ export function ConfigurationForm({
                 </div>
               </TabsContent>
 
-              <TabsContent value="commission" className="mt-4">
+              <TabsContent value="commission" className="mt-5">
                 <div className="space-y-4">
                   <div className="mb-4">
                     <h3 className="text-sm font-medium">Comisiones</h3>
@@ -301,7 +310,9 @@ export function ConfigurationForm({
                       if (!config) return null;
                       return (
                         <div key={key} className="space-y-2">
-                          <Label htmlFor={`site-${key}`}>{siteConfigLabels[key] ?? key}</Label>
+                          <Label htmlFor={`site-${key}`} className="text-sm font-medium">
+                            {siteConfigLabels[key] ?? key}
+                          </Label>
                           <Input
                             id={`site-${key}`}
                             type="number"
@@ -311,6 +322,7 @@ export function ConfigurationForm({
                             placeholder={siteConfigPlaceholders[key] ?? ''}
                             value={config.value}
                             onChange={(e) => updateSiteConfig(key, e.target.value)}
+                            className="h-10"
                           />
                         </div>
                       );
@@ -322,7 +334,11 @@ export function ConfigurationForm({
           </CardContent>
           <CardFooter>
             <Button type="submit" disabled={isSavingSite} className="gap-2">
-              <Save className="size-4" />
+              {isSavingSite ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Save className="size-4" />
+              )}
               {isSavingSite ? 'Guardando...' : 'Guardar configuración'}
             </Button>
           </CardFooter>
@@ -344,7 +360,7 @@ export function ConfigurationForm({
           <CardContent className="space-y-6">
             {/* Color Presets */}
             <div className="space-y-3">
-              <Label>Presets de colores</Label>
+              <Label className="text-sm font-medium">Presets de colores</Label>
               <div className="flex flex-wrap gap-2">
                 {COLOR_PRESETS.map((preset) => (
                   <button
@@ -355,18 +371,18 @@ export function ConfigurationForm({
                       secondaryColor: preset.secondary,
                       accentColor: preset.accent,
                     })}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all duration-150 ${
                       theme.primaryColor === preset.primary
-                        ? 'border-primary bg-primary/10'
-                        : 'border-border hover:border-primary/50'
+                        ? 'border-primary bg-primary/10 shadow-sm'
+                        : 'border-border hover:border-primary/40 hover:bg-muted/50'
                     }`}
                   >
                     <div className="flex gap-1">
-                      <div className="w-4 h-4 rounded-full" style={{ backgroundColor: preset.primary }} />
-                      <div className="w-4 h-4 rounded-full" style={{ backgroundColor: preset.secondary }} />
-                      <div className="w-4 h-4 rounded-full" style={{ backgroundColor: preset.accent }} />
+                      <div className="w-4 h-4 rounded-full ring-1 ring-black/5" style={{ backgroundColor: preset.primary }} />
+                      <div className="w-4 h-4 rounded-full ring-1 ring-black/5" style={{ backgroundColor: preset.secondary }} />
+                      <div className="w-4 h-4 rounded-full ring-1 ring-black/5" style={{ backgroundColor: preset.accent }} />
                     </div>
-                    <span className="text-sm">{preset.name}</span>
+                    <span>{preset.name}</span>
                   </button>
                 ))}
               </div>
@@ -375,79 +391,82 @@ export function ConfigurationForm({
             {/* Custom Colors */}
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="space-y-2">
-                <Label htmlFor="primaryColor">Color principal</Label>
+                <Label htmlFor="primaryColor" className="text-sm font-medium">Color principal</Label>
                 <div className="flex gap-2">
                   <input
                     id="primaryColor"
                     type="color"
                     value={theme.primaryColor}
                     onChange={(e) => setTheme({ ...theme, primaryColor: e.target.value })}
-                    className="w-12 h-10 rounded border cursor-pointer"
+                    className="w-10 h-10 rounded-lg border cursor-pointer"
                   />
                   <Input
                     type="text"
                     value={theme.primaryColor}
                     onChange={(e) => setTheme({ ...theme, primaryColor: e.target.value })}
                     placeholder="#7c3aed"
+                    className="h-10 flex-1"
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="secondaryColor">Color secundario</Label>
+                <Label htmlFor="secondaryColor" className="text-sm font-medium">Color secundario</Label>
                 <div className="flex gap-2">
                   <input
                     id="secondaryColor"
                     type="color"
                     value={theme.secondaryColor}
                     onChange={(e) => setTheme({ ...theme, secondaryColor: e.target.value })}
-                    className="w-12 h-10 rounded border cursor-pointer"
+                    className="w-10 h-10 rounded-lg border cursor-pointer"
                   />
                   <Input
                     type="text"
                     value={theme.secondaryColor}
                     onChange={(e) => setTheme({ ...theme, secondaryColor: e.target.value })}
                     placeholder="#a78bfa"
+                    className="h-10 flex-1"
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="accentColor">Color de acento</Label>
+                <Label htmlFor="accentColor" className="text-sm font-medium">Color de acento</Label>
                 <div className="flex gap-2">
                   <input
                     id="accentColor"
                     type="color"
                     value={theme.accentColor}
                     onChange={(e) => setTheme({ ...theme, accentColor: e.target.value })}
-                    className="w-12 h-10 rounded border cursor-pointer"
+                    className="w-10 h-10 rounded-lg border cursor-pointer"
                   />
                   <Input
                     type="text"
                     value={theme.accentColor}
                     onChange={(e) => setTheme({ ...theme, accentColor: e.target.value })}
                     placeholder="#5b21b6"
+                    className="h-10 flex-1"
                   />
                 </div>
               </div>
             </div>
 
             {/* Preview */}
-            <div className="p-4 rounded-lg border bg-muted/30">
-              <Label className="text-sm text-muted-foreground">Vista previa</Label>
-              <div className="mt-2 flex gap-2">
+            <div className="p-4 rounded-xl border bg-muted/30">
+              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Vista previa</Label>
+              <div className="mt-3 flex gap-2">
                 <div
-                  className="px-4 py-2 rounded text-white text-sm font-medium"
+                  className="px-4 py-2 rounded-lg text-white text-sm font-medium shadow-sm"
                   style={{ backgroundColor: theme.primaryColor }}
                 >
                   Botón principal
                 </div>
                 <div
-                  className="px-4 py-2 rounded text-white text-sm font-medium"
+                  className="px-4 py-2 rounded-lg text-white text-sm font-medium shadow-sm"
                   style={{ backgroundColor: theme.secondaryColor }}
                 >
                   Secundario
                 </div>
                 <div
-                  className="px-4 py-2 rounded text-white text-sm font-medium"
+                  className="px-4 py-2 rounded-lg text-white text-sm font-medium shadow-sm"
                   style={{ backgroundColor: theme.accentColor }}
                 >
                   Acento
@@ -462,7 +481,11 @@ export function ConfigurationForm({
               disabled={isSavingTheme}
               className="gap-2"
             >
-              <Save className="size-4" />
+              {isSavingTheme ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Save className="size-4" />
+              )}
               {isSavingTheme ? 'Guardando...' : 'Guardar colores'}
             </Button>
           </CardFooter>
