@@ -89,7 +89,7 @@ export async function requireInstitution(request?: NextRequest): Promise<Institu
  * SUPER_ADMIN operating across all institutions.
  */
 export function institutionWhere(institutionId: string | null): Record<string, unknown> {
-  return institutionId ? { institutionId } : {};
+  return institutionId ? { clubId: institutionId } : {};
 }
 
 /**
