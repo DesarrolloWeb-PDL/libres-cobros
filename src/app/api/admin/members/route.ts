@@ -108,6 +108,7 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search')?.trim();
     const category = searchParams.get('category');
     const status = searchParams.get('status');
+    const planId = searchParams.get('planId');
     const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10));
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') ?? '20', 10)));
 
@@ -121,6 +122,10 @@ export async function GET(request: NextRequest) {
 
     if (status && ['ACTIVE', 'INACTIVE'].includes(status)) {
       where.status = status;
+    }
+
+    if (planId) {
+      where.planId = planId;
     }
 
     if (search) {
