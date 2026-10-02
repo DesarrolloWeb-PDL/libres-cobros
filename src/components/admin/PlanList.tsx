@@ -188,7 +188,7 @@ export function PlanList({ initialData }: PlanListProps) {
                   <TableCell>
                     <div className="flex items-center gap-1">
                       <Button
-                        variant="ghost"
+                        variant="default"
                         size="icon"
                         onClick={() => openEdit(plan)}
                         aria-label="Editar"
@@ -196,7 +196,7 @@ export function PlanList({ initialData }: PlanListProps) {
                         <Pencil className="size-4" />
                       </Button>
                       <Button
-                        variant="ghost"
+                        variant="default"
                         size="icon"
                         onClick={() => togglePlan(plan)}
                         disabled={togglingId === plan.id}
@@ -211,12 +211,12 @@ export function PlanList({ initialData }: PlanListProps) {
                         )}
                       </Button>
                       <Button
-                        variant="ghost"
+                        variant="default"
                         size="icon"
                         onClick={() => deletePlan(plan)}
                         disabled={deletingId === plan.id}
                         aria-label="Eliminar"
-                        className="text-destructive hover:text-destructive"
+                        className="bg-destructive text-white hover:bg-destructive/90"
                       >
                         {deletingId === plan.id ? (
                           <Loader2 className="size-4 animate-spin" />

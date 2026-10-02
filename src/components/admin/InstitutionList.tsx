@@ -128,7 +128,7 @@ export function InstitutionList({ initialData }: InstitutionListProps) {
                     <DropdownMenu>
                       <DropdownMenuTrigger
                         render={(props) => (
-                          <Button {...props} variant="ghost" size="icon" aria-label="Acciones">
+                          <Button {...props} variant="default" size="icon" aria-label="Acciones">
                             <MoreHorizontal className="size-4" />
                           </Button>
                         )}

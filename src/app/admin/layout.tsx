@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { InstitutionThemeInjector } from '@/components/admin/InstitutionThemeInjector';
+import { DarkModeInjector } from '@/components/admin/DarkModeInjector';
 
 async function getInstitutionData(institutionId: string | null) {
   if (!institutionId) return null;
@@ -71,6 +72,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <>
       {themeColor && <InstitutionThemeInjector primaryColor={themeColor} />}
+      <DarkModeInjector bgColor={bgColor} />
       <div
         className="flex min-h-screen"
         style={{ backgroundColor: bgColor }}
