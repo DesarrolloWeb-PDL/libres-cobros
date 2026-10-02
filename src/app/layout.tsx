@@ -1,17 +1,30 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Manrope } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
+import { PwaRegistration } from "@/components/PwaRegistration";
 
 const manrope = Manrope({
   variable: "--font-sans",
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#7c3aed",
+};
+
 export const metadata: Metadata = {
   title: "Libres Cobros",
   description:
     "Sistema de gestión de cobro",
+  manifest: "/manifest.json",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/icons/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -19,6 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es" suppressHydrationWarning>
       <body className={`${manrope.variable} min-h-full flex flex-col font-sans antialiased`}>
         <Providers>{children}</Providers>
+        <PwaRegistration />
       </body>
     </html>
   );
