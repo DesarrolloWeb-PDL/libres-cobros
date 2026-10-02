@@ -1,76 +1,75 @@
 import {
   Users,
+  Wallet,
   Clock,
-  AlertCircle,
-  CreditCard,
   Percent,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import type { DashboardData } from '@/types/dashboard';
 
 interface StatsCardsProps {
-  data: {
-    totalSocios: number;
-    cuotasPendientes: number;
-    cuotasVencidas: number;
-    pagosMes: number;
-    comisionesMes: number;
-  };
+  data: DashboardData;
 }
+
+const currencyFormatter = new Intl.NumberFormat('es-AR', {
+  style: 'currency',
+  currency: 'ARS',
+  maximumFractionDigits: 0,
+});
 
 const cards = [
   {
-    key: 'totalSocios' as const,
-    label: 'Total socios',
+    key: 'activeMembers' as const,
+    label: 'Socios Activos',
     icon: Users,
     color: 'text-blue-600',
-    bgColor: 'bg-blue-50',
     gradient: 'from-blue-50 to-indigo-50/50',
     iconGradient: 'from-blue-500 to-indigo-500',
+    format: (value: number) => value.toLocaleString('es-AR'),
   },
   {
-    key: 'cuotasPendientes' as const,
-    label: 'Pendientes',
-    icon: Clock,
-    color: 'text-amber-600',
-    bgColor: 'bg-amber-50',
-    gradient: 'from-amber-50 to-orange-50/50',
-    iconGradient: 'from-amber-500 to-orange-500',
-  },
-  {
-    key: 'cuotasVencidas' as const,
-    label: 'Vencidas',
-    icon: AlertCircle,
-    color: 'text-red-600',
-    bgColor: 'bg-red-50',
-    gradient: 'from-red-50 to-rose-50/50',
-    iconGradient: 'from-red-500 to-rose-500',
-  },
-  {
-    key: 'pagosMes' as const,
-    label: 'Pagos mes',
-    icon: CreditCard,
+    key: 'incomeCollected' as const,
+    label: 'Ingresos del Mes',
+    icon: Wallet,
     color: 'text-emerald-600',
-    bgColor: 'bg-emerald-50',
     gradient: 'from-emerald-50 to-teal-50/50',
     iconGradient: 'from-emerald-500 to-teal-500',
+    format: (value: number) => currencyFormatter.format(value),
   },
   {
-    key: 'comisionesMes' as const,
+    key: 'pendingFees' as const,
+    label: 'Cuotas Pendientes',
+    icon: Clock,
+    color: 'text-amber-600',
+    gradient: 'from-amber-50 to-orange-50/50',
+    iconGradient: 'from-amber-500 to-orange-500',
+    format: (value: number) => value.toLocaleString('es-AR'),
+  },
+  {
+    key: 'commissions' as const,
     label: 'Comisiones',
     icon: Percent,
     color: 'text-violet-600',
-    bgColor: 'bg-violet-50',
     gradient: 'from-violet-50 to-purple-50/50',
     iconGradient: 'from-violet-500 to-purple-500',
+    format: (value: number) => currencyFormatter.format(value),
   },
 ];
 
 export function StatsCards({ data }: StatsCardsProps) {
+  const valueMap = {
+    activeMembers: data.activeMembers,
+    incomeCollected: data.income.collected,
+    pendingFees: data.fees.pending.count,
+    commissions: data.commissions,
+  };
+
   return (
-    <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
+    <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
       {cards.map((card) => {
         const Icon = card.icon;
+        const value = valueMap[card.key];
         return (
           <Card
             key={card.key}
@@ -96,8 +95,8 @@ export function StatsCards({ data }: StatsCardsProps) {
               </div>
             </CardHeader>
             <CardContent className="p-5 pt-0">
-              <div className="text-3xl font-bold tabular-nums tracking-tight text-foreground">
-                {data[card.key]}
+              <div className="text-2xl lg:text-3xl font-bold tabular-nums tracking-tight text-foreground">
+                {card.format(value)}
               </div>
             </CardContent>
           </Card>

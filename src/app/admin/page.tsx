@@ -3,16 +3,11 @@ import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
 import { adminFetch } from '@/lib/admin-fetch';
 import { StatsCards } from '@/components/admin/StatsCards';
+import { DashboardPanels } from '@/components/admin/DashboardPanels';
+import { RecentActivity } from '@/components/admin/RecentActivity';
 import { LayoutDashboard, Users, CreditCard, FileText, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-
-interface DashboardData {
-  totalSocios: number;
-  cuotasPendientes: number;
-  cuotasVencidas: number;
-  pagosMes: number;
-  comisionesMes: number;
-}
+import type { DashboardData } from '@/types/dashboard';
 
 async function getDashboardData(): Promise<DashboardData> {
   const response = await adminFetch(
@@ -61,6 +56,12 @@ export default async function AdminDashboardPage() {
 
       {/* Stats */}
       <StatsCards data={data} />
+
+      {/* Middle panels */}
+      <DashboardPanels data={data} />
+
+      {/* Bottom row: recent activity */}
+      <RecentActivity payments={data.recentPayments} />
 
       {/* Quick Actions */}
       <div className="space-y-5">
