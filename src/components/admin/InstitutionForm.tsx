@@ -7,13 +7,7 @@ import { ArrowLeft, Key, Loader2, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { StyledSelect } from '@/components/ui/styled-select';
 import { toast } from '@/components/ui/toast';
 import type { ClubListItem } from '@/types/club';
 
@@ -194,18 +188,15 @@ export function InstitutionForm({ club }: InstitutionFormProps) {
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label className="text-sm font-medium">Tipo de comisión</Label>
-            <Select
+            <StyledSelect
               value={commissionType}
-              onValueChange={(v) => setCommissionType(v as 'PERCENTAGE' | 'FIXED')}
-            >
-              <SelectTrigger className="h-10">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="PERCENTAGE">Porcentual (%)</SelectItem>
-                <SelectItem value="FIXED">Fijo ($)</SelectItem>
-              </SelectContent>
-            </Select>
+              onChange={(v) => setCommissionType(v as 'PERCENTAGE' | 'FIXED')}
+              options={[
+                { value: 'PERCENTAGE', label: 'Porcentual (%)' },
+                { value: 'FIXED', label: 'Fijo ($)' },
+              ]}
+              className="h-10"
+            />
           </div>
 
           <div className="space-y-2">
@@ -228,18 +219,15 @@ export function InstitutionForm({ club }: InstitutionFormProps) {
 
         <div className="space-y-2">
           <Label className="text-sm font-medium">Estado</Label>
-          <Select
+          <StyledSelect
             value={status}
-            onValueChange={(v) => setStatus(v as 'ACTIVE' | 'INACTIVE')}
-          >
-            <SelectTrigger className="h-10">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ACTIVE">Activo</SelectItem>
-              <SelectItem value="INACTIVE">Inactivo</SelectItem>
-            </SelectContent>
-          </Select>
+            onChange={(v) => setStatus(v as 'ACTIVE' | 'INACTIVE')}
+            options={[
+              { value: 'ACTIVE', label: 'Activo' },
+              { value: 'INACTIVE', label: 'Inactivo' },
+            ]}
+            className="h-10"
+          />
         </div>
 
         <div className="space-y-3 rounded-xl border bg-muted/30 p-4">

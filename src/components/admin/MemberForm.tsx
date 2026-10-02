@@ -5,13 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { StyledSelect } from '@/components/ui/styled-select';
 import { MemberFormSchema } from '@/types/member';
 import type { PlanListItem } from '@/types/fee';
 
@@ -129,22 +123,16 @@ export function MemberForm({
 
             <div className="space-y-2">
               <Label htmlFor="planId">Plan</Label>
-              <Select
+              <StyledSelect
                 value={formData.planId}
-                onValueChange={(value) => updateField('planId', value ?? '')}
+                onChange={(value) => updateField('planId', value)}
+                options={plans.map((plan) => ({
+                  value: plan.id,
+                  label: `${plan.name} — $${plan.amount.toLocaleString('es-AR')}`,
+                }))}
+                placeholder={plansLoading ? 'Cargando planes...' : 'Seleccionar plan'}
                 disabled={plansLoading}
-              >
-                <SelectTrigger id="planId" aria-invalid={!!errors.planId}>
-                  <SelectValue placeholder={plansLoading ? 'Cargando planes...' : 'Seleccionar plan'} />
-                </SelectTrigger>
-                <SelectContent>
-                  {plans.map((plan) => (
-                    <SelectItem key={plan.id} value={plan.id}>
-                      {plan.name} — ${plan.amount.toLocaleString('es-AR')}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              />
               {errors.planId && (
                 <p className="text-sm text-destructive">{errors.planId}</p>
               )}

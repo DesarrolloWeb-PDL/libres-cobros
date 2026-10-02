@@ -76,7 +76,7 @@ export function InstitutionSelector({ userRole }: InstitutionSelectorProps) {
         </button>
 
         {isOpen && (
-          <div className="absolute inset-x-0 top-full z-50 mt-1 rounded-lg border border-border bg-white shadow-xl min-w-[200px]">
+          <div className="absolute inset-x-0 top-full z-50 mt-1 rounded-lg border border-border bg-card shadow-xl min-w-[200px]">
             <div className="max-h-60 overflow-y-auto p-1">
               <button
                 type="button"
@@ -85,7 +85,7 @@ export function InstitutionSelector({ userRole }: InstitutionSelectorProps) {
                   'flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors',
                   !activeInstitutionId
                     ? 'bg-primary text-primary-foreground'
-                    : 'hover:bg-muted text-left'
+                    : 'hover:bg-muted text-left text-foreground'
                 )}
               >
                 Todas las instituciones
@@ -101,13 +101,13 @@ export function InstitutionSelector({ userRole }: InstitutionSelectorProps) {
                       'flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors text-left whitespace-nowrap',
                       activeInstitutionId === institution.id
                         ? 'bg-primary text-primary-foreground'
-                        : 'hover:bg-muted'
+                        : 'hover:bg-muted text-foreground'
                     )}
                   >
                     {institution.siglas ? (
                       <span className="font-medium">{institution.siglas}</span>
                     ) : null}
-                    <span className={institution.siglas ? 'text-muted-foreground' : ''}>
+                    <span className={institution.siglas ? 'text-foreground' : ''}>
                       {institution.name}
                     </span>
                   </button>

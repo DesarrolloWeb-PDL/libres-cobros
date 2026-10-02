@@ -7,13 +7,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { StyledSelect } from '@/components/ui/styled-select';
 import { toast } from '@/components/ui/toast';
 
 function slugify(text: string): string {
@@ -129,18 +123,14 @@ export default function NewInstitucionPage() {
 
         <div className="space-y-2">
           <Label>Tipo de comisión</Label>
-          <Select
+          <StyledSelect
             value={commissionType}
-            onValueChange={(v) => setCommissionType(v as 'PERCENTAGE' | 'FIXED')}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="PERCENTAGE">Porcentual (%)</SelectItem>
-              <SelectItem value="FIXED">Fijo ($)</SelectItem>
-            </SelectContent>
-          </Select>
+            onChange={(v) => setCommissionType(v as 'PERCENTAGE' | 'FIXED')}
+            options={[
+              { value: 'PERCENTAGE', label: 'Porcentual (%)' },
+              { value: 'FIXED', label: 'Fijo ($)' },
+            ]}
+          />
         </div>
 
         <div className="space-y-2">

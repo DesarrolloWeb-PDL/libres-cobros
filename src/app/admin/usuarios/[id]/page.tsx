@@ -7,13 +7,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { StyledSelect } from '@/components/ui/styled-select';
 import { toast } from '@/components/ui/toast';
 
 interface Club {
@@ -148,32 +142,26 @@ export default function EditarUsuarioPage({ params }: { params: Promise<{ id: st
 
         <div className="space-y-2">
           <Label>Rol</Label>
-          <Select value={role} onValueChange={(v) => setRole(v as 'ADMIN' | 'SUPER_ADMIN')}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ADMIN">Admin</SelectItem>
-              <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>
-            </SelectContent>
-          </Select>
+          <StyledSelect
+            value={role}
+            onChange={(v) => setRole(v as 'ADMIN' | 'SUPER_ADMIN')}
+            options={[
+              { value: 'ADMIN', label: 'Admin' },
+              { value: 'SUPER_ADMIN', label: 'Super Admin' },
+            ]}
+          />
         </div>
 
         {role === 'ADMIN' && (
           <div className="space-y-2">
             <Label>Club</Label>
-            <Select value={clubId} onValueChange={(v) => setClubId(v ?? '')} disabled={loadingClubs}>
-              <SelectTrigger>
-                <SelectValue placeholder={loadingClubs ? 'Cargando clubs...' : 'Seleccioná un club'} />
-              </SelectTrigger>
-              <SelectContent>
-                {clubs.map((club) => (
-                  <SelectItem key={club.id} value={club.id}>
-                    {club.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <StyledSelect
+              value={clubId}
+              onChange={(v) => setClubId(v)}
+              options={clubs.map((club) => ({ value: club.id, label: club.name }))}
+              placeholder={loadingClubs ? 'Cargando clubs...' : 'Seleccioná un club'}
+              disabled={loadingClubs}
+            />
           </div>
         )}
 
