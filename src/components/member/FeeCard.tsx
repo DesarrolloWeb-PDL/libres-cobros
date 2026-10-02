@@ -20,9 +20,12 @@ const statusLabels: Record<string, string> = {
 };
 
 const statusBadgeClasses: Record<string, string> = {
-  PENDING: 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-50',
-  PAID: 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-50',
-  OVERDUE: 'bg-red-50 text-red-700 border-red-200 hover:bg-red-50',
+  PENDING:
+    'bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800',
+  PAID:
+    'bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800',
+  OVERDUE:
+    'bg-red-100 text-red-700 border-red-200 hover:bg-red-100 dark:bg-red-950 dark:text-red-300 dark:border-red-800',
 };
 
 const monthLabels: Record<number, string> = {
@@ -52,7 +55,7 @@ export function FeeCard({ fee, memberDni, institutionSlug }: FeeCardProps) {
 
   return (
     <>
-      <div className="flex flex-col p-5 rounded-xl border border-border bg-card hover:border-accent/30 hover:shadow-sm transition-all duration-200">
+      <div className="flex flex-col p-5 rounded-xl border border-border bg-card shadow-sm hover:border-accent/30 hover:shadow-md transition-all duration-200">
         <div className="flex items-start justify-between gap-3 mb-3">
           <div>
             <h3 className="text-base font-semibold">
@@ -67,7 +70,9 @@ export function FeeCard({ fee, memberDni, institutionSlug }: FeeCardProps) {
 
         <div className="flex-1">
           <div className="flex items-baseline gap-1 mb-2">
-            <span className="text-2xl font-bold text-accent">{currencyFormatter.format(fee.amount)}</span>
+            <span className="text-2xl font-bold text-accent">
+              {currencyFormatter.format(fee.amount)}
+            </span>
           </div>
           <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <Calendar className="size-3.5" />
@@ -77,10 +82,7 @@ export function FeeCard({ fee, memberDni, institutionSlug }: FeeCardProps) {
 
         {canPay && (
           <div className="mt-4 pt-4 border-t border-border">
-            <Button
-              className="w-full bg-accent hover:bg-accent-hover text-white rounded-lg h-10 font-medium"
-              onClick={() => setSelectorOpen(true)}
-            >
+            <Button className="w-full h-11" onClick={() => setSelectorOpen(true)}>
               <CreditCard className="mr-2 size-4" />
               Pagar ahora
             </Button>

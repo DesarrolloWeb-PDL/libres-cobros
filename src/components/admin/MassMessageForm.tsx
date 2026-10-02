@@ -15,13 +15,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { StyledSelect } from '@/components/ui/styled-select';
 import {
   Dialog,
   DialogContent,
@@ -213,39 +207,34 @@ export function MassMessageForm({ initialPlans }: MassMessageFormProps) {
 
           <div className="w-full space-y-2 sm:w-44">
             <Label htmlFor="message-status">Estado</Label>
-            <Select
+            <StyledSelect
+              id="message-status"
               value={filters.status}
-              onValueChange={(value) => updateFilter('status', value ?? '')}
-            >
-              <SelectTrigger id="message-status">
-                <SelectValue placeholder="Todos" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Todos</SelectItem>
-                <SelectItem value="ACTIVE">Activo</SelectItem>
-                <SelectItem value="INACTIVE">Inactivo</SelectItem>
-              </SelectContent>
-            </Select>
+              onChange={(value) => updateFilter('status', value as Filters['status'])}
+              options={[
+                { value: '', label: 'Todos' },
+                { value: 'ACTIVE', label: 'Activo' },
+                { value: 'INACTIVE', label: 'Inactivo' },
+              ]}
+              placeholder="Todos"
+            />
           </div>
 
           <div className="w-full space-y-2 sm:w-56">
             <Label htmlFor="message-plan">Plan</Label>
-            <Select
+            <StyledSelect
+              id="message-plan"
               value={filters.planId}
-              onValueChange={(value) => updateFilter('planId', value ?? '')}
-            >
-              <SelectTrigger id="message-plan">
-                <SelectValue placeholder="Todos los planes" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Todos los planes</SelectItem>
-                {initialPlans.map((plan) => (
-                  <SelectItem key={plan.id} value={plan.id}>
-                    {plan.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              onChange={(value) => updateFilter('planId', value as Filters['planId'])}
+              options={[
+                { value: '', label: 'Todos los planes' },
+                ...initialPlans.map((plan) => ({
+                  value: plan.id,
+                  label: plan.name,
+                })),
+              ]}
+              placeholder="Todos los planes"
+            />
           </div>
         </div>
 

@@ -4,13 +4,7 @@ import { useState, useCallback } from 'react';
 import { Lock, Calculator } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { StyledSelect } from '@/components/ui/styled-select';
 import {
   Table,
   TableBody,
@@ -179,18 +173,16 @@ export function MonthlyClosingForm({ initialClosings, initialPreview }: MonthlyC
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4 sm:flex-row">
-            <Select value={month} onValueChange={(value) => setMonth(value ?? '')}>
-              <SelectTrigger className="w-full sm:w-44">
-                <SelectValue placeholder="Mes" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(monthLabels).map(([key, label]) => (
-                  <SelectItem key={key} value={key}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <StyledSelect
+              value={month}
+              onChange={(value) => setMonth(value)}
+              options={Object.entries(monthLabels).map(([key, label]) => ({
+                value: key,
+                label,
+              }))}
+              placeholder="Mes"
+              className="w-full sm:w-44"
+            />
 
             <Input
               placeholder="Año"

@@ -7,13 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { StyledSelect } from '@/components/ui/styled-select';
 import { toast } from '@/components/ui/toast';
 import type { GenerateFeesResult } from '@/types/fee';
 
@@ -105,18 +99,16 @@ export default function GenerateFeesPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="month">Mes</Label>
-                <Select value={month} onValueChange={(value) => setMonth(value ?? '')}>
-                  <SelectTrigger id="month">
-                    <SelectValue placeholder="Seleccionar mes" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(monthLabels).map(([key, label]) => (
-                      <SelectItem key={key} value={key}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <StyledSelect
+                  id="month"
+                  value={month}
+                  onChange={(value) => setMonth(value)}
+                  options={Object.entries(monthLabels).map(([key, label]) => ({
+                    value: key,
+                    label,
+                  }))}
+                  placeholder="Seleccionar mes"
+                />
               </div>
 
               <div className="space-y-2">

@@ -124,7 +124,7 @@ export function PaymentMethodSelector({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md bg-card text-card-foreground border border-border shadow-xl">
         <DialogHeader>
           <DialogTitle>
             {bankTransfer ? 'Transferencia bancaria' : 'Seleccionar método de pago'}
@@ -139,7 +139,7 @@ export function PaymentMethodSelector({
         {bankTransfer ? (
           <div className="space-y-4">
             <BankTransferInfo bankTransfer={bankTransfer} />
-            <Button variant="outline" className="w-full" onClick={reset}>
+            <Button variant="outline" className="w-full rounded-xl" onClick={reset}>
               <ArrowLeft className="mr-2 size-4" />
               Elegir otro método
             </Button>
@@ -153,25 +153,27 @@ export function PaymentMethodSelector({
               return (
                 <Button
                   key={method.id}
-                  variant="outline"
-                  className="h-auto w-full justify-start gap-4 p-4 text-left"
+                  variant="secondary"
+                  className="h-auto w-full justify-start gap-4 rounded-xl p-4 text-left"
                   onClick={() => handleSelectMethod(method.id)}
                   disabled={disabled}
                 >
-                  <span className="shrink-0 text-muted-foreground">{method.icon}</span>
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    {method.icon}
+                  </span>
                   <span className="flex-1">
                     <span className="block font-medium">{method.label}</span>
                     <span className="block text-xs text-muted-foreground">
                       {method.description}
                     </span>
                   </span>
-                  {isLoading && <Loader2 className="size-4 animate-spin" />}
+                  {isLoading && <Loader2 className="size-4 animate-spin text-primary" />}
                 </Button>
               );
             })}
 
             {checkoutError && (
-              <p className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+              <p className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive">
                 {checkoutError}
               </p>
             )}

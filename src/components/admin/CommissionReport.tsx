@@ -4,13 +4,7 @@ import { useState, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { StyledSelect } from '@/components/ui/styled-select';
 import {
   Table,
   TableBody,
@@ -115,11 +109,10 @@ export function CommissionReport({ initialData }: CommissionReportProps) {
     };
   }
 
-  async function handleMonthChange(value: string | null) {
-    const newValue = value ?? '';
-    setMonth(newValue);
+  async function handleMonthChange(value: string) {
+    setMonth(value);
     setPage(1);
-    await fetchCommissions(buildParams({ month: newValue, page: 1 }));
+    await fetchCommissions(buildParams({ month: value, page: 1 }));
   }
 
   async function handleYearChange(value: string) {
@@ -174,18 +167,16 @@ export function CommissionReport({ initialData }: CommissionReportProps) {
 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div className="flex flex-1 flex-col gap-4 sm:flex-row">
-          <Select value={month} onValueChange={handleMonthChange}>
-            <SelectTrigger className="w-full sm:w-44">
-              <SelectValue placeholder="Mes" />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(monthLabels).map(([key, label]) => (
-                <SelectItem key={key} value={key}>
-                  {label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <StyledSelect
+            value={month}
+            onChange={handleMonthChange}
+            options={Object.entries(monthLabels).map(([key, label]) => ({
+              value: key,
+              label,
+            }))}
+            placeholder="Mes"
+            className="w-full sm:w-44"
+          />
 
           <Input
             placeholder="Año"

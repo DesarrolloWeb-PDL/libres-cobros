@@ -13,14 +13,14 @@ interface InstitutionDirectoryProps {
 
 export function InstitutionDirectory({ clubs }: InstitutionDirectoryProps) {
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
       {clubs.map((institution) => (
-        <Link 
-          key={institution.id} 
+        <Link
+          key={institution.id}
           href={`/pagos/${institution.slug}`}
           className="group block"
         >
-          <div className="flex items-center justify-between p-6 rounded-xl border border-border bg-card hover:border-accent/50 hover:bg-accent/5 transition-all duration-200">
+          <div className="flex items-center justify-between p-6 rounded-xl border border-border bg-card shadow-sm transition-all duration-200 hover:border-accent/50 hover:bg-accent/5 hover:shadow-lg hover:-translate-y-0.5">
             <div className="flex items-center gap-4">
               <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-accent/10">
                 <Users className="size-6 text-accent" />

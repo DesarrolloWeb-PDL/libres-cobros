@@ -1,12 +1,6 @@
 'use client';
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { StyledSelect } from '@/components/ui/styled-select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
@@ -85,21 +79,17 @@ export function ReportFilter({
         <>
           <div className="flex-1 space-y-2 sm:flex-initial">
             <Label htmlFor="report-month">Mes</Label>
-            <Select
+            <StyledSelect
+              id="report-month"
               value={values.month}
-              onValueChange={(value) => updateValue('month', value ?? '')}
-            >
-              <SelectTrigger id="report-month" className="w-full sm:w-44">
-                <SelectValue placeholder="Mes" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(monthLabels).map(([key, label]) => (
-                  <SelectItem key={key} value={key}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              onChange={(value) => updateValue('month', value)}
+              options={Object.entries(monthLabels).map(([key, label]) => ({
+                value: key,
+                label,
+              }))}
+              placeholder="Mes"
+              className="w-full sm:w-44"
+            />
           </div>
 
           <div className="flex-1 space-y-2 sm:flex-initial">
@@ -147,66 +137,51 @@ export function ReportFilter({
       {showCategory && (
         <div className="flex-1 space-y-2 sm:flex-initial">
           <Label htmlFor="report-category">Categoría</Label>
-          <Select
+          <StyledSelect
+            id="report-category"
             value={values.category}
-            onValueChange={(value) => updateValue('category', value ?? '')}
-          >
-            <SelectTrigger id="report-category" className="w-full sm:w-44">
-              <SelectValue placeholder="Todas las categorías" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">Todas</SelectItem>
-              {categories.map((cat) => (
-                <SelectItem key={cat.value} value={cat.value}>
-                  {cat.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            onChange={(value) => updateValue('category', value)}
+            options={[
+              { value: '', label: 'Todas' },
+              ...categories,
+            ]}
+            placeholder="Todas las categorías"
+            className="w-full sm:w-44"
+          />
         </div>
       )}
 
       {showMethod && (
         <div className="flex-1 space-y-2 sm:flex-initial">
           <Label htmlFor="report-method">Método</Label>
-          <Select
+          <StyledSelect
+            id="report-method"
             value={values.method}
-            onValueChange={(value) => updateValue('method', value ?? '')}
-          >
-            <SelectTrigger id="report-method" className="w-full sm:w-44">
-              <SelectValue placeholder="Todos los métodos" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">Todos</SelectItem>
-              {methods.map((method) => (
-                <SelectItem key={method.value} value={method.value}>
-                  {method.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            onChange={(value) => updateValue('method', value)}
+            options={[
+              { value: '', label: 'Todos' },
+              ...methods,
+            ]}
+            placeholder="Todos los métodos"
+            className="w-full sm:w-44"
+          />
         </div>
       )}
 
       {showStatus && (
         <div className="flex-1 space-y-2 sm:flex-initial">
           <Label htmlFor="report-status">Estado</Label>
-          <Select
+          <StyledSelect
+            id="report-status"
             value={values.status}
-            onValueChange={(value) => updateValue('status', value ?? '')}
-          >
-            <SelectTrigger id="report-status" className="w-full sm:w-44">
-              <SelectValue placeholder="Todos los estados" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">Todos</SelectItem>
-              {statuses.map((status) => (
-                <SelectItem key={status.value} value={status.value}>
-                  {status.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            onChange={(value) => updateValue('status', value)}
+            options={[
+              { value: '', label: 'Todos' },
+              ...statuses,
+            ]}
+            placeholder="Todos los estados"
+            className="w-full sm:w-44"
+          />
         </div>
       )}
     </div>

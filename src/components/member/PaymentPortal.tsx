@@ -27,11 +27,11 @@ export function PaymentPortal({ member, fees, institutionSlug }: PaymentPortalPr
   return (
     <div className="space-y-8">
       {/* Member Info Section */}
-      <section className="relative py-6 px-6 border-t border-border">
+      <section className="py-6 px-6">
         <div className="max-w-lg mx-auto">
-          <div className="flex items-center gap-5 p-5 rounded-xl border border-border bg-card">
-            <div className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-accent/10">
-              <User className="size-6 text-accent" />
+          <div className="flex items-center gap-5 p-5 rounded-xl border border-border bg-card shadow-sm transition-shadow hover:shadow-md">
+            <div className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+              <User className="size-6 text-primary" />
             </div>
             <div className="min-w-0">
               <h2 className="text-lg font-bold">
@@ -55,15 +55,13 @@ export function PaymentPortal({ member, fees, institutionSlug }: PaymentPortalPr
       </section>
 
       {/* Fees Section */}
-      <section className="relative py-6 px-6 border-t border-border">
+      <section className="py-6 px-6 border-t border-border">
         <div className="max-w-lg mx-auto">
           <div className="mb-5 text-center">
             <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-2">
               Cuotas
             </p>
-            <h2 className="text-xl font-bold">
-              Tus Cuotas
-            </h2>
+            <h2 className="text-xl font-bold">Tus Cuotas</h2>
           </div>
 
           <div className="flex items-center gap-2 mb-5">
@@ -72,7 +70,7 @@ export function PaymentPortal({ member, fees, institutionSlug }: PaymentPortalPr
           </div>
 
           {fees.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border p-10 text-center">
+            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/20 p-10 text-center">
               <AlertCircle className="mb-3 size-10 text-muted-foreground/50" />
               <p className="font-semibold mb-1">No encontramos cuotas</p>
               <p className="text-sm text-muted-foreground">

@@ -10,13 +10,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { StyledSelect } from '@/components/ui/styled-select';
 import {
   Table,
   TableBody,
@@ -155,18 +149,16 @@ export function PaymentList({ initialData }: PaymentListProps) {
     await fetchPayments(buildParams({ search: value, page: 1 }));
   }
 
-  async function handleMethodChange(value: string | null) {
-    const newValue = value ?? '';
-    setMethod(newValue);
+  async function handleMethodChange(value: string) {
+    setMethod(value);
     setPage(1);
-    await fetchPayments(buildParams({ method: newValue, page: 1 }));
+    await fetchPayments(buildParams({ method: value, page: 1 }));
   }
 
-  async function handleStatusChange(value: string | null) {
-    const newValue = value ?? '';
-    setStatus(newValue);
+  async function handleStatusChange(value: string) {
+    setStatus(value);
     setPage(1);
-    await fetchPayments(buildParams({ status: newValue, page: 1 }));
+    await fetchPayments(buildParams({ status: value, page: 1 }));
   }
 
   async function handleFromChange(value: string) {
@@ -229,30 +221,32 @@ export function PaymentList({ initialData }: PaymentListProps) {
             />
           </div>
 
-          <Select value={method} onValueChange={handleMethodChange}>
-            <SelectTrigger className="w-full sm:w-44">
-              <SelectValue placeholder="Todos los métodos" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">Todos</SelectItem>
-              <SelectItem value="stripe">Stripe</SelectItem>
-              <SelectItem value="mercadopago">MercadoPago</SelectItem>
-              <SelectItem value="bank_transfer">Transferencia</SelectItem>
-            </SelectContent>
-          </Select>
+          <StyledSelect
+            value={method}
+            onChange={handleMethodChange}
+            options={[
+              { value: '', label: 'Todos' },
+              { value: 'stripe', label: 'Stripe' },
+              { value: 'mercadopago', label: 'MercadoPago' },
+              { value: 'bank_transfer', label: 'Transferencia' },
+            ]}
+            placeholder="Todos los métodos"
+            className="w-full sm:w-44"
+          />
 
-          <Select value={status} onValueChange={handleStatusChange}>
-            <SelectTrigger className="w-full sm:w-44">
-              <SelectValue placeholder="Todos los estados" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">Todos</SelectItem>
-              <SelectItem value="PENDING">Pendiente</SelectItem>
-              <SelectItem value="PAID">Pagado</SelectItem>
-              <SelectItem value="FAILED">Fallido</SelectItem>
-              <SelectItem value="REFUNDED">Reembolsado</SelectItem>
-            </SelectContent>
-          </Select>
+          <StyledSelect
+            value={status}
+            onChange={handleStatusChange}
+            options={[
+              { value: '', label: 'Todos' },
+              { value: 'PENDING', label: 'Pendiente' },
+              { value: 'PAID', label: 'Pagado' },
+              { value: 'FAILED', label: 'Fallido' },
+              { value: 'REFUNDED', label: 'Reembolsado' },
+            ]}
+            placeholder="Todos los estados"
+            className="w-full sm:w-44"
+          />
 
           <Input
             type="date"

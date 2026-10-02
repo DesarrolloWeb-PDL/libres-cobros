@@ -29,15 +29,16 @@ function CopyableRow({ label, value }: { label: string; value: string }) {
   }
 
   return (
-    <div className="flex items-center justify-between gap-4 rounded-lg bg-muted/50 p-3">
+    <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-card p-3">
       <div className="min-w-0">
         <p className="text-xs text-muted-foreground">{label}</p>
         <p className="truncate font-medium">{value || '-'}</p>
       </div>
       {value && (
         <Button
-          variant="ghost"
+          variant="secondary"
           size="icon-sm"
+          className="shrink-0"
           onClick={handleCopy}
           aria-label={`Copiar ${label}`}
         >
@@ -50,7 +51,7 @@ function CopyableRow({ label, value }: { label: string; value: string }) {
 
 export function BankTransferInfo({ bankTransfer }: BankTransferInfoProps) {
   return (
-    <Card>
+    <Card className="border border-border shadow-sm">
       <CardHeader>
         <CardTitle>Datos para transferencia bancaria</CardTitle>
       </CardHeader>
@@ -60,7 +61,7 @@ export function BankTransferInfo({ bankTransfer }: BankTransferInfoProps) {
         <CopyableRow label="CBU" value={bankTransfer.cbu} />
         <CopyableRow label="Alias" value={bankTransfer.alias} />
         <CopyableRow label="CUIT" value={bankTransfer.cuit} />
-        <div className="rounded-lg border border-dashed p-3">
+        <div className="rounded-xl border border-dashed border-border bg-muted/30 p-4">
           <p className="text-xs text-muted-foreground">Referencia de pago</p>
           <p className="font-mono text-lg font-semibold">{bankTransfer.reference}</p>
           <p className="mt-1 text-xs text-muted-foreground">

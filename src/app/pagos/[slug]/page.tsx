@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { prisma } from '@/lib/db';
 import { ClubPaymentPortal } from '@/components/member/ClubPaymentPortal';
 import { MemberNav } from '@/components/member/MemberNav';
+import { InstitutionThemeInjector } from '@/components/admin/InstitutionThemeInjector';
+import { DarkModeInjector } from '@/components/admin/DarkModeInjector';
 
 interface SlugPageProps {
   params: Promise<{ slug: string }>;

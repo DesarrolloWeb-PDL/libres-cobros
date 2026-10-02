@@ -88,7 +88,7 @@ export function AdminSidebar({ institution, themeColor }: AdminSidebarProps) {
               <Logo size={32} showScroll={false} color="white" />
             </div>
           )}
-          <span className="font-semibold text-white text-sm" style={accentStyle}>
+          <span className="font-semibold text-white text-sm">
             {isSuperAdmin ? 'Libres Cobros' : institution?.name || 'Admin'}
           </span>
         </Link>

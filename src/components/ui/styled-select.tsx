@@ -11,9 +11,10 @@ interface StyledSelectProps {
   placeholder?: string;
   className?: string;
   disabled?: boolean;
+  id?: string;
 }
 
-export function StyledSelect({ value, onChange, options, placeholder, className, disabled }: StyledSelectProps) {
+export function StyledSelect({ value, onChange, options, placeholder, className, disabled, id }: StyledSelectProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -32,6 +33,7 @@ export function StyledSelect({ value, onChange, options, placeholder, className,
   return (
     <div ref={ref} className="relative">
       <button
+        id={id}
         type="button"
         disabled={disabled}
         onClick={() => setOpen(!open)}

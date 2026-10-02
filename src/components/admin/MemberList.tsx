@@ -16,13 +16,7 @@ import {
 import { BulkImportForm } from './BulkImportForm';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { StyledSelect } from '@/components/ui/styled-select';
 import {
   Table,
   TableBody,
@@ -129,18 +123,16 @@ export function MemberList({ initialData }: MemberListProps) {
     await fetchMembers(buildParams({ search: value, page: 1 }));
   }
 
-  async function handleCategoryChange(value: string | null) {
-    const newValue = value ?? '';
-    setCategory(newValue);
+  async function handleCategoryChange(value: string) {
+    setCategory(value);
     setPage(1);
-    await fetchMembers(buildParams({ category: newValue, page: 1 }));
+    await fetchMembers(buildParams({ category: value, page: 1 }));
   }
 
-  async function handleStatusChange(value: string | null) {
-    const newValue = value ?? '';
-    setStatus(newValue);
+  async function handleStatusChange(value: string) {
+    setStatus(value);
     setPage(1);
-    await fetchMembers(buildParams({ status: newValue, page: 1 }));
+    await fetchMembers(buildParams({ status: value, page: 1 }));
   }
 
   async function handlePageChange(newPage: number) {
@@ -362,28 +354,30 @@ export function MemberList({ initialData }: MemberListProps) {
             />
           </div>
 
-          <Select value={category} onValueChange={handleCategoryChange}>
-            <SelectTrigger className="w-full sm:w-40">
-              <SelectValue placeholder="Todas las categorias" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">Todas</SelectItem>
-              <SelectItem value="ADULT">Adulto</SelectItem>
-              <SelectItem value="FAMILY">Familia</SelectItem>
-              <SelectItem value="MINOR">Menor</SelectItem>
-            </SelectContent>
-          </Select>
+          <StyledSelect
+            value={category}
+            onChange={handleCategoryChange}
+            options={[
+              { value: '', label: 'Todas' },
+              { value: 'ADULT', label: 'Adulto' },
+              { value: 'FAMILY', label: 'Familia' },
+              { value: 'MINOR', label: 'Menor' },
+            ]}
+            placeholder="Todas las categorias"
+            className="w-full sm:w-40"
+          />
 
-          <Select value={status} onValueChange={handleStatusChange}>
-            <SelectTrigger className="w-full sm:w-40">
-              <SelectValue placeholder="Todos los estados" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">Todos</SelectItem>
-              <SelectItem value="ACTIVE">Activo</SelectItem>
-              <SelectItem value="INACTIVE">Inactivo</SelectItem>
-            </SelectContent>
-          </Select>
+          <StyledSelect
+            value={status}
+            onChange={handleStatusChange}
+            options={[
+              { value: '', label: 'Todos' },
+              { value: 'ACTIVE', label: 'Activo' },
+              { value: 'INACTIVE', label: 'Inactivo' },
+            ]}
+            placeholder="Todos los estados"
+            className="w-full sm:w-40"
+          />
         </div>
 
         <div className="flex flex-wrap gap-2">
