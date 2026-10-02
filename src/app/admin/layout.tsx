@@ -72,7 +72,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <>
       {themeColor && <InstitutionThemeInjector primaryColor={themeColor} />}
       <div
-        className="flex min-h-full"
+        className="flex min-h-screen"
         style={{ backgroundColor: bgColor }}
       >
         <AdminSidebar institution={institution} themeColor={themeColor} />

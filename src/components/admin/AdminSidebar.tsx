@@ -145,8 +145,8 @@ export function AdminSidebar({ institution, themeColor }: AdminSidebarProps) {
                   className={cn(
                     'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150',
                     isActive
-                      ? 'bg-white/20 text-white shadow-sm'
-                      : 'text-white/60 hover:bg-white/8 hover:text-white/90'
+                      ? 'bg-white/25 text-white shadow-sm'
+                      : 'text-white/80 hover:bg-white/12 hover:text-white'
                   )}
                 >
                   <Icon className="size-4 shrink-0" />
@@ -164,10 +164,10 @@ export function AdminSidebar({ institution, themeColor }: AdminSidebarProps) {
             <div className="relative">
               <Button
                 variant="ghost"
-                className="w-full justify-start gap-3 text-white/60 hover:bg-white/8 hover:text-white h-auto py-2"
+                className="w-full justify-start gap-3 text-white/80 hover:bg-white/12 hover:text-white h-auto py-2"
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
               >
-                <div className="flex size-7 items-center justify-center rounded-full bg-white/15">
+                <div className="flex size-7 items-center justify-center rounded-full bg-white/20">
                   <span className="text-xs font-medium text-white">
                     {userName.charAt(0).toUpperCase()}
                   </span>
@@ -177,10 +177,10 @@ export function AdminSidebar({ institution, themeColor }: AdminSidebarProps) {
               </Button>
 
               {userMenuOpen && (
-                <div className="absolute bottom-full left-0 right-0 mb-2 rounded-lg border bg-background shadow-lg overflow-hidden">
+                <div className="absolute bottom-full left-0 right-0 mb-2 rounded-lg border border-border bg-white shadow-xl overflow-hidden z-50">
                   <Button
                     variant="ghost"
-                    className="w-full justify-start gap-3 text-muted-foreground hover:text-destructive h-auto py-2.5"
+                    className="w-full justify-start gap-3 text-muted-foreground hover:text-destructive hover:bg-destructive/5 h-auto py-2.5"
                     onClick={() => signOut({ callbackUrl: '/login' })}
                   >
                     <LogOut className="size-4" />

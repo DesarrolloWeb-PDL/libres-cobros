@@ -76,7 +76,7 @@ export function InstitutionSelector({ userRole }: InstitutionSelectorProps) {
         </button>
 
         {isOpen && (
-          <div className="absolute inset-x-0 top-full z-50 mt-1 rounded-lg border bg-background shadow-lg min-w-[200px]">
+          <div className="absolute inset-x-0 top-full z-50 mt-1 rounded-lg border border-border bg-white shadow-xl min-w-[200px]">
             <div className="max-h-60 overflow-y-auto p-1">
               <button
                 type="button"
