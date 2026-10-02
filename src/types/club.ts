@@ -33,6 +33,7 @@ export interface InstitutionListItem {
   primaryColor?: string;
   secondaryColor?: string;
   accentColor?: string;
+  bgColor?: string;
   createdAt: string;
   updatedAt: string;
 }

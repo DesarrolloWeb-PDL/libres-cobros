@@ -17,6 +17,7 @@ async function getInstitutionData(institutionId: string | null) {
       primaryColor: true,
       secondaryColor: true,
       accentColor: true,
+      bgColor: true,
     },
   });
   
@@ -30,6 +31,7 @@ async function getSuperAdminTheme() {
       primaryColor: true,
       secondaryColor: true,
       accentColor: true,
+      bgColor: true,
     },
   });
   
@@ -61,10 +63,18 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const superAdminColor = isSuperAdmin && superAdminTheme?.primaryColor ? superAdminTheme.primaryColor : null;
   const themeColor = institutionColor || superAdminColor;
 
+  // Determine background color (institution setting wins, then super admin theme, then default)
+  const institutionBgColor = !isSuperAdmin && institution?.bgColor ? institution.bgColor : null;
+  const superAdminBgColor = isSuperAdmin && superAdminTheme?.bgColor ? superAdminTheme.bgColor : null;
+  const bgColor = institutionBgColor || superAdminBgColor || '#f8fafc';
+
   return (
     <>
       {themeColor && <InstitutionThemeInjector primaryColor={themeColor} />}
-      <div className="flex min-h-full bg-muted/30">
+      <div
+        className="flex min-h-full"
+        style={{ backgroundColor: bgColor }}
+      >
         <AdminSidebar institution={institution} themeColor={themeColor} />
         <main className="flex-1 pt-14 lg:pt-0 min-w-0">
           <div className="p-4 sm:p-6 lg:p-8">{children}</div>

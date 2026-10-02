@@ -24,17 +24,18 @@ model Club {
   commissionType  ClubCommissionType  @default(PERCENTAGE)
   commissionValue Float               @default(0)
   status          String              @default("ACTIVE")
-  
+
   // Club customization
   logoUrl         String?
   primaryColor    String              @default("#7c3aed")
   secondaryColor  String              @default("#a78bfa")
   accentColor     String              @default("#5b21b6")
-  
+  bgColor         String              @default("#f8fafc")
+
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
   members         Member[]
-  feeConfigs      FeeConfig[]
+  plans           Plan[]
   fees            Fee[]
   payments        Payment[]
   commissions     Commission[]
@@ -68,13 +69,15 @@ model Member {
   lastName  String
   email     String?
   phone     String?
-  category  String   @default("ADULT")
+  category  String   @default("ADULT") // Legacy field, kept for backward compat
+  planId    String? // FK to Plan
   status    String   @default("ACTIVE")
   joinDate  DateTime @default(now())
   notes     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   club      Club     @relation(fields: [clubId], references: [id])
+  plan      Plan?    @relation(fields: [planId], references: [id])
   fees      Fee[]
   payments  Payment[]
   smsLogs      SmsLog[]
@@ -85,12 +88,13 @@ model Member {
   @@index([status])
   @@index([category])
   @@index([clubId])
+  @@index([planId])
 }
 
-model FeeConfig {
+model Plan {
   id          String  @id @default(cuid())
   clubId      String
-  category    String
+  name        String
   amount      Float
   description String?
   isActive    Boolean @default(true)
@@ -98,9 +102,10 @@ model FeeConfig {
   updatedAt   DateTime @updatedAt
   club        Club    @relation(fields: [clubId], references: [id])
   fees        Fee[]
+  members     Member[]
 
-  @@unique([clubId, category])
-  @@index([category])
+  @@unique([clubId, name])
+  @@index([name])
   @@index([clubId])
 }
 
@@ -108,7 +113,7 @@ model Fee {
   id          String   @id @default(cuid())
   clubId      String
   memberId    String
-  feeConfigId String
+  planId      String
   month       Int
   year        Int
   amount      Float
@@ -118,7 +123,7 @@ model Fee {
   updatedAt   DateTime @updatedAt
   club        Club     @relation(fields: [clubId], references: [id])
   member      Member   @relation(fields: [memberId], references: [id])
-  feeConfig   FeeConfig @relation(fields: [feeConfigId], references: [id])
+  plan        Plan     @relation(fields: [planId], references: [id])
   payments    Payment[]
   commissions Commission[]
 
@@ -226,7 +231,8 @@ model SiteConfig {
   primaryColor    String  @default("#7c3aed")
   secondaryColor  String  @default("#a78bfa")
   accentColor     String  @default("#5b21b6")
-  
+  bgColor         String  @default("#f8fafc")
+
   updatedAt DateTime @updatedAt
   club      Club?    @relation(fields: [clubId], references: [id])
 

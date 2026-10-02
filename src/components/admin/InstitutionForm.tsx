@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Key, Loader2 } from 'lucide-react';
+import { ArrowLeft, Key, Loader2, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -35,6 +35,7 @@ export function InstitutionForm({ club }: InstitutionFormProps) {
   const [status, setStatus] = useState<'ACTIVE' | 'INACTIVE'>(
     club.status as 'ACTIVE' | 'INACTIVE'
   );
+  const [bgColor, setBgColor] = useState<string>(club.bgColor ?? '#f8fafc');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -51,6 +52,7 @@ export function InstitutionForm({ club }: InstitutionFormProps) {
           commissionType,
           commissionValue: Number(commissionValue),
           status,
+          bgColor,
         }),
       });
 
@@ -238,6 +240,35 @@ export function InstitutionForm({ club }: InstitutionFormProps) {
               <SelectItem value="INACTIVE">Inactivo</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="space-y-3 rounded-xl border bg-muted/30 p-4">
+          <div className="flex items-center gap-2">
+            <Palette className="size-4 text-muted-foreground" />
+            <Label className="text-sm font-medium">Apariencia</Label>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="bgColor" className="text-sm font-medium">Color de fondo del panel</Label>
+            <div className="flex gap-2">
+              <input
+                id="bgColor"
+                type="color"
+                value={bgColor}
+                onChange={(e) => setBgColor(e.target.value)}
+                className="w-10 h-10 rounded-lg border cursor-pointer"
+              />
+              <Input
+                type="text"
+                value={bgColor}
+                onChange={(e) => setBgColor(e.target.value)}
+                placeholder="#f8fafc"
+                className="h-10 flex-1"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Color de fondo que se aplica al panel de administración de esta institución.
+            </p>
+          </div>
         </div>
 
         <div className="flex gap-3 pt-4">

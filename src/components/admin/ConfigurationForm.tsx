@@ -46,14 +46,14 @@ const siteConfigPlaceholders: Record<string, string> = {
 };
 
 const COLOR_PRESETS = [
-  { name: 'Violeta', primary: '#7c3aed', secondary: '#a78bfa', accent: '#5b21b6' },
-  { name: 'Azul', primary: '#2563eb', secondary: '#60a5fa', accent: '#1d4ed8' },
-  { name: 'Verde', primary: '#16a34a', secondary: '#4ade80', accent: '#15803d' },
-  { name: 'Rojo', primary: '#dc2626', secondary: '#f87171', accent: '#b91c1c' },
-  { name: 'Naranja', primary: '#ea580c', secondary: '#fb923c', accent: '#c2410c' },
-  { name: 'Rosa', primary: '#db2777', secondary: '#f472b6', accent: '#be185d' },
-  { name: 'Cyan', primary: '#0891b2', secondary: '#22d3ee', accent: '#0e7490' },
-  { name: 'Gris', primary: '#4b5563', secondary: '#9ca3af', accent: '#374151' },
+  { name: 'Violeta', primary: '#7c3aed', secondary: '#a78bfa', accent: '#5b21b6', bg: '#f8fafc' },
+  { name: 'Azul', primary: '#2563eb', secondary: '#60a5fa', accent: '#1d4ed8', bg: '#f8fafc' },
+  { name: 'Verde', primary: '#16a34a', secondary: '#4ade80', accent: '#15803d', bg: '#f8fafc' },
+  { name: 'Rojo', primary: '#dc2626', secondary: '#f87171', accent: '#b91c1c', bg: '#fef2f2' },
+  { name: 'Naranja', primary: '#ea580c', secondary: '#fb923c', accent: '#c2410c', bg: '#fff7ed' },
+  { name: 'Rosa', primary: '#db2777', secondary: '#f472b6', accent: '#be185d', bg: '#fdf2f8' },
+  { name: 'Cyan', primary: '#0891b2', secondary: '#22d3ee', accent: '#0e7490', bg: '#ecfeff' },
+  { name: 'Gris', primary: '#4b5563', secondary: '#9ca3af', accent: '#374151', bg: '#f9fafb' },
 ];
 
 export function ConfigurationForm({
@@ -68,6 +68,7 @@ export function ConfigurationForm({
     primaryColor: initialSiteConfigs.theme?.primaryColor ?? '#7c3aed',
     secondaryColor: initialSiteConfigs.theme?.secondaryColor ?? '#a78bfa',
     accentColor: initialSiteConfigs.theme?.accentColor ?? '#5b21b6',
+    bgColor: initialSiteConfigs.theme?.bgColor ?? '#f8fafc',
   });
 
   // For super admin, fetch theme from dedicated endpoint
@@ -370,9 +371,10 @@ export function ConfigurationForm({
                       primaryColor: preset.primary,
                       secondaryColor: preset.secondary,
                       accentColor: preset.accent,
+                      bgColor: preset.bg,
                     })}
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all duration-150 ${
-                      theme.primaryColor === preset.primary
+                      theme.primaryColor === preset.primary && theme.bgColor === preset.bg
                         ? 'border-primary bg-primary/10 shadow-sm'
                         : 'border-border hover:border-primary/40 hover:bg-muted/50'
                     }`}
@@ -381,6 +383,7 @@ export function ConfigurationForm({
                       <div className="w-4 h-4 rounded-full ring-1 ring-black/5" style={{ backgroundColor: preset.primary }} />
                       <div className="w-4 h-4 rounded-full ring-1 ring-black/5" style={{ backgroundColor: preset.secondary }} />
                       <div className="w-4 h-4 rounded-full ring-1 ring-black/5" style={{ backgroundColor: preset.accent }} />
+                      <div className="w-4 h-4 rounded-full ring-1 ring-black/5" style={{ backgroundColor: preset.bg }} />
                     </div>
                     <span>{preset.name}</span>
                   </button>
@@ -447,6 +450,25 @@ export function ConfigurationForm({
                   />
                 </div>
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="bgColor" className="text-sm font-medium">Color de fondo</Label>
+                <div className="flex gap-2">
+                  <input
+                    id="bgColor"
+                    type="color"
+                    value={theme.bgColor}
+                    onChange={(e) => setTheme({ ...theme, bgColor: e.target.value })}
+                    className="w-10 h-10 rounded-lg border cursor-pointer"
+                  />
+                  <Input
+                    type="text"
+                    value={theme.bgColor}
+                    onChange={(e) => setTheme({ ...theme, bgColor: e.target.value })}
+                    placeholder="#f8fafc"
+                    className="h-10 flex-1"
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Preview */}
@@ -470,6 +492,12 @@ export function ConfigurationForm({
                   style={{ backgroundColor: theme.accentColor }}
                 >
                   Acento
+                </div>
+                <div
+                  className="px-4 py-2 rounded-lg text-sm font-medium shadow-sm border"
+                  style={{ backgroundColor: theme.bgColor }}
+                >
+                  Fondo
                 </div>
               </div>
             </div>

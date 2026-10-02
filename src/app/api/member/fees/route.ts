@@ -13,8 +13,8 @@ const MemberDniQuerySchema = z.object({
 function serializeFee(fee: {
   id: string;
   memberId: string;
-  feeConfigId: string;
-  feeConfig: { category: string };
+  planId: string;
+  plan: { name: string };
   month: number;
   year: number;
   amount: number;
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
     const fees = await prisma.fee.findMany({
       where: { memberId: member.id },
       include: {
-        feeConfig: { select: { category: true } },
+        plan: { select: { name: true } },
       },
       orderBy: [{ year: 'desc' }, { month: 'desc' }],
     });

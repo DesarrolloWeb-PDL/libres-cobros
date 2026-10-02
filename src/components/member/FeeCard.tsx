@@ -58,7 +58,7 @@ export function FeeCard({ fee, memberDni, institutionSlug }: FeeCardProps) {
             <h3 className="text-base font-semibold">
               {monthLabels[fee.month]} {fee.year}
             </h3>
-            <p className="text-sm text-muted-foreground mt-0.5">{fee.feeConfig.category}</p>
+            <p className="text-sm text-muted-foreground mt-0.5">{fee.plan.name}</p>
           </div>
           <Badge variant="outline" className={statusBadgeClasses[fee.status]}>
             {statusLabels[fee.status] ?? fee.status}

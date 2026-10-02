@@ -359,8 +359,8 @@ export function FeeList({ initialData }: FeeListProps) {
                 </Badge>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Categoria</span>
-                <span>{detailFee.feeConfig.category}</span>
+                <span className="text-muted-foreground">Plan</span>
+                <span>{detailFee.plan.name}</span>
               </div>
             </div>
           )}

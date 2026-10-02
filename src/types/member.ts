@@ -10,6 +10,7 @@ export const MemberFormSchema = z.object({
   email: z.string().email('El email no es válido').optional().or(z.literal('')),
   phone: z.string().optional(),
   category: MemberCategorySchema.default('ADULT'),
+  planId: z.string().cuid().optional(),
   notes: z.string().optional(),
 });
 
@@ -34,6 +35,8 @@ export interface MemberListItem {
   email: string | null;
   phone: string | null;
   category: string;
+  planId: string | null;
+  planName: string | null;
   status: string;
   joinDate: string;
   notes: string | null;

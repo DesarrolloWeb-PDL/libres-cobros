@@ -47,12 +47,12 @@ export default async function AdminDashboardPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <div className="flex size-11 items-center justify-center rounded-xl bg-accent/10">
-          <LayoutDashboard className="size-5 text-accent" />
+      <div className="flex items-center gap-5">
+        <div className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-accent shadow-md shadow-primary/10">
+          <LayoutDashboard className="size-6 text-primary-foreground" />
         </div>
         <div>
-          <h1 className="text-xl font-bold tracking-tight">Panel de Control</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Panel de Control</h1>
           <p className="text-sm text-muted-foreground">
             Resumen de la institución y métricas del mes en curso.
           </p>
@@ -63,27 +63,31 @@ export default async function AdminDashboardPage() {
       <StatsCards data={data} />
 
       {/* Quick Actions */}
-      <div>
-        <h2 className="text-base font-semibold mb-4">Accesos Rápidos</h2>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="space-y-5">
+        <div className="flex items-center gap-2">
+          <div className="h-px flex-1 bg-border" />
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Accesos Rápidos</h2>
+          <div className="h-px flex-1 bg-border" />
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filteredQuickActions.map((action) => {
             const Icon = action.icon;
             return (
               <Link
                 key={action.href}
                 href={action.href}
-                className="group flex items-center gap-4 rounded-xl border bg-card p-4 hover:shadow-sm hover:border-accent/20 transition-all duration-200"
+                className="group flex items-center gap-4 rounded-2xl border bg-card p-5 shadow-sm hover:shadow-lg hover:scale-[1.02] hover:border-primary/20 transition-all duration-300 ease-out"
               >
-                <div className={`flex size-10 shrink-0 items-center justify-center rounded-lg ${action.color}`}>
+                <div className={`flex size-11 shrink-0 items-center justify-center rounded-xl ${action.color} shadow-sm group-hover:scale-110 transition-transform duration-300`}>
                   <Icon className="size-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h3 className="font-semibold text-sm group-hover:text-accent transition-colors truncate">
+                  <h3 className="font-semibold text-sm group-hover:text-primary transition-colors truncate">
                     {action.label}
                   </h3>
                   <p className="text-xs text-muted-foreground truncate">{action.description}</p>
                 </div>
-                <ArrowRight className="size-4 text-muted-foreground/50 group-hover:text-accent group-hover:translate-x-0.5 transition-all shrink-0" />
+                <ArrowRight className="size-4 text-muted-foreground/50 group-hover:text-primary group-hover:translate-x-1 transition-all duration-300 shrink-0" />
               </Link>
             );
           })}

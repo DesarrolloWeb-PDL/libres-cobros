@@ -25,6 +25,7 @@ export interface SiteConfigTheme {
   primaryColor: string;
   secondaryColor: string;
   accentColor: string;
+  bgColor: string;
 }
 
 export interface SiteConfigListResponse {

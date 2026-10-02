@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { institutionWhere, AuthError } from '@/lib/access';
 
 describe('institutionWhere', () => {
-  it('returns { institutionId } when institutionId is provided', () => {
-    expect(institutionWhere('institution-123')).toEqual({ institutionId: 'institution-123' });
+  it('returns { clubId } when institutionId is provided', () => {
+    expect(institutionWhere('institution-123')).toEqual({ clubId: 'institution-123' });
   });
 
   it('returns empty object when institutionId is null', () => {

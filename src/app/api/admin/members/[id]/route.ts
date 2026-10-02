@@ -12,12 +12,15 @@ function serializeMember(member: {
   email: string | null;
   phone: string | null;
   category: string;
+  planId: string | null;
   status: string;
   joinDate: Date;
   notes: string | null;
+  plan?: { name: string } | null;
 }) {
   return {
     ...member,
+    planName: member.plan?.name ?? null,
     joinDate: member.joinDate.toISOString(),
   };
 }
@@ -33,6 +36,7 @@ export async function GET(
 
     const member = await prisma.member.findFirst({
       where: { id, ...institutionWhere(ctx.institutionId) },
+      include: { plan: { select: { name: true } } },
     });
 
     if (!member) {
@@ -77,7 +81,7 @@ export async function PUT(
       );
     }
 
-    const { email, dni, ...rest } = parsed.data;
+    const { email, dni, planId, ...rest } = parsed.data;
 
     if (dni && dni !== existing.dni) {
       const duplicateDni = await prisma.member.findUnique({
@@ -99,13 +103,24 @@ export async function PUT(
       }
     }
 
+    if (planId) {
+      const plan = await prisma.plan.findFirst({
+        where: { id: planId, clubId: existing.clubId },
+      });
+      if (!plan) {
+        return apiError('Plan no encontrado', 400, 'El plan seleccionado no existe', 'INVALID_PLAN');
+      }
+    }
+
     const member = await prisma.member.update({
       where: { id },
       data: {
         ...rest,
         ...(dni && { dni }),
         ...(email !== undefined && { email: normalizedEmail }),
+        ...(planId !== undefined && { planId: planId ?? null }),
       },
+      include: { plan: { select: { name: true } } },
     });
 
     return apiSuccess(serializeMember(member));

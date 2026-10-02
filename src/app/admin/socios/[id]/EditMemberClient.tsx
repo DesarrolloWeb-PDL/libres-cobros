@@ -14,7 +14,7 @@ interface Member {
   lastName: string;
   email: string | null;
   phone: string | null;
-  category: string;
+  planId: string | null;
   notes: string | null;
 }
 
@@ -32,7 +32,7 @@ export function EditMemberClient({ member }: EditMemberClientProps) {
     lastName: member.lastName,
     email: member.email ?? '',
     phone: member.phone ?? '',
-    category: member.category,
+    planId: member.planId ?? '',
     notes: member.notes ?? '',
   };
 

@@ -20,6 +20,7 @@ const UpdateThemeSchema = z.object({
   primaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
   secondaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
   accentColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+  bgColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
 });
 
 const CONFIG_KEYS = [
@@ -97,6 +98,7 @@ export async function GET(request: NextRequest) {
       primaryColor: themeConfig.primaryColor,
       secondaryColor: themeConfig.secondaryColor,
       accentColor: themeConfig.accentColor,
+      bgColor: themeConfig.bgColor,
     } : null;
 
     const response: SiteConfigListResponse = {
@@ -131,14 +133,14 @@ export async function PUT(request: NextRequest) {
     // Check if it's a theme update
     const themeParsed = UpdateThemeSchema.safeParse(body);
     if (themeParsed.success) {
-      const { primaryColor, secondaryColor, accentColor } = themeParsed.data;
-      
+      const { primaryColor, secondaryColor, accentColor, bgColor } = themeParsed.data;
+
       // Update all config records for this club with the new theme
       await prisma.siteConfig.updateMany({
         where: { clubId: ctx.institutionId },
-        data: { primaryColor, secondaryColor, accentColor },
+        data: { primaryColor, secondaryColor, accentColor, bgColor },
       });
-      
+
       return apiSuccess({ message: 'Tema actualizado correctamente' });
     }
     

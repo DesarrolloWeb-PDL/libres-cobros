@@ -22,6 +22,7 @@ const UpdateInstitutionSchema = z.object({
   primaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
   secondaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
   accentColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  bgColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
 });
 
 function validateCommission(
@@ -52,6 +53,7 @@ function serializeInstitution(institution: {
   primaryColor?: string;
   secondaryColor?: string;
   accentColor?: string;
+  bgColor?: string;
   createdAt: Date;
   updatedAt: Date;
 }) {
@@ -166,6 +168,7 @@ export async function PATCH(
         ...(parsed.data.primaryColor && { primaryColor: parsed.data.primaryColor }),
         ...(parsed.data.secondaryColor && { secondaryColor: parsed.data.secondaryColor }),
         ...(parsed.data.accentColor && { accentColor: parsed.data.accentColor }),
+        ...(parsed.data.bgColor && { bgColor: parsed.data.bgColor }),
       },
     });
 

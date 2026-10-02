@@ -24,7 +24,7 @@ function getCurrentPeriod(): { month: number; year: number } {
 
 /**
  * Iterates ACTIVE institutions and generates monthly fees per institution using each institution's
- * own FeeConfigs. Per-institution generation is idempotent, so re-runs report zero
+ * own Plans. Per-institution generation is idempotent, so re-runs report zero
  * new fees for institutions that already generated the period.
  */
 async function generateFeesForAllClubs(month: number, year: number) {

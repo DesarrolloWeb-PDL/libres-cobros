@@ -427,7 +427,7 @@ export function MemberList({ initialData }: MemberListProps) {
               </TableHead>
               <TableHead>DNI</TableHead>
               <TableHead>Nombre</TableHead>
-              <TableHead>Categoria</TableHead>
+              <TableHead>Plan</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead className="w-20">Acciones</TableHead>
             </TableRow>
@@ -463,7 +463,7 @@ export function MemberList({ initialData }: MemberListProps) {
                       <div className="text-xs text-muted-foreground">{member.email}</div>
                     )}
                   </TableCell>
-                  <TableCell>{categoryLabels[member.category] ?? member.category}</TableCell>
+                  <TableCell>{member.planName ?? '-'}</TableCell>
                   <TableCell>
                     <Badge variant={statusVariants[member.status] ?? 'default'}>
                       {member.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}

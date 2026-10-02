@@ -8,6 +8,7 @@ const UpdateThemeSchema = z.object({
   primaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
   secondaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
   accentColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+  bgColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
 });
 
 // GET: Get super admin theme
@@ -33,6 +34,7 @@ export async function GET(request: NextRequest) {
           primaryColor: '#7c3aed',
           secondaryColor: '#a78bfa',
           accentColor: '#5b21b6',
+          bgColor: '#f8fafc',
         },
       });
     }
@@ -41,6 +43,7 @@ export async function GET(request: NextRequest) {
       primaryColor: config.primaryColor,
       secondaryColor: config.secondaryColor,
       accentColor: config.accentColor,
+      bgColor: config.bgColor,
     });
   } catch (error) {
     if (error instanceof AuthError) {
@@ -71,7 +74,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const { primaryColor, secondaryColor, accentColor } = parsed.data;
+    const { primaryColor, secondaryColor, accentColor, bgColor } = parsed.data;
 
     // Find theme config with null clubId (system-wide)
     const config = await prisma.siteConfig.findFirst({
@@ -81,7 +84,7 @@ export async function PUT(request: NextRequest) {
     if (config) {
       await prisma.siteConfig.update({
         where: { id: config.id },
-        data: { primaryColor, secondaryColor, accentColor },
+        data: { primaryColor, secondaryColor, accentColor, bgColor },
       });
     } else {
       await prisma.siteConfig.create({
@@ -92,6 +95,7 @@ export async function PUT(request: NextRequest) {
           primaryColor,
           secondaryColor,
           accentColor,
+          bgColor,
         },
       });
     }

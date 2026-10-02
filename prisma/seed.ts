@@ -61,20 +61,20 @@ async function main() {
   });
   console.log(`Default institution ensured: ${club.name} (${club.slug}).`);
 
-  const feeConfigs = [
-    { category: 'ADULT', amount: 15000, description: 'Socio adulto' },
-    { category: 'FAMILY', amount: 22000, description: 'Grupo familiar' },
-    { category: 'MINOR', amount: 8000, description: 'Socio menor' },
+  const plans = [
+    { name: 'ADULT', amount: 15000, description: 'Socio adulto' },
+    { name: 'FAMILY', amount: 22000, description: 'Grupo familiar' },
+    { name: 'MINOR', amount: 8000, description: 'Socio menor' },
   ];
 
-  for (const config of feeConfigs) {
-    await prisma.feeConfig.upsert({
-      where: { clubId_category: { clubId: club.id, category: config.category } },
+  for (const plan of plans) {
+    await prisma.plan.upsert({
+      where: { clubId_name: { clubId: club.id, name: plan.name } },
       update: {},
-      create: { ...config, clubId: club.id },
+      create: { ...plan, clubId: club.id },
     });
   }
-  console.log(`Default fee configs ensured for institution ${club.slug}.`);
+  console.log(`Default plans ensured for institution ${club.slug}.`);
 
   for (const key of SITE_CONFIG_KEYS) {
     await prisma.siteConfig.upsert({

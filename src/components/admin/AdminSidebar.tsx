@@ -15,6 +15,7 @@ import {
   Settings,
   Building2,
   UserCog,
+  Wallet,
   Menu,
   X,
   LogOut,
@@ -28,6 +29,7 @@ import { Logo } from '@/components/Logo';
 const navItems = [
   { href: '/admin', label: 'Panel', icon: LayoutDashboard, roles: ['SUPER_ADMIN', 'ADMIN'] as const },
   { href: '/admin/socios', label: 'Socios', icon: Users, roles: ['ADMIN'] as const },
+  { href: '/admin/planes', label: 'Planes', icon: Wallet, roles: ['ADMIN'] as const },
   { href: '/admin/cuotas', label: 'Cuotas', icon: Receipt, roles: ['ADMIN'] as const },
   { href: '/admin/pagos', label: 'Pagos', icon: CreditCard, roles: ['ADMIN'] as const },
   { href: '/admin/comisiones', label: 'Comisiones', icon: Percent, roles: ['ADMIN'] as const },

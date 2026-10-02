@@ -9,8 +9,8 @@ function serializeFee(fee: {
   id: string;
   memberId: string;
   member: { dni: string; firstName: string; lastName: string };
-  feeConfigId: string;
-  feeConfig: { category: string };
+  planId: string;
+  plan: { name: string };
   month: number;
   year: number;
   amount: number;
@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
         where,
         include: {
           member: { select: { dni: true, firstName: true, lastName: true } },
-          feeConfig: { select: { category: true } },
+          plan: { select: { name: true } },
         },
         orderBy: [{ year: 'desc' }, { month: 'desc' }, { member: { lastName: 'asc' } }],
         skip: (page - 1) * limit,

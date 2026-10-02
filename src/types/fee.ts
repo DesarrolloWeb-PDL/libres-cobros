@@ -4,7 +4,7 @@ export const FeeStatusSchema = z.enum(['PENDING', 'PAID', 'OVERDUE']);
 
 export const CreateFeeSchema = z.object({
   memberId: z.string().cuid(),
-  feeConfigId: z.string().cuid(),
+  planId: z.string().cuid(),
   month: z.number().int().min(1).max(12),
   year: z.number().int().min(2000).max(2100),
   amount: z.number().positive(),
@@ -17,15 +17,17 @@ export const GenerateFeesSchema = z.object({
   year: z.number().int().min(2000).max(2100),
 });
 
-export const UpdateFeeConfigsSchema = z.object({
-  configs: z
-    .array(
-      z.object({
-        category: z.string().min(1),
-        amount: z.number().positive('El monto debe ser mayor a 0'),
-      })
-    )
-    .min(1),
+export const PlanSchema = z.object({
+  id: z.string().cuid().optional(),
+  name: z.string().min(1, 'El nombre es obligatorio'),
+  amount: z.number().positive('El monto debe ser mayor a 0'),
+  description: z.string().optional(),
+  isActive: z.boolean().optional().default(true),
+});
+
+export const UpdatePlansSchema = z.object({
+  plans: z.array(PlanSchema).optional().default([]),
+  deletedIds: z.array(z.string().cuid()).optional().default([]),
 });
 
 export const FeeListQuerySchema = z.object({
@@ -40,12 +42,13 @@ export const FeeListQuerySchema = z.object({
 
 export type CreateFeeInput = z.infer<typeof CreateFeeSchema>;
 export type GenerateFeesInput = z.infer<typeof GenerateFeesSchema>;
-export type UpdateFeeConfigsInput = z.infer<typeof UpdateFeeConfigsSchema>;
+export type PlanInput = z.infer<typeof PlanSchema>;
+export type UpdatePlansInput = z.infer<typeof UpdatePlansSchema>;
 export type FeeListQueryInput = z.infer<typeof FeeListQuerySchema>;
 
-export interface FeeConfigListItem {
+export interface PlanListItem {
   id: string;
-  category: string;
+  name: string;
   amount: number;
   description: string | null;
   isActive: boolean;
@@ -53,8 +56,8 @@ export interface FeeConfigListItem {
   updatedAt: string;
 }
 
-export interface FeeConfigListResponse {
-  data: FeeConfigListItem[];
+export interface PlanListResponse {
+  data: PlanListItem[];
 }
 
 export interface FeeListItem {
@@ -65,9 +68,9 @@ export interface FeeListItem {
     firstName: string;
     lastName: string;
   };
-  feeConfigId: string;
-  feeConfig: {
-    category: string;
+  planId: string;
+  plan: {
+    name: string;
   };
   month: number;
   year: number;
@@ -95,9 +98,9 @@ export interface GenerateFeesResult {
 export interface MemberFeeItem {
   id: string;
   memberId: string;
-  feeConfigId: string;
-  feeConfig: {
-    category: string;
+  planId: string;
+  plan: {
+    name: string;
   };
   month: number;
   year: number;
