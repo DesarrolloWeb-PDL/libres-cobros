@@ -168,6 +168,19 @@
   background: #4b5563;
 }
 
+/* Print styles for ticket pages */
+@media print {
+  @page {
+    margin: 12mm;
+  }
+
+  body {
+    background: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
 /* Selection color */
 ::selection {
   background: var(--accent);

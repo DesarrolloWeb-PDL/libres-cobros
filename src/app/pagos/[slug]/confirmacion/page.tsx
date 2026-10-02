@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Download } from 'lucide-react';
 import { prisma } from '@/lib/db';
 import { PaymentConfirmation } from '@/components/member/PaymentConfirmation';
 import { Button } from '@/components/ui/button';
@@ -81,7 +81,15 @@ export default async function ClubPaymentConfirmationPage({ params, searchParams
               : null
           }
         />
-        <div className="mt-4 text-center">
+        <div className="mt-4 flex flex-col items-center gap-3">
+          {status === 'success' && payment && (
+            <Link href={`/pagos/${slug}/ticket/${payment.id}`}>
+              <Button>
+                <Download className="mr-2 size-4" />
+                Descargar comprobante
+              </Button>
+            </Link>
+          )}
           <Link href={`/pagos/${slug}`}>
             <Button variant="outline">
               <ArrowLeft className="mr-2 size-4" />
