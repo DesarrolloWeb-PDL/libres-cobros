@@ -19,7 +19,6 @@ import {
   Menu,
   X,
   LogOut,
-  ChevronDown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -57,10 +56,8 @@ export function AdminSidebar({ institution, themeColor }: AdminSidebarProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const userRole = session?.user?.role as string | undefined;
-  const userName = session?.user?.name || session?.user?.email || 'Admin';
   const isSuperAdmin = userRole === 'SUPER_ADMIN';
 
   const filteredNavItems = userRole
@@ -159,36 +156,16 @@ export function AdminSidebar({ institution, themeColor }: AdminSidebarProps) {
           {/* Institution Selector */}
           {isSuperAdmin && <InstitutionSelector userRole={userRole} />}
 
-          {/* User Menu */}
+          {/* Logout */}
           <div className="border-t border-white/15 p-2.5">
-            <div className="relative">
-              <Button
-                variant="ghost"
-                className="w-full justify-start gap-3 text-white/80 hover:bg-white/12 hover:text-white h-auto py-2"
-                onClick={() => setUserMenuOpen(!userMenuOpen)}
-              >
-                <div className="flex size-7 items-center justify-center rounded-full bg-white/20">
-                  <span className="text-xs font-medium text-white">
-                    {userName.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-                <span className="flex-1 text-left truncate text-sm">{userName}</span>
-                <ChevronDown className={cn('size-3.5 transition-transform duration-200', userMenuOpen && 'rotate-180')} />
-              </Button>
-
-              {userMenuOpen && (
-                <div className="absolute bottom-full left-0 right-0 mb-2 rounded-lg border border-border bg-card shadow-xl overflow-hidden z-50">
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start gap-3 text-foreground hover:text-destructive hover:bg-destructive/5 h-auto py-2.5"
-                    onClick={() => signOut({ callbackUrl: '/login' })}
-                  >
-                    <LogOut className="size-4" />
-                    Cerrar sesión
-                  </Button>
-                </div>
-              )}
-            </div>
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-3 text-white/80 hover:bg-white/12 hover:text-white h-auto py-2"
+              onClick={() => signOut({ callbackUrl: '/login' })}
+            >
+              <LogOut className="size-4" />
+              Cerrar sesión
+            </Button>
           </div>
         </div>
       </aside>
