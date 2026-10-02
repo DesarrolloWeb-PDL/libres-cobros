@@ -177,7 +177,7 @@ export function AdminSidebar({ institution, themeColor }: AdminSidebarProps) {
               </Button>
 
               {userMenuOpen && (
-                <div className="absolute top-full left-0 right-0 mt-2 rounded-lg border border-border bg-card shadow-xl overflow-hidden z-50">
+                <div className="absolute bottom-full left-0 right-0 mb-2 rounded-lg border border-border bg-card shadow-xl overflow-hidden z-50">
                   <Button
                     variant="ghost"
                     className="w-full justify-start gap-3 text-foreground hover:text-destructive hover:bg-destructive/5 h-auto py-2.5"
