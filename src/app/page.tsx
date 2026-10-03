@@ -61,6 +61,12 @@ export default function LandingPage() {
             Iniciar Sesión
           </Link>
           <Link
+            href="/registro"
+            className="inline-flex items-center justify-center px-8 py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
+          >
+            Registrar tu club
+          </Link>
+          <Link
             href="/pagos/instituciones"
             className="inline-flex items-center justify-center px-8 py-3 rounded-lg border border-border font-medium hover:bg-muted transition-colors"
           >
