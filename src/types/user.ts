@@ -3,8 +3,8 @@ export interface UserListItem {
   email: string;
   name: string;
   role: string;
-  institutionId: string | null;
-  institutionName: string | null;
+  clubId: string | null;
+  clubName: string | null;
   createdAt: string;
   updatedAt: string;
 }
