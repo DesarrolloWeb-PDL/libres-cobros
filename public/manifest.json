@@ -2,7 +2,7 @@
   "name": "Libres Cobros - Portal de Socios",
   "short_name": "Libres Cobros",
   "description": "Portal de pagos para socios",
-  "start_url": "/pagos",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#7c3aed",

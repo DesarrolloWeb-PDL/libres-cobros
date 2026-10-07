@@ -1,5 +1,7 @@
-const CACHE_NAME = 'libres-cobros-v1';
+const CACHE_NAME = 'libres-cobros-v2';
 
+// Only truly static, non-sensitive assets. Never precache HTML navigations:
+// Next.js/auth redirects + navigation redirect mode break cache-first HTML.
 const STATIC_ASSETS = [
   '/',
   '/offline.html',
@@ -9,19 +11,13 @@ const STATIC_ASSETS = [
   '/icons/apple-touch-icon.png',
 ];
 
-const PORTAL_START_PAGES = [
-  '/pagos',
-  '/pagos/instituciones',
-  '/pagos/clubes',
-];
-
 const STATIC_EXTENSIONS = /\.(js|css|png|jpg|jpeg|svg|gif|webp|avif|ico|woff|woff2|ttf|otf|eot)$/;
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches
       .open(CACHE_NAME)
-      .then((cache) => cache.addAll([...STATIC_ASSETS, ...PORTAL_START_PAGES]))
+      .then((cache) => cache.addAll(STATIC_ASSETS))
       .then(() => self.skipWaiting())
   );
 });
@@ -46,14 +42,23 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const { request } = event;
-  const url = new URL(request.url);
 
   if (request.method !== 'GET') {
     return;
   }
 
+  // Navigation requests: network-first with explicit redirect follow.
+  // Never serve a raw redirect through respondWith.
+  if (request.mode === 'navigate') {
+    event.respondWith(handleNavigation(request));
+    return;
+  }
+
+  const url = new URL(request.url);
+
+  // Never intercept API traffic: auth, payments, and session data must not
+  // land in Cache Storage, and offline API cache is unsafe for a cobro app.
   if (url.pathname.startsWith('/api/')) {
-    event.respondWith(networkFirst(request));
     return;
   }
 
@@ -62,13 +67,43 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (url.pathname.startsWith('/pagos')) {
-    event.respondWith(cacheFirstWithOfflineFallback(request));
-    return;
-  }
-
-  event.respondWith(cacheFirstWithOfflineFallback(request));
+  // Other same-origin GETs (RSC payloads, etc.): network-first, no cache poison.
+  event.respondWith(networkFirst(request));
 });
+
+async function handleNavigation(request) {
+  try {
+    const response = await fetch(
+      new Request(request.url, {
+        redirect: 'follow',
+        credentials: 'same-origin',
+        headers: request.headers,
+      })
+    );
+
+    // Only cache successful, non-redirect final responses.
+    if (response.ok && response.type !== 'opaqueredirect') {
+      const cache = await caches.open(CACHE_NAME);
+      cache.put(request, response.clone());
+    }
+
+    return response;
+  } catch {
+    const cache = await caches.open(CACHE_NAME);
+    const cached = await cache.match(request);
+    if (cached) {
+      return cached;
+    }
+    const fallback = await cache.match('/offline.html');
+    return (
+      fallback ||
+      new Response('<h1>Sin conexión</h1>', {
+        status: 503,
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      })
+    );
+  }
+}
 
 async function cacheFirst(request) {
   const cache = await caches.open(CACHE_NAME);
@@ -78,15 +113,11 @@ async function cacheFirst(request) {
     return cached;
   }
 
-  try {
-    const response = await fetch(request);
-    if (response.ok) {
-      cache.put(request, response.clone());
-    }
-    return response;
-  } catch {
-    return cache.match('/offline.html');
+  const response = await fetch(request);
+  if (response.ok && response.type === 'basic') {
+    cache.put(request, response.clone());
   }
+  return response;
 }
 
 async function networkFirst(request) {
@@ -94,9 +125,6 @@ async function networkFirst(request) {
 
   try {
     const response = await fetch(request);
-    if (response.ok) {
-      cache.put(request, response.clone());
-    }
     return response;
   } catch {
     const cached = await cache.match(request);
@@ -107,31 +135,5 @@ async function networkFirst(request) {
       status: 503,
       headers: { 'Content-Type': 'application/json' },
     });
-  }
-}
-
-async function cacheFirstWithOfflineFallback(request) {
-  const cache = await caches.open(CACHE_NAME);
-  const cached = await cache.match(request);
-
-  if (cached) {
-    return cached;
-  }
-
-  try {
-    const response = await fetch(request);
-    if (response.ok) {
-      cache.put(request, response.clone());
-    }
-    return response;
-  } catch {
-    const fallback = await cache.match('/offline.html');
-    return (
-      fallback ||
-      new Response('<h1>Sin conexión</h1>', {
-        status: 503,
-        headers: { 'Content-Type': 'text/html' },
-      })
-    );
   }
 }
