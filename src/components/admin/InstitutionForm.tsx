@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { StyledSelect } from '@/components/ui/styled-select';
 import { toast } from '@/components/ui/toast';
+import { TempPasswordDialog } from '@/components/admin/TempPasswordDialog';
 import type { ClubListItem } from '@/types/club';
 
 interface InstitutionFormProps {
@@ -19,6 +20,7 @@ export function InstitutionForm({ club }: InstitutionFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [tempPassword, setTempPassword] = useState<string | null>(null);
   const [name, setName] = useState(club.name);
   const [siglas, setSiglas] = useState(club.siglas || '');
   const [slug, setSlug] = useState(club.slug);
@@ -124,11 +126,7 @@ export function InstitutionForm({ club }: InstitutionFormProps) {
         throw new Error(data.error || 'Error al blanquear la clave');
       }
 
-      toast.add({
-        title: 'Clave blanqueada',
-        description: `Nueva contraseña temporal: ${data.tempPassword}. Compartila con el administrador de la institución.`,
-        type: 'success',
-      });
+      setTempPassword(data.tempPassword);
     } catch (error) {
       toast.add({
         title: 'Error',
@@ -297,6 +295,14 @@ export function InstitutionForm({ club }: InstitutionFormProps) {
           {isResettingPassword ? 'Procesando...' : 'Blanquear clave'}
         </Button>
       </div>
+
+      <TempPasswordDialog
+        open={tempPassword !== null}
+        onOpenChange={(open) => {
+          if (!open) setTempPassword(null);
+        }}
+        tempPassword={tempPassword ?? ''}
+      />
     </div>
   );
 }

@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { StyledSelect } from '@/components/ui/styled-select';
 import { toast } from '@/components/ui/toast';
+import { TempPasswordDialog } from '@/components/admin/TempPasswordDialog';
 
 interface Club {
   id: string;
@@ -27,6 +28,7 @@ export default function EditarUsuarioPage({ params }: { params: Promise<{ id: st
   const [clubs, setClubs] = useState<Club[]>([]);
   const [loadingClubs, setLoadingClubs] = useState(true);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [tempPassword, setTempPassword] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -112,11 +114,7 @@ export default function EditarUsuarioPage({ params }: { params: Promise<{ id: st
         throw new Error(data.error || 'Error al blanquear la clave');
       }
 
-      toast.add({
-        title: 'Clave blanqueada',
-        description: `Nueva contraseña temporal: ${data.tempPassword}. Compartila con el usuario; deberá cambiarla en el próximo login.`,
-        type: 'success',
-      });
+      setTempPassword(data.tempPassword);
     } catch (error) {
       toast.add({
         title: 'Error',
@@ -228,6 +226,15 @@ export default function EditarUsuarioPage({ params }: { params: Promise<{ id: st
           {isResettingPassword ? 'Procesando...' : 'Blanquear clave'}
         </Button>
       </div>
+
+      <TempPasswordDialog
+        open={tempPassword !== null}
+        onOpenChange={(open) => {
+          if (!open) setTempPassword(null);
+        }}
+        tempPassword={tempPassword ?? ''}
+        userEmail={email || undefined}
+      />
     </div>
   );
 }

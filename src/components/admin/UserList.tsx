@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/components/ui/toast';
+import { TempPasswordDialog } from '@/components/admin/TempPasswordDialog';
 import type { UserListItem } from '@/types/user';
 
 interface UserListProps {
@@ -39,6 +40,8 @@ const roleVariants: Record<string, 'default' | 'secondary' | 'destructive' | 'ou
 export function UserList({ initialData }: UserListProps) {
   const router = useRouter();
   const [users, setUsers] = useState<UserListItem[]>(initialData);
+  const [tempPassword, setTempPassword] = useState<string | null>(null);
+  const [tempPasswordUser, setTempPasswordUser] = useState<string | undefined>(undefined);
 
   async function toggleRole(user: UserListItem) {
     const newRole = user.role === 'ADMIN' ? 'SUPER_ADMIN' : 'ADMIN';
@@ -117,11 +120,8 @@ export function UserList({ initialData }: UserListProps) {
         throw new Error(data.error || 'Error al blanquear la clave');
       }
 
-      toast.add({
-        title: 'Clave blanqueada',
-        description: `Nueva contraseña temporal: ${data.tempPassword}. Compartila con el usuario; deberá cambiarla en el próximo login.`,
-        type: 'success',
-      });
+      setTempPasswordUser(user.email);
+      setTempPassword(data.tempPassword);
     } catch (error) {
       toast.add({
         title: 'Error',
@@ -205,6 +205,18 @@ export function UserList({ initialData }: UserListProps) {
           </TableBody>
         </Table>
       </div>
+
+      <TempPasswordDialog
+        open={tempPassword !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setTempPassword(null);
+            setTempPasswordUser(undefined);
+          }
+        }}
+        tempPassword={tempPassword ?? ''}
+        userEmail={tempPasswordUser}
+      />
     </div>
   );
 }
