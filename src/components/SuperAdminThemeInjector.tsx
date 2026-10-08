@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { updateMetaThemeColor } from '@/lib/theme-color';
 
 /**
  * Applies the Super Admin theme (SiteConfig clubId=null, key=theme) to public
@@ -34,6 +35,8 @@ export function SuperAdminThemeInjector() {
         if (theme.bgColor && !isDark) {
           root.style.setProperty('--background', theme.bgColor);
         }
+
+        updateMetaThemeColor();
       })
       .catch(() => {
         // Theme is progressive enhancement — ignore network failures.

@@ -4,7 +4,7 @@ import "./globals.css";
 import { Providers } from "@/components/providers";
 import { PwaRegistration } from "@/components/PwaRegistration";
 import { SuperAdminThemeInjector } from "@/components/SuperAdminThemeInjector";
-import { PublicThemeToggle } from "@/components/PublicThemeToggle";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const manrope = Manrope({
   variable: "--font-sans",
@@ -15,7 +15,11 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#7c3aed",
+  // Fallback only — SuperAdminThemeInjector / ThemeToggle keep meta[theme-color] live.
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#7c3aed" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+  ],
 };
 
 export const metadata: Metadata = {
@@ -43,7 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${manrope.variable} min-h-full flex flex-col font-sans antialiased`}>
         <Providers>{children}</Providers>
         <SuperAdminThemeInjector />
-        <PublicThemeToggle />
+        <ThemeToggle />
         <PwaRegistration />
       </body>
     </html>

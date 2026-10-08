@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { updateMetaThemeColor } from '@/lib/theme-color';
 
 const STORAGE_KEY = 'libres-theme';
 
@@ -16,11 +17,12 @@ export function getStoredTheme(): ThemeMode | null {
 
 export function applyTheme(mode: ThemeMode) {
   document.documentElement.classList.toggle('dark', mode === 'dark');
+  updateMetaThemeColor();
 }
 
 /**
- * Floating day/night toggle for public pages.
- * Preference is persisted in localStorage; default follows the system.
+ * Floating day/night toggle. Preference is persisted in localStorage;
+ * default follows the system. Works on public and admin pages.
  */
 export function ThemeToggle() {
   const [mode, setMode] = useState<ThemeMode>('light');
@@ -31,6 +33,16 @@ export function ThemeToggle() {
     const initial: ThemeMode = stored ?? (prefersDark ? 'dark' : 'light');
     setMode(initial);
     applyTheme(initial);
+
+    const media = window.matchMedia('(prefers-color-scheme: dark)');
+    const onChange = (e: MediaQueryListEvent) => {
+      if (getStoredTheme()) return;
+      const next: ThemeMode = e.matches ? 'dark' : 'light';
+      setMode(next);
+      applyTheme(next);
+    };
+    media.addEventListener('change', onChange);
+    return () => media.removeEventListener('change', onChange);
   }, []);
 
   function toggle() {
@@ -40,7 +52,7 @@ export function ThemeToggle() {
     try {
       window.localStorage.setItem(STORAGE_KEY, next);
     } catch {
-      // private mode / storage blocked — still applies for this session
+      // private mode — still applies for this session
     }
   }
 
