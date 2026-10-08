@@ -9,7 +9,7 @@ export function PwaRegistration() {
     navigator.serviceWorker
       .register('/sw.js')
       .then((registration) => {
-        // Pick up fixed SW versions without a full manual cache wipe.
+        // Force an update check so a fixed sw.js replaces a broken one fast.
         registration.update().catch(() => {});
       })
       .catch(() => {});

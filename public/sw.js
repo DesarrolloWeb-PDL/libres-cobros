@@ -1,9 +1,7 @@
-const CACHE_NAME = 'libres-cobros-v2';
+const CACHE_NAME = 'libres-cobros-v3';
 
-// Only truly static, non-sensitive assets. Never precache HTML navigations:
-// Next.js/auth redirects + navigation redirect mode break cache-first HTML.
+// Static, non-sensitive assets only.
 const STATIC_ASSETS = [
-  '/',
   '/offline.html',
   '/manifest.json',
   '/icons/icon-192.png',
@@ -47,63 +45,27 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Navigation requests: network-first with explicit redirect follow.
-  // Never serve a raw redirect through respondWith.
+  // Navigations: do NOT intercept.
+  // Chrome navigation requests use redirect mode "manual". Auth/login and
+  // /pagos → /pagos/instituciones return 307s. Returning those through
+  // respondWith causes:
+  // "a redirected response was used for a request whose redirect mode is not follow".
+  // Let the browser follow redirects natively.
   if (request.mode === 'navigate') {
-    event.respondWith(handleNavigation(request));
     return;
   }
 
   const url = new URL(request.url);
 
-  // Never intercept API traffic: auth, payments, and session data must not
-  // land in Cache Storage, and offline API cache is unsafe for a cobro app.
+  // Never intercept API traffic (auth, payments, sessions).
   if (url.pathname.startsWith('/api/')) {
     return;
   }
 
   if (STATIC_EXTENSIONS.test(url.pathname)) {
     event.respondWith(cacheFirst(request));
-    return;
   }
-
-  // Other same-origin GETs (RSC payloads, etc.): network-first, no cache poison.
-  event.respondWith(networkFirst(request));
 });
-
-async function handleNavigation(request) {
-  try {
-    const response = await fetch(
-      new Request(request.url, {
-        redirect: 'follow',
-        credentials: 'same-origin',
-        headers: request.headers,
-      })
-    );
-
-    // Only cache successful, non-redirect final responses.
-    if (response.ok && response.type !== 'opaqueredirect') {
-      const cache = await caches.open(CACHE_NAME);
-      cache.put(request, response.clone());
-    }
-
-    return response;
-  } catch {
-    const cache = await caches.open(CACHE_NAME);
-    const cached = await cache.match(request);
-    if (cached) {
-      return cached;
-    }
-    const fallback = await cache.match('/offline.html');
-    return (
-      fallback ||
-      new Response('<h1>Sin conexión</h1>', {
-        status: 503,
-        headers: { 'Content-Type': 'text/html; charset=utf-8' },
-      })
-    );
-  }
-}
 
 async function cacheFirst(request) {
   const cache = await caches.open(CACHE_NAME);
@@ -118,22 +80,4 @@ async function cacheFirst(request) {
     cache.put(request, response.clone());
   }
   return response;
-}
-
-async function networkFirst(request) {
-  const cache = await caches.open(CACHE_NAME);
-
-  try {
-    const response = await fetch(request);
-    return response;
-  } catch {
-    const cached = await cache.match(request);
-    if (cached) {
-      return cached;
-    }
-    return new Response(JSON.stringify({ error: 'Sin conexión' }), {
-      status: 503,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
 }
