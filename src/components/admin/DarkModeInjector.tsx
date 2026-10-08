@@ -23,6 +23,20 @@ function getLuminance(hexColor: string): number {
 
 export function DarkModeInjector({ bgColor }: DarkModeInjectorProps) {
   useEffect(() => {
+    // An explicit day/night choice from ThemeToggle always wins.
+    const stored = (() => {
+      try {
+        return window.localStorage.getItem('libres-theme');
+      } catch {
+        return null;
+      }
+    })();
+
+    if (stored === 'dark' || stored === 'light') {
+      document.documentElement.classList.toggle('dark', stored === 'dark');
+      return;
+    }
+
     const luminance = getLuminance(bgColor);
 
     if (luminance < 0.5) {

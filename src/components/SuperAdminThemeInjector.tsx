@@ -29,7 +29,9 @@ export function SuperAdminThemeInjector() {
         root.style.setProperty('--sidebar-ring', primary);
         root.style.setProperty('--institution-primary', primary);
 
-        if (theme.bgColor) {
+        // Background color only in light mode — dark mode owns --background.
+        const isDark = document.documentElement.classList.contains('dark');
+        if (theme.bgColor && !isDark) {
           root.style.setProperty('--background', theme.bgColor);
         }
       })

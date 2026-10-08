@@ -4,6 +4,7 @@ import "./globals.css";
 import { Providers } from "@/components/providers";
 import { PwaRegistration } from "@/components/PwaRegistration";
 import { SuperAdminThemeInjector } from "@/components/SuperAdminThemeInjector";
+import { PublicThemeToggle } from "@/components/PublicThemeToggle";
 
 const manrope = Manrope({
   variable: "--font-sans",
@@ -31,9 +32,18 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es" suppressHydrationWarning>
+      <head>
+        {/* Apply saved day/night theme before paint to avoid a flash of the wrong mode. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('libres-theme');if(t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body className={`${manrope.variable} min-h-full flex flex-col font-sans antialiased`}>
         <Providers>{children}</Providers>
         <SuperAdminThemeInjector />
+        <PublicThemeToggle />
         <PwaRegistration />
       </body>
     </html>
