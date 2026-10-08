@@ -2,7 +2,8 @@ import sharp from 'sharp';
 
 // Portfolio mark: full-bleed gradient cubes (matches src/components/Logo.tsx geometry:
 // size 14, gap 4, rx 2.5, gradient #7c3aed -> #a78bfa, opacity falloff 1/0.7/0.5/0.3).
-// Transparent background — the platform applies its own shape mask on home screens.
+// Black backdrop: platforms composite transparent manifest icons onto white in
+// install prompts / home-screen tiles; an opaque black base renders identically everywhere.
 const mark = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <defs>
     <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -10,6 +11,7 @@ const mark = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
       <stop offset="100%" stop-color="#a78bfa"/>
     </linearGradient>
   </defs>
+  <rect width="32" height="32" fill="#000000"/>
   <rect x="0"  y="0"  width="14" height="14" rx="2.5" fill="url(#g)" opacity="1"/>
   <rect x="18" y="0"  width="14" height="14" rx="2.5" fill="url(#g)" opacity="0.7"/>
   <rect x="0"  y="18" width="14" height="14" rx="2.5" fill="url(#g)" opacity="0.5"/>

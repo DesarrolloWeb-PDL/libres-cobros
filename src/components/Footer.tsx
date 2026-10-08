@@ -87,10 +87,15 @@ export function Footer() {
         {/* Bottom bar */}
         <div className="flex flex-col items-center justify-between gap-3 border-t border-gray-800 pt-6 text-center text-sm text-gray-500 md:flex-row">
           <p>© 2026 Libres Cobros. Todos los derechos reservados.</p>
-          <p className="flex items-center gap-2 text-xs text-gray-500">
-            <CubesMarkMuted className="size-4 text-gray-500 transition-colors hover:text-violet-500" />
+          <a
+            href="https://desarrolloweb-pdl.vercel.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex items-center gap-2 text-xs text-gray-500 no-underline transition-colors hover:text-violet-400"
+          >
+            <CubesMarkMuted className="size-4 shrink-0 transition-all duration-200 group-hover:scale-110 group-hover:text-violet-400" />
             DesarrolloWeb-pdl
-          </p>
+          </a>
         </div>
       </div>
     </footer>
