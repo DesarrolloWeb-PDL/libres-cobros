@@ -32,22 +32,27 @@ export function DarkModeInjector({ bgColor }: DarkModeInjectorProps) {
       }
     })();
 
-    if (stored === 'dark' || stored === 'light') {
-      document.documentElement.classList.toggle('dark', stored === 'dark');
+    const setDark = (isDark: boolean) => {
+      document.documentElement.classList.toggle('dark', isDark);
+      if (isDark) {
+        // Inline --background (light institution bg) would override .dark vars.
+        document.documentElement.style.removeProperty('--background');
+      }
       updateMetaThemeColor();
+    };
+
+    if (stored === 'dark' || stored === 'light') {
+      setDark(stored === 'dark');
       return;
     }
 
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     if (prefersDark) {
-      document.documentElement.classList.add('dark');
-      updateMetaThemeColor();
+      setDark(true);
       return;
     }
 
-    const luminance = getLuminance(bgColor);
-    document.documentElement.classList.toggle('dark', luminance < 0.5);
-    updateMetaThemeColor();
+    setDark(getLuminance(bgColor) < 0.5);
   }, [bgColor]);
 
   return null;

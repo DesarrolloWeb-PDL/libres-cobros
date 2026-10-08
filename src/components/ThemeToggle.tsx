@@ -16,7 +16,15 @@ export function getStoredTheme(): ThemeMode | null {
 }
 
 export function applyTheme(mode: ThemeMode) {
-  document.documentElement.classList.toggle('dark', mode === 'dark');
+  const root = document.documentElement;
+  root.classList.toggle('dark', mode === 'dark');
+
+  // Dark CSS owns --background. An inline light bg from the theme injector
+  // would otherwise win and leave the page light while cards go dark.
+  if (mode === 'dark') {
+    root.style.removeProperty('--background');
+  }
+
   updateMetaThemeColor();
 }
 
