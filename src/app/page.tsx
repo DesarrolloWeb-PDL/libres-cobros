@@ -30,7 +30,7 @@ export default function LandingPage() {
     <div className="flex min-h-screen flex-col">
       {/* Hero */}
       <header className="relative flex flex-col items-center justify-center min-h-[70vh] px-6 text-center">
-        <Logo size={200} showScroll={false} />
+        <Logo size={240} showScroll={false} />
         <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-4 mt-6">
           Sistema de Administración
         </p>

@@ -2,24 +2,26 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-// Cubes laid out on a 32×32 viewBox — slightly larger than the portfolio mark.
-const CUBE_SIZE = 13;
+// Cubes on a 32×32 viewBox — large and well-separated, like the portfolio mark.
+const CUBE_SIZE = 14;
+const CUBE_GAP = 4;
 const CUBE_POS = [
-  { x: 3, y: 3 },
-  { x: 16, y: 3 },
-  { x: 3, y: 16 },
-  { x: 16, y: 16 },
+  { x: 0, y: 0 },
+  { x: CUBE_SIZE + CUBE_GAP, y: 0 },
+  { x: 0, y: CUBE_SIZE + CUBE_GAP },
+  { x: CUBE_SIZE + CUBE_GAP, y: CUBE_SIZE + CUBE_GAP },
 ];
 
-// Centers match CUBE_POS + CUBE_SIZE/2
+// Centers = pos + size/2
+const HALF = CUBE_SIZE / 2;
 const CUBES = [
-  { cx: 9.5, cy: 9.5 },
-  { cx: 22.5, cy: 9.5 },
-  { cx: 9.5, cy: 22.5 },
-  { cx: 22.5, cy: 22.5 },
+  { cx: 0 + HALF, cy: 0 + HALF },
+  { cx: CUBE_SIZE + CUBE_GAP + HALF, cy: 0 + HALF },
+  { cx: 0 + HALF, cy: CUBE_SIZE + CUBE_GAP + HALF },
+  { cx: CUBE_SIZE + CUBE_GAP + HALF, cy: CUBE_SIZE + CUBE_GAP + HALF },
 ];
 
-const MAX_DIST = 22;
+const MAX_DIST = 26;
 
 function getOpacities(mx: number | null, my: number | null) {
   if (mx === null || my === null) return [1, 0.7, 0.5, 0.3];
