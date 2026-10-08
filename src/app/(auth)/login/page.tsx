@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { z } from 'zod';
@@ -67,7 +68,9 @@ export default function AdminLoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="flex flex-col items-center gap-3">
-          <Logo size={64} showScroll={false} />
+          <Link href="/" aria-label="Ir al inicio">
+            <Logo size={64} showScroll={false} />
+          </Link>
           <div className="text-center">
             <h1 className="text-2xl font-bold">Libres Cobros</h1>
             <p className="text-sm text-muted-foreground">Sistema de administración de instituciones</p>
