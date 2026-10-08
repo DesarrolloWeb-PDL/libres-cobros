@@ -21,4 +21,7 @@ const mark = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
 await sharp(Buffer.from(mark), { density: 720 }).resize(192, 192).png().toFile('public/icons/icon-192.png');
 await sharp(Buffer.from(mark), { density: 720 }).resize(512, 512).png().toFile('public/icons/icon-512.png');
 await sharp(Buffer.from(mark), { density: 720 }).resize(180, 180).png().toFile('public/icons/apple-touch-icon.png');
+// iOS probes /apple-touch-icon.png at the domain ROOT (ignores the manifest);
+// a 404 makes it fall back to a screenshot of the page.
+await sharp(Buffer.from(mark), { density: 720 }).resize(180, 180).png().toFile('public/apple-touch-icon.png');
 console.log('icons ok');
