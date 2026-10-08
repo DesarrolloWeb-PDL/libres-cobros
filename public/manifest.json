@@ -1,7 +1,7 @@
 {
-  "name": "Libres Cobros - Portal de Socios",
+  "name": "Libres Cobros",
   "short_name": "Libres Cobros",
-  "description": "Portal de pagos para socios",
+  "description": "Sistema de gestión de cobros para instituciones",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
