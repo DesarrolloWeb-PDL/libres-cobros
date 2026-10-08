@@ -46,9 +46,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect('/login');
   }
 
-  // Check if user must change password
+  // Must live outside /admin/* — this layout wraps change-password and would loop.
   if (session.user.mustChangePassword) {
-    redirect('/admin/change-password');
+    redirect('/change-password');
   }
 
   const isSuperAdmin = session.user.role === 'SUPER_ADMIN';
