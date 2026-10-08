@@ -1,4 +1,4 @@
-const CACHE_NAME = 'libres-cobros-v3';
+const CACHE_NAME = 'libres-cobros-v4';
 
 // Static, non-sensitive assets only.
 const STATIC_ASSETS = [

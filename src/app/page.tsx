@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Logo } from '@/components/Logo';
+import { Footer } from '@/components/Footer';
 import { CreditCard, Ticket, BellRing, BarChart3 } from 'lucide-react';
 
 const benefits = [
@@ -84,11 +85,7 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t bg-muted/30 py-6 text-center text-xs text-muted-foreground mt-auto">
-        <div className="container mx-auto px-4">
-          <span>Libres Cobros — Sistema de administración de clubes</span>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
