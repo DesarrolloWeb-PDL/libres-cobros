@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { hash } from 'bcryptjs';
+import { randomBytes } from 'crypto';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
 import { rateLimit } from '@/lib/rate-limit';
@@ -15,7 +16,6 @@ const RegisterSchema = z.object({
     .regex(/^[a-z0-9-]+$/, 'El slug solo admite minúsculas, números y guiones')
     .max(64, 'El slug no puede superar los 64 caracteres'),
   email: z.string().email('Ingresá un email válido'),
-  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
   adminName: z.string().min(1, 'El nombre del administrador es obligatorio'),
   primaryColor: z
     .string()
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { name, siglas, slug, email, password, adminName, primaryColor } = parsed.data;
+    const { name, siglas, slug, email, adminName, primaryColor } = parsed.data;
 
     const existingSlug = await prisma.club.findUnique({
       where: { slug },
@@ -114,7 +114,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const passwordHash = await hash(password, 12);
+    const tempPassword = randomBytes(4).toString('hex');
+    const passwordHash = await hash(tempPassword, 12);
 
     const result = await prisma.$transaction(async (tx) => {
       const club = await tx.club.create({
@@ -122,7 +123,7 @@ export async function POST(request: NextRequest) {
           name,
           siglas: siglas || null,
           slug,
-          status: 'ACTIVE',
+          status: 'PENDING',
           primaryColor: primaryColor ?? '#7c3aed',
         },
       });
@@ -134,7 +135,7 @@ export async function POST(request: NextRequest) {
           passwordHash,
           role: 'ADMIN',
           clubId: club.id,
-          mustChangePassword: false,
+          mustChangePassword: true,
         },
       });
 
@@ -160,6 +161,7 @@ export async function POST(request: NextRequest) {
 
     return apiSuccess({
       success: true,
+      tempPassword,
       club: serializeClub(result.club),
       admin: {
         id: result.admin.id,

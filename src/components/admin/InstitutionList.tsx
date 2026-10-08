@@ -33,6 +33,13 @@ interface InstitutionListProps {
 const statusVariants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
   ACTIVE: 'default',
   INACTIVE: 'secondary',
+  PENDING: 'outline',
+};
+
+const statusLabels: Record<string, string> = {
+  ACTIVE: 'Activo',
+  INACTIVE: 'Inactivo',
+  PENDING: 'Pendiente',
 };
 
 const commissionTypeLabels: Record<string, string> = {
@@ -44,8 +51,7 @@ export function InstitutionList({ initialData }: InstitutionListProps) {
   const router = useRouter();
   const [institutions, setInstitutions] = useState<ClubListItem[]>(initialData);
 
-  async function toggleStatus(institution: ClubListItem) {
-    const newStatus = institution.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+  async function updateStatus(institution: ClubListItem, newStatus: 'ACTIVE' | 'INACTIVE') {
     const actionLabel = newStatus === 'ACTIVE' ? 'activado' : 'desactivado';
 
     try {
@@ -62,7 +68,10 @@ export function InstitutionList({ initialData }: InstitutionListProps) {
 
       toast.add({
         title: 'Estado actualizado',
-        description: `La institución fue ${actionLabel} correctamente`,
+        description:
+          newStatus === 'ACTIVE' && institution.status === 'PENDING'
+            ? 'La institución fue aprobada correctamente'
+            : `La institución fue ${actionLabel} correctamente`,
         type: 'success',
       });
 
@@ -120,8 +129,15 @@ export function InstitutionList({ initialData }: InstitutionListProps) {
                       : institution.commissionValue.toFixed(2)}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={statusVariants[institution.status] ?? 'default'}>
-                      {institution.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}
+                    <Badge
+                      variant={statusVariants[institution.status] ?? 'default'}
+                      className={
+                        institution.status === 'PENDING'
+                          ? 'border-amber-500/50 text-amber-600 dark:text-amber-400'
+                          : undefined
+                      }
+                    >
+                      {statusLabels[institution.status] ?? institution.status}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -139,9 +155,22 @@ export function InstitutionList({ initialData }: InstitutionListProps) {
                         >
                           Editar
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => toggleStatus(institution)}>
-                          {institution.status === 'ACTIVE' ? 'Desactivar' : 'Activar'}
-                        </DropdownMenuItem>
+                        {institution.status === 'PENDING' ? (
+                          <DropdownMenuItem onClick={() => updateStatus(institution, 'ACTIVE')}>
+                            Aprobar
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem
+                            onClick={() =>
+                              updateStatus(
+                                institution,
+                                institution.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE'
+                              )
+                            }
+                          >
+                            {institution.status === 'ACTIVE' ? 'Desactivar' : 'Activar'}
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

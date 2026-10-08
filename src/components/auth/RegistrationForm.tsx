@@ -1,10 +1,8 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
 import { z } from 'zod';
-import { Loader2 } from 'lucide-react';
+import { Check, Copy, KeyRound, Loader2, ShieldCheck } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,13 +17,18 @@ const RegistrationSchema = z.object({
     .regex(/^[a-z0-9-]+$/, 'El slug solo admite minúsculas, números y guiones')
     .max(64, 'El slug no puede superar los 64 caracteres'),
   email: z.string().email('Ingresá un email válido'),
-  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
   adminName: z.string().min(1, 'El nombre del administrador es obligatorio'),
   primaryColor: z
     .string()
     .regex(/^#[0-9A-Fa-f]{6}$/, 'El color debe tener formato hexadecimal')
     .optional(),
 });
+
+interface RegistrationSuccess {
+  tempPassword: string;
+  email: string;
+  clubName: string;
+}
 
 function generateSlug(name: string): string {
   return name
@@ -38,19 +41,97 @@ function generateSlug(name: string): string {
     .slice(0, 64);
 }
 
+function TempPasswordCard({ result }: { result: RegistrationSuccess }) {
+  const [copied, setCopied] = useState(false);
+
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(result.tempPassword);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      const input = document.createElement('input');
+      input.value = result.tempPassword;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand('copy');
+      document.body.removeChild(input);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  }
+
+  return (
+    <Card className="w-full border-accent/30">
+      <CardHeader className="text-center">
+        <div className="mx-auto mb-2 flex size-12 items-center justify-center rounded-full bg-accent/10">
+          <ShieldCheck className="size-6 text-accent" />
+        </div>
+        <CardTitle>Registro recibido</CardTitle>
+        <CardDescription>
+          Tu registro está pendiente de aprobación por el equipo de Libres Cobros. Vas a poder
+          iniciar sesión apenas sea aprobado.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="rounded-lg border bg-muted/50 p-4">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">
+            Contraseña temporal
+          </p>
+          <p className="font-mono text-2xl font-bold tracking-widest text-foreground break-all select-all">
+            {result.tempPassword}
+          </p>
+          <Button type="button" variant="outline" onClick={handleCopy} className="mt-3 gap-2">
+            {copied ? (
+              <>
+                <Check className="size-4" />
+                Copiada
+              </>
+            ) : (
+              <>
+                <Copy className="size-4" />
+                Copiar contraseña
+              </>
+            )}
+          </Button>
+        </div>
+        <ul className="space-y-2 text-sm text-muted-foreground">
+          <li className="flex items-start gap-2">
+            <KeyRound className="mt-0.5 size-4 shrink-0 text-accent" />
+            <span>
+              Esta contraseña se muestra una sola vez. Copiala ahora.
+            </span>
+          </li>
+          <li className="flex items-start gap-2">
+            <KeyRound className="mt-0.5 size-4 shrink-0 text-accent" />
+            <span>
+              Iniciá sesión con <strong className="text-foreground">{result.email}</strong> y esta
+              contraseña <strong className="text-foreground">recién después</strong> de la
+              aprobación.
+            </span>
+          </li>
+          <li className="flex items-start gap-2">
+            <KeyRound className="mt-0.5 size-4 shrink-0 text-accent" />
+            <span>Vas a tener que cambiarla en tu primer ingreso.</span>
+          </li>
+        </ul>
+      </CardContent>
+    </Card>
+  );
+}
+
 export function RegistrationForm() {
-  const router = useRouter();
   const [name, setName] = useState('');
   const [siglas, setSiglas] = useState('');
   const [slug, setSlug] = useState('');
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [adminName, setAdminName] = useState('');
   const [primaryColor, setPrimaryColor] = useState('#7c3aed');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [globalError, setGlobalError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [registrationResult, setRegistrationResult] = useState<RegistrationSuccess | null>(null);
 
   const handleNameChange = useCallback(
     (value: string) => {
@@ -87,7 +168,6 @@ export function RegistrationForm() {
       siglas: siglas || undefined,
       slug,
       email,
-      password,
       adminName,
       primaryColor: primaryColor !== '#7c3aed' ? primaryColor : undefined,
     };
@@ -121,28 +201,21 @@ export function RegistrationForm() {
         return;
       }
 
-      // Auto-login the newly created admin.
-      const signInResult = await signIn('credentials', {
+      // Do NOT auto-login: the club is PENDING until a super admin approves it.
+      setRegistrationResult({
+        tempPassword: data.tempPassword,
         email: parsed.data.email,
-        password: parsed.data.password,
-        redirect: false,
-        callbackUrl: '/admin',
+        clubName: parsed.data.name,
       });
-
-      if (signInResult?.error) {
-        // Registration succeeded but auto-login failed; show success and let
-        // the user log in manually.
-        router.push('/login?registered=1');
-        return;
-      }
-
-      router.push('/admin');
-      router.refresh();
     } catch {
       setGlobalError('Ocurrió un error inesperado. Intentá de nuevo más tarde.');
     } finally {
       setIsLoading(false);
     }
+  }
+
+  if (registrationResult) {
+    return <TempPasswordCard result={registrationResult} />;
   }
 
   return (
@@ -261,22 +334,6 @@ export function RegistrationForm() {
             {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="password">Contraseña</Label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="new-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              aria-invalid={!!errors.password}
-              disabled={isLoading}
-            />
-            {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
-          </div>
-
           {globalError && (
             <p className="rounded-md bg-destructive/10 p-2 text-sm text-destructive">
               {globalError}
@@ -287,10 +344,10 @@ export function RegistrationForm() {
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 size-4 animate-spin" />
-                Creando cuenta...
+                Enviando registro...
               </>
             ) : (
-              'Crear cuenta'
+              'Registrar club'
             )}
           </Button>
         </form>

@@ -24,7 +24,7 @@ describe('RegistrationForm', () => {
     vi.clearAllMocks();
   });
 
-  it('renders all required fields', () => {
+  it('renders all required fields without a password field', () => {
     render(<RegistrationForm />);
 
     expect(screen.getByLabelText(/nombre del club/i)).toBeInTheDocument();
@@ -32,8 +32,8 @@ describe('RegistrationForm', () => {
     expect(screen.getByLabelText(/identificador url/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/nombre del administrador/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/email del administrador/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/^contraseña$/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /crear cuenta/i })).toBeInTheDocument();
+    expect(screen.queryByLabelText(/^contraseña$/i)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /registrar club/i })).toBeInTheDocument();
   });
 
   it('auto-generates slug from club name', () => {
@@ -57,32 +57,29 @@ describe('RegistrationForm', () => {
   it('shows validation errors for empty required fields', async () => {
     render(<RegistrationForm />);
 
-    fireEvent.click(screen.getByRole('button', { name: /crear cuenta/i }));
+    fireEvent.click(screen.getByRole('button', { name: /registrar club/i }));
 
     await waitFor(() => {
       expect(screen.getByText(/el nombre del club es obligatorio/i)).toBeInTheDocument();
       expect(screen.getByText(/el slug es obligatorio/i)).toBeInTheDocument();
       expect(screen.getByText(/el nombre del administrador es obligatorio/i)).toBeInTheDocument();
       expect(screen.getByText(/ingresá un email válido/i)).toBeInTheDocument();
-      expect(screen.getByText(/la contraseña debe tener al menos 6 caracteres/i)).toBeInTheDocument();
     });
   });
 
-  it('submits registration and redirects to admin on success', async () => {
+  it('submits registration and shows temp password without auto-login', async () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ success: true }),
+      json: async () => ({ success: true, tempPassword: 'ab12cd34' }),
     });
-    signInMock.mockResolvedValue({ ok: true, error: null });
 
     render(<RegistrationForm />);
 
     fireEvent.change(screen.getByLabelText(/nombre del club/i), { target: { value: 'Club Libres' } });
     fireEvent.change(screen.getByLabelText(/nombre del administrador/i), { target: { value: 'Juan Pérez' } });
     fireEvent.change(screen.getByLabelText(/email del administrador/i), { target: { value: 'admin@club.com' } });
-    fireEvent.change(screen.getByLabelText(/^contraseña$/i), { target: { value: 'secure123' } });
 
-    fireEvent.click(screen.getByRole('button', { name: /crear cuenta/i }));
+    fireEvent.click(screen.getByRole('button', { name: /registrar club/i }));
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
@@ -96,38 +93,35 @@ describe('RegistrationForm', () => {
     });
 
     await waitFor(() => {
-      expect(signInMock).toHaveBeenCalledWith('credentials', expect.objectContaining({
-        email: 'admin@club.com',
-        password: 'secure123',
-        redirect: false,
-        callbackUrl: '/admin',
-      }));
+      expect(screen.getByText('ab12cd34')).toBeInTheDocument();
     });
 
-    await waitFor(() => {
-      expect(pushMock).toHaveBeenCalledWith('/admin');
-    });
+    expect(screen.getByText(/pendiente de aprobación/i)).toBeInTheDocument();
+    expect(signInMock).not.toHaveBeenCalled();
+    expect(pushMock).not.toHaveBeenCalled();
   });
 
-  it('redirects to login when auto-login fails after successful registration', async () => {
+  it('does not send a password in the request body', async () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ success: true }),
+      json: async () => ({ success: true, tempPassword: 'ff00aa11' }),
     });
-    signInMock.mockResolvedValue({ ok: false, error: 'CredentialsSignin' });
 
     render(<RegistrationForm />);
 
     fireEvent.change(screen.getByLabelText(/nombre del club/i), { target: { value: 'Club Libres' } });
     fireEvent.change(screen.getByLabelText(/nombre del administrador/i), { target: { value: 'Juan Pérez' } });
     fireEvent.change(screen.getByLabelText(/email del administrador/i), { target: { value: 'admin@club.com' } });
-    fireEvent.change(screen.getByLabelText(/^contraseña$/i), { target: { value: 'secure123' } });
 
-    fireEvent.click(screen.getByRole('button', { name: /crear cuenta/i }));
+    fireEvent.click(screen.getByRole('button', { name: /registrar club/i }));
 
     await waitFor(() => {
-      expect(pushMock).toHaveBeenCalledWith('/login?registered=1');
+      expect(global.fetch).toHaveBeenCalled();
     });
+
+    const call = vi.mocked(global.fetch).mock.calls[0];
+    const body = JSON.parse(call[1]!.body as string) as Record<string, unknown>;
+    expect(body).not.toHaveProperty('password');
   });
 
   it('displays server error when registration fails', async () => {
@@ -141,9 +135,8 @@ describe('RegistrationForm', () => {
     fireEvent.change(screen.getByLabelText(/nombre del club/i), { target: { value: 'Club Libres' } });
     fireEvent.change(screen.getByLabelText(/nombre del administrador/i), { target: { value: 'Juan Pérez' } });
     fireEvent.change(screen.getByLabelText(/email del administrador/i), { target: { value: 'admin@club.com' } });
-    fireEvent.change(screen.getByLabelText(/^contraseña$/i), { target: { value: 'secure123' } });
 
-    fireEvent.click(screen.getByRole('button', { name: /crear cuenta/i }));
+    fireEvent.click(screen.getByRole('button', { name: /registrar club/i }));
 
     await waitFor(() => {
       expect(screen.getByText(/ya existe una institución con ese identificador/i)).toBeInTheDocument();

@@ -5,7 +5,7 @@ import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
 import { requireInstitution, AuthError } from '@/lib/access';
 
 const InstitutionCommissionTypeSchema = z.enum(['PERCENTAGE', 'FIXED']);
-const InstitutionStatusSchema = z.enum(['ACTIVE', 'INACTIVE']);
+const InstitutionStatusSchema = z.enum(['ACTIVE', 'INACTIVE', 'PENDING']);
 
 const CreateInstitutionSchema = z.object({
   name: z.string().min(1, 'El nombre es obligatorio'),

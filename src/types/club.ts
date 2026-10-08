@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const InstitutionCommissionTypeSchema = z.enum(['PERCENTAGE', 'FIXED']);
-export const InstitutionStatusSchema = z.enum(['ACTIVE', 'INACTIVE']);
+export const InstitutionStatusSchema = z.enum(['ACTIVE', 'INACTIVE', 'PENDING']);
 
 export const CreateInstitutionSchema = z.object({
   name: z.string().min(1, 'El nombre es obligatorio'),

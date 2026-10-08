@@ -1,37 +1,27 @@
 import Link from 'next/link';
 import { Logo } from '@/components/Logo';
-import { Building2, Users, CreditCard, BarChart3, Shield, Zap } from 'lucide-react';
+import { CreditCard, Ticket, BellRing, BarChart3 } from 'lucide-react';
 
-const features = [
-  {
-    icon: Building2,
-    title: 'Gestión de Instituciones',
-    description: 'Administrar múltiples instituciones desde un solo panel centralizado.',
-  },
-  {
-    icon: Users,
-    title: 'Control de Socios',
-    description: 'Alta, baja y consulta de socios con información completa.',
-  },
+const benefits = [
   {
     icon: CreditCard,
-    title: 'Cobros y Pagos',
-    description: 'Generar cuotas, registrar pagos y mantener todo al día.',
+    title: 'Pagos online',
+    description: 'Stripe, Mercado Pago y transferencia.',
+  },
+  {
+    icon: Ticket,
+    title: 'Comprobantes',
+    description: 'Tickets y comprobantes al instante.',
+  },
+  {
+    icon: BellRing,
+    title: 'Recordatorios',
+    description: 'Avisos de cuotas a tus socios.',
   },
   {
     icon: BarChart3,
     title: 'Reportes',
-    description: 'Estadísticas de pagos, deudas y comisiones en tiempo real.',
-  },
-  {
-    icon: Shield,
-    title: 'Seguro y Confiable',
-    description: 'Sistema seguro con acceso restringido por roles.',
-  },
-  {
-    icon: Zap,
-    title: 'Rápido y Simple',
-    description: 'Interfaz moderna y fácil de usar para administradores.',
+    description: 'Pagos, deudas y comisiones claros.',
   },
 ];
 
@@ -62,45 +52,30 @@ export default function LandingPage() {
           </Link>
           <Link
             href="/registro"
-            className="inline-flex items-center justify-center px-8 py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
-          >
-            Registrar tu club
-          </Link>
-          <Link
-            href="/pagos/instituciones"
             className="inline-flex items-center justify-center px-8 py-3 rounded-lg border border-border font-medium hover:bg-muted transition-colors"
           >
-            Portal de Socios
+            Registrar club
           </Link>
         </div>
       </header>
 
-      {/* Features */}
-      <section className="py-20 px-6 border-t border-border">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-3">
-              Funcionalidades
-            </p>
-            <h2 className="text-3xl sm:text-4xl font-bold">
-              Todo lo que necesitás
-            </h2>
-          </div>
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature) => {
-              const Icon = feature.icon;
+      {/* Benefits strip */}
+      <section className="py-16 px-6 border-t border-border">
+        <div className="max-w-4xl mx-auto">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {benefits.map((benefit) => {
+              const Icon = benefit.icon;
               return (
-                <div
-                  key={feature.title}
-                  className="p-6 rounded-xl border border-border bg-card hover:shadow-lg transition-shadow"
-                >
-                  <div className="flex size-12 items-center justify-center rounded-lg bg-accent/10 mb-4">
-                    <Icon className="size-6 text-accent" />
+                <div key={benefit.title} className="flex items-start gap-3">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-accent/10">
+                    <Icon className="size-5 text-accent" />
                   </div>
-                  <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {feature.description}
-                  </p>
+                  <div>
+                    <h3 className="font-semibold mb-0.5">{benefit.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {benefit.description}
+                    </p>
+                  </div>
                 </div>
               );
             })}

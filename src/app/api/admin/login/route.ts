@@ -34,6 +34,18 @@ export async function POST(request: NextRequest) {
       return apiError('Invalid credentials', 401);
     }
 
+    // Same rule as next-auth authorize(): PENDING/INACTIVE clubs cannot log in.
+    if (user.role === 'ADMIN' && user.clubId) {
+      const club = await prisma.club.findUnique({
+        where: { id: user.clubId },
+        select: { status: true },
+      });
+
+      if (club && club.status !== 'ACTIVE') {
+        return apiError('Invalid credentials', 401);
+      }
+    }
+
     return apiSuccess({
       ok: true,
       user: {

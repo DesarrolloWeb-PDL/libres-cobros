@@ -60,6 +60,19 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
+        // Club admins can only log in once their institution is ACTIVE.
+        // PENDING/INACTIVE clubs must not gain access.
+        if (user.role === 'ADMIN' && user.clubId) {
+          const club = await prisma.club.findUnique({
+            where: { id: user.clubId },
+            select: { status: true },
+          });
+
+          if (club && club.status !== 'ACTIVE') {
+            return null;
+          }
+        }
+
         return {
           id: user.id,
           email: user.email,
