@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { updateMetaThemeColor, setCubesFavicon } from '@/lib/theme-color';
 
 interface InstitutionThemeProps {
   primaryColor: string;
@@ -9,7 +10,7 @@ interface InstitutionThemeProps {
 export function InstitutionThemeInjector({ primaryColor }: InstitutionThemeProps) {
   useEffect(() => {
     const root = document.documentElement;
-    
+
     // Set all CSS variables directly on <html>
     root.style.setProperty('--accent', primaryColor);
     root.style.setProperty('--accent-hover', primaryColor);
@@ -21,6 +22,10 @@ export function InstitutionThemeInjector({ primaryColor }: InstitutionThemeProps
     root.style.setProperty('--sidebar-primary-foreground', '#ffffff');
     root.style.setProperty('--sidebar-ring', primaryColor);
     root.style.setProperty('--institution-primary', primaryColor);
+
+    // PWA title bar + app icon follow this institution's color.
+    updateMetaThemeColor();
+    setCubesFavicon(primaryColor);
 
     return () => {
       // Cleanup on unmount

@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { updateMetaThemeColor } from '@/lib/theme-color';
+import { usePathname } from 'next/navigation';
+import { updateMetaThemeColor, setCubesFavicon } from '@/lib/theme-color';
 
 interface PublicTheme {
   primaryColor?: string;
@@ -36,16 +37,21 @@ function applyPublicTheme(theme: PublicTheme | null) {
   }
 
   updateMetaThemeColor();
+  setCubesFavicon(primary);
 }
 
 /**
- * Applies the Super Admin theme (SiteConfig clubId=null, key=theme) to public
- * pages. Institution layouts override --accent with their own colors when active.
+ * Applies the Super Admin theme to public pages only.
+ * /admin already injects institution / super-admin colors via InstitutionThemeInjector.
  */
 export function SuperAdminThemeInjector() {
+  const pathname = usePathname();
   const themeRef = useRef<PublicTheme | null>(null);
+  const onAdmin = pathname?.startsWith('/admin') ?? false;
 
   useEffect(() => {
+    if (onAdmin) return;
+
     let cancelled = false;
 
     fetch('/api/theme')
@@ -71,7 +77,7 @@ export function SuperAdminThemeInjector() {
       cancelled = true;
       observer.disconnect();
     };
-  }, []);
+  }, [onAdmin]);
 
   return null;
 }

@@ -26,3 +26,37 @@ export function updateMetaThemeColor() {
   }
   meta.setAttribute('content', color);
 }
+
+/**
+ * Recolors the four-cubes app icon (favicon) to match the active brand color.
+ */
+export function setCubesFavicon(color: string) {
+  if (typeof document === 'undefined' || !color) return;
+
+  const opacitySteps = [1, 0.7, 0.5, 0.3];
+  const rects = [
+    { x: 4, y: 4 },
+    { x: 17, y: 4 },
+    { x: 4, y: 17 },
+    { x: 17, y: 17 },
+  ]
+    .map(
+      ({ x, y }, i) =>
+        `<rect x="${x}" y="${y}" width="11" height="11" rx="2" fill="${color}" opacity="${opacitySteps[i]}"/>`
+    )
+    .join('');
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">${rects}</svg>`;
+  const href = `data:image/svg+xml,${encodeURIComponent(svg)}`;
+
+  let link = document.querySelector<HTMLLinkElement>("link[rel='icon']");
+  if (!link) {
+    link = document.createElement('link');
+    link.rel = 'icon';
+    document.head.appendChild(link);
+  }
+  link.type = 'image/svg+xml';
+  link.href = href;
+
+  // Apple touch icon cannot be SVG — leave the static PNG as fallback.
+}
