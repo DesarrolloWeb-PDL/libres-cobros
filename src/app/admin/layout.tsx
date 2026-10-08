@@ -5,6 +5,7 @@ import { prisma } from '@/lib/db';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { InstitutionThemeInjector } from '@/components/admin/InstitutionThemeInjector';
 import { DarkModeInjector } from '@/components/admin/DarkModeInjector';
+import { AdminPageBackground } from '@/components/admin/AdminPageBackground';
 
 async function getInstitutionData(institutionId: string | null) {
   if (!institutionId) return null;
@@ -73,10 +74,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <>
       {themeColor && <InstitutionThemeInjector primaryColor={themeColor} />}
       <DarkModeInjector bgColor={bgColor} />
-      <div
-        className="flex min-h-screen"
-        style={{ backgroundColor: bgColor }}
-      >
+      <AdminPageBackground bgColor={bgColor} />
+      {/* No inline backgroundColor — dark mode needs CSS .dark to own the page bg. */}
+      <div className="flex min-h-screen bg-background">
         <AdminSidebar institution={institution} themeColor={themeColor} />
         <main className="flex-1 pt-14 lg:pt-0 min-w-0">
           <div className="p-4 sm:p-6 lg:p-8">{children}</div>
