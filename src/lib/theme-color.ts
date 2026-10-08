@@ -33,18 +33,17 @@ export function updateMetaThemeColor() {
 export function setCubesFavicon(color: string) {
   if (typeof document === 'undefined' || !color) return;
 
+  // Portfolio-style cubes: 11×11 at (4,4)/(17,4)/(4,17)/(17,17)
   const opacitySteps = [1, 0.7, 0.5, 0.3];
-  const size = 14;
-  const gap = 4;
   const rects = [
-    { x: 0, y: 0 },
-    { x: size + gap, y: 0 },
-    { x: 0, y: size + gap },
-    { x: size + gap, y: size + gap },
+    { x: 4, y: 4 },
+    { x: 17, y: 4 },
+    { x: 4, y: 17 },
+    { x: 17, y: 17 },
   ]
     .map(
       ({ x, y }, i) =>
-        `<rect x="${x}" y="${y}" width="${size}" height="${size}" rx="3" fill="${color}" opacity="${opacitySteps[i]}"/>`
+        `<rect x="${x}" y="${y}" width="11" height="11" rx="2" fill="${color}" opacity="${opacitySteps[i]}"/>`
     )
     .join('');
 
