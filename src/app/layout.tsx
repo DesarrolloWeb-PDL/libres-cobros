@@ -3,6 +3,7 @@ import { Manrope } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { PwaRegistration } from "@/components/PwaRegistration";
+import { SuperAdminThemeInjector } from "@/components/SuperAdminThemeInjector";
 
 const manrope = Manrope({
   variable: "--font-sans",
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es" suppressHydrationWarning>
       <body className={`${manrope.variable} min-h-full flex flex-col font-sans antialiased`}>
         <Providers>{children}</Providers>
+        <SuperAdminThemeInjector />
         <PwaRegistration />
       </body>
     </html>

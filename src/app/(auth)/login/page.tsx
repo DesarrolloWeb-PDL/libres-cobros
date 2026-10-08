@@ -65,72 +65,70 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
-      <div className="w-full max-w-sm space-y-6">
-        <div className="flex flex-col items-center gap-3">
-          <Link href="/" aria-label="Ir al inicio">
-            <Logo size={64} showScroll={false} />
-          </Link>
-          <div className="text-center">
-            <h1 className="text-2xl font-bold">Libres Cobros</h1>
-            <p className="text-sm text-muted-foreground">Sistema de administración de instituciones</p>
-          </div>
+    <div className="space-y-6">
+      <div className="flex flex-col items-center gap-3">
+        <Link href="/" aria-label="Ir al inicio">
+          <Logo size={64} showScroll={false} />
+        </Link>
+        <div className="text-center">
+          <h1 className="text-2xl font-bold">Libres Cobros</h1>
+          <p className="text-sm text-muted-foreground">Sistema de administración de instituciones</p>
         </div>
-        
-        <Card>
-          <CardHeader className="text-center">
-            <CardTitle>Iniciar Sesión</CardTitle>
-            <CardDescription>Ingresá tus credenciales para continuar</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@libres.com"
-                  aria-invalid={!!errors.email}
-                />
-                {errors.email && (
-                  <p className="text-sm text-destructive">{errors.email}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password">Contraseña</Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  aria-invalid={!!errors.password}
-                />
-                {errors.password && (
-                  <p className="text-sm text-destructive">{errors.password}</p>
-                )}
-              </div>
-
-              {globalError && (
-                <p className="rounded-md bg-destructive/10 p-2 text-sm text-destructive">
-                  {globalError}
-                </p>
-              )}
-
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Ingresando...' : 'Ingresar'}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
       </div>
+
+      <Card>
+        <CardHeader className="text-center">
+          <CardTitle>Iniciar Sesión</CardTitle>
+          <CardDescription>Ingresá tus credenciales para continuar</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@libres.com"
+                aria-invalid={!!errors.email}
+              />
+              {errors.email && (
+                <p className="text-sm text-destructive">{errors.email}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">Contraseña</Label>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                aria-invalid={!!errors.password}
+              />
+              {errors.password && (
+                <p className="text-sm text-destructive">{errors.password}</p>
+              )}
+            </div>
+
+            {globalError && (
+              <p className="rounded-md bg-destructive/10 p-2 text-sm text-destructive">
+                {globalError}
+              </p>
+            )}
+
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? 'Ingresando...' : 'Ingresar'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
