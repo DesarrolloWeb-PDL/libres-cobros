@@ -35,14 +35,14 @@ export function setCubesFavicon(color: string) {
 
   const opacitySteps = [1, 0.7, 0.5, 0.3];
   const rects = [
-    { x: 4, y: 4 },
-    { x: 17, y: 4 },
-    { x: 4, y: 17 },
-    { x: 17, y: 17 },
+    { x: 3, y: 3 },
+    { x: 16, y: 3 },
+    { x: 3, y: 16 },
+    { x: 16, y: 16 },
   ]
     .map(
       ({ x, y }, i) =>
-        `<rect x="${x}" y="${y}" width="11" height="11" rx="2" fill="${color}" opacity="${opacitySteps[i]}"/>`
+        `<rect x="${x}" y="${y}" width="13" height="13" rx="2.5" fill="${color}" opacity="${opacitySteps[i]}"/>`
     )
     .join('');
 

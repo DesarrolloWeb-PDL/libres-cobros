@@ -77,7 +77,7 @@ export default function RegisterPage() {
       {/* Hero */}
       <header className="relative flex flex-col items-center justify-center px-6 pt-16 pb-14 text-center">
         <Link href="/">
-          <Logo size={96} showScroll={false} />
+          <Logo size={140} showScroll={false} />
         </Link>
         <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-4 mt-6">
           Libres Cobros
