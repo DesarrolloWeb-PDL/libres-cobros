@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { Loader2, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,7 +12,7 @@ import { toast } from '@/components/ui/toast';
 
 export default function ChangePasswordPage() {
   const router = useRouter();
-  const { update, status } = useSession();
+  const { status } = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -58,16 +58,14 @@ export default function ChangePasswordPage() {
         throw new Error(data.error || 'Error al cambiar la contraseña');
       }
 
-      // Update the session to remove mustChangePassword flag
-      await update();
+      // End the temp session and force a fresh login with the new password.
+      await signOut({ callbackUrl: '/login' });
 
       toast.add({
         title: 'Contraseña actualizada',
-        description: 'Tu contraseña fue cambiada correctamente',
+        description: 'Iniciá sesión con tu nueva contraseña',
         type: 'success',
       });
-
-      router.push('/admin');
     } catch (error) {
       toast.add({
         title: 'Error',
