@@ -3,6 +3,7 @@
   "short_name": "Libres Cobros",
   "description": "Sistema de gestión de cobros para instituciones",
   "start_url": "/",
+  "id": "/?v=2",
   "display": "standalone",
   "background_color": "#0a0a0a",
   "theme_color": "#7c3aed",
