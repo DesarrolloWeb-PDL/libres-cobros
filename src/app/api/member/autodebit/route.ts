@@ -128,7 +128,11 @@ export async function POST(request: NextRequest) {
       where: { clubId_memberId: { clubId: club.id, memberId: member.id } },
     });
 
-    if (existing && existing.status !== 'CANCELLED') {
+    // CANCELLED rows may exist (one-per-member unique constraint) so re-subscribing
+    // upserts them; FAILED rows are also re-creatable so the member can retry.
+    const canResubscribe = existing && (existing.status === 'CANCELLED' || existing.status === 'FAILED');
+
+    if (existing && !canResubscribe) {
       return apiError(
         'El socio ya tiene un débito automático activo',
         409,

@@ -2,6 +2,7 @@
 
 import { User, Receipt, AlertCircle } from 'lucide-react';
 import { FeeCard } from './FeeCard';
+import { AutoDebitSection } from './AutoDebitSection';
 import type { MemberFeeItem } from '@/types/fee';
 
 interface PaymentPortalProps {
@@ -13,9 +14,10 @@ interface PaymentPortalProps {
   };
   fees: MemberFeeItem[];
   institutionSlug?: string;
+  memberEmail?: string | null;
 }
 
-export function PaymentPortal({ member, fees, institutionSlug }: PaymentPortalProps) {
+export function PaymentPortal({ member, fees, institutionSlug, memberEmail }: PaymentPortalProps) {
   const pendingFees = fees.filter((fee) => fee.status === 'PENDING' || fee.status === 'OVERDUE');
   const totalPending = pendingFees.reduce((sum, fee) => sum + fee.amount, 0);
 
@@ -86,6 +88,19 @@ export function PaymentPortal({ member, fees, institutionSlug }: PaymentPortalPr
           )}
         </div>
       </section>
+
+      {/* Auto-Debit Section */}
+      {institutionSlug && (
+        <section className="py-6 px-6 border-t border-border">
+          <div className="max-w-lg mx-auto">
+            <AutoDebitSection
+              dni={member.dni}
+              clubSlug={institutionSlug}
+              memberEmail={memberEmail ?? null}
+            />
+          </div>
+        </section>
+      )}
     </div>
   );
 }

@@ -1,5 +1,8 @@
 import { prisma } from '@/lib/db';
 import { confirmPayment, type ConfirmPaymentOptions } from '@/lib/payments';
+import { getClubSiteConfigValue } from '@/lib/site-config';
+import { cancelMpPreapproval } from '@/lib/mercadopago';
+import { cancelStripeSubscription } from '@/lib/stripe';
 
 export interface SettleAutoDebitChargeInput {
   clubId: string;
@@ -121,5 +124,36 @@ export async function advanceAutoDebitBilling(autoDebitId: string): Promise<void
   await prisma.autoDebit.update({
     where: { id: autoDebitId },
     data: { nextBillingAt: next },
+  });
+}
+
+/**
+ * Cancels the gateway-side subscription (MP preapproval or Stripe subscription)
+ * and marks the AutoDebit row as CANCELLED. Throws when the institution is not
+ * configured for the auto-debit's gateway.
+ */
+export async function cancelAutoDebitSubscription(autoDebit: {
+  id: string;
+  clubId: string;
+  gateway: string;
+  gatewaySubscriptionId: string;
+}): Promise<void> {
+  if (autoDebit.gateway === 'mercadopago') {
+    const accessToken = await getClubSiteConfigValue(autoDebit.clubId, 'mercadopago_access_token');
+    if (!accessToken) {
+      throw new Error('MercadoPago no configurado para esta institución');
+    }
+    await cancelMpPreapproval(autoDebit.gatewaySubscriptionId, accessToken);
+  } else {
+    const secretKey = await getClubSiteConfigValue(autoDebit.clubId, 'stripe_secret_key');
+    if (!secretKey) {
+      throw new Error('Stripe no configurado para esta institución');
+    }
+    await cancelStripeSubscription(autoDebit.gatewaySubscriptionId, secretKey);
+  }
+
+  await prisma.autoDebit.update({
+    where: { id: autoDebit.id },
+    data: { status: 'CANCELLED' },
   });
 }

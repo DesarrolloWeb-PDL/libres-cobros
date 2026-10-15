@@ -78,6 +78,8 @@ export async function GET(request: NextRequest) {
         dni: member.dni,
         firstName: member.firstName,
         lastName: member.lastName,
+        // The member's own email, used to gate the auto-debit subscription UI.
+        email: member.email,
       },
       fees: fees.map(serializeFee),
     };

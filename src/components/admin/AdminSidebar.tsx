@@ -21,6 +21,7 @@ import {
   Menu,
   X,
   LogOut,
+  Repeat,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,7 @@ const navItems = [
   { href: '/admin/planes', label: 'Planes', icon: Wallet, roles: ['ADMIN'] as const },
   { href: '/admin/cuotas', label: 'Cuotas', icon: Receipt, roles: ['ADMIN'] as const },
   { href: '/admin/pagos', label: 'Pagos', icon: CreditCard, roles: ['ADMIN'] as const },
+  { href: '/admin/debito-automatico', label: 'Débito automático', icon: Repeat, roles: ['ADMIN'] as const },
   { href: '/admin/comisiones', label: 'Comisiones', icon: Percent, roles: ['ADMIN'] as const },
   { href: '/admin/reportes', label: 'Reportes', icon: FileText, roles: ['ADMIN'] as const },
   { href: '/admin/mensajes', label: 'Mensajes', icon: MessageCircle, roles: ['SUPER_ADMIN', 'ADMIN'] as const },

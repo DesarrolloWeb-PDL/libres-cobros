@@ -146,6 +146,7 @@ export function InstitutionPaymentPortal({
           member={result.member}
           fees={result.fees}
           institutionSlug={slug}
+          memberEmail={result.member.email}
         />
       )}
     </>
