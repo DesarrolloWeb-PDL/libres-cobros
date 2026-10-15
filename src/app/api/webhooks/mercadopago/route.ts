@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
 import { verifyMercadoPagoWebhook, getMercadoPagoPayment } from '@/lib/mercadopago';
 import { confirmPayment } from '@/lib/payments';
+import { settleAutoDebitCharge, advanceAutoDebitBilling } from '@/lib/autodebit';
 import { getClubSiteConfigValue } from '@/lib/site-config';
 
 export async function POST(request: NextRequest) {
@@ -61,12 +62,83 @@ export async function POST(request: NextRequest) {
 
     const mpPayment = await getMercadoPagoPayment(dataId, accessToken);
 
+    // Preapproval (auto-debit) charge: identified by the payment's preapproval_id
+    // rather than by fee metadata. Handled before the one-off payment matching
+    // because preapproval charges carry no preference reference.
+    if (mpPayment.preapprovalId) {
+      const autoDebit = await prisma.autoDebit.findUnique({
+        where: {
+          gateway_gatewaySubscriptionId: {
+            gateway: 'mercadopago',
+            gatewaySubscriptionId: mpPayment.preapprovalId,
+          },
+        },
+      });
+
+      if (!autoDebit) {
+        return apiSuccess({ received: true, action: 'autodebit_not_found' });
+      }
+
+      if (mpPayment.status === 'approved') {
+        // The first approved charge also confirms the preapproval authorization,
+        // so promote PENDING_AUTH subscriptions to ACTIVE.
+        if (autoDebit.status === 'PENDING_AUTH') {
+          await prisma.autoDebit.update({
+            where: { id: autoDebit.id },
+            data: { status: 'ACTIVE' },
+          });
+        }
+
+        const result = await settleAutoDebitCharge({
+          clubId: club.id,
+          autoDebitId: autoDebit.id,
+          memberId: autoDebit.memberId,
+          amount: mpPayment.transactionAmount ?? autoDebit.amount,
+          method: 'mercadopago',
+          confirmOptions: { mercadopagoPaymentId: mpPayment.id },
+        });
+
+        if (result.status === 'plan_not_found') {
+          return apiError(
+            'La institución no tiene planes configurados',
+            409,
+            'Cannot create the fee without a plan',
+            'NO_ACTIVE_PLAN'
+          );
+        }
+
+        if (result.status === 'confirmed') {
+          await advanceAutoDebitBilling(autoDebit.id);
+        }
+
+        return apiSuccess({ received: true, action: 'autodebit_confirmed', status: result.status });
+      }
+
+      if (mpPayment.status === 'rejected' || mpPayment.status === 'cancelled') {
+        await prisma.autoDebit.update({
+          where: { id: autoDebit.id },
+          data: { status: 'FAILED' },
+        });
+        return apiSuccess({ received: true, action: 'autodebit_failed' });
+      }
+
+      return apiSuccess({ received: true, status: mpPayment.status, action: 'ignored' });
+    }
+
     const findPayment = () =>
       prisma.payment.findFirst({
         where: {
           clubId: club.id,
           OR: [
-            { mercadopagoPreferenceId: mpPayment.externalReference },
+            // The payment resource's external_reference carries the feeId
+            // (see createMercadoPagoPreference), so match on it first; the
+            // preference ID branch remains for preferences that echo it.
+            ...(mpPayment.externalReference
+              ? [
+                  { feeId: mpPayment.externalReference },
+                  { mercadopagoPreferenceId: mpPayment.externalReference },
+                ]
+              : []),
             ...(mpPayment.metadata?.paymentId
               ? [{ id: String(mpPayment.metadata.paymentId) }]
               : []),

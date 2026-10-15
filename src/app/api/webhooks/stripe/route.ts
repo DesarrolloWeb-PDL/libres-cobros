@@ -3,8 +3,13 @@ import type Stripe from 'stripe';
 import type { Club } from '@prisma/client';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
-import { verifyStripeWebhook } from '@/lib/stripe';
+import {
+  verifyStripeWebhook,
+  getInvoiceSubscriptionId,
+  getInvoicePaymentIntentId,
+} from '@/lib/stripe';
 import { confirmPayment } from '@/lib/payments';
+import { settleAutoDebitCharge, advanceAutoDebitBilling } from '@/lib/autodebit';
 import { getClubSiteConfigValue } from '@/lib/site-config';
 
 const STRIPE_WEBHOOK_SECRET_KEY = 'stripe_webhook_secret';
@@ -133,6 +138,88 @@ export async function POST(request: NextRequest) {
       }
 
       return apiSuccess({ received: true, type: event.type, action: 'marked_failed' });
+    }
+
+    // Auto-debit: subscription invoice paid — settle the month's fee via the
+    // shared gateway-agnostic confirmation path.
+    if (event.type === 'invoice.paid') {
+      const invoice = event.data.object;
+      const subscriptionId = getInvoiceSubscriptionId(invoice);
+
+      if (subscriptionId) {
+        const autoDebit = await prisma.autoDebit.findUnique({
+          where: {
+            gateway_gatewaySubscriptionId: {
+              gateway: 'stripe',
+              gatewaySubscriptionId: subscriptionId,
+            },
+          },
+        });
+
+        if (autoDebit) {
+          const stripePaymentId = getInvoicePaymentIntentId(invoice);
+
+          const result = await settleAutoDebitCharge({
+            clubId: club.id,
+            autoDebitId: autoDebit.id,
+            memberId: autoDebit.memberId,
+            amount: autoDebit.amount,
+            method: 'stripe',
+            confirmOptions: { stripePaymentId: stripePaymentId ?? undefined },
+          });
+
+          if (result.status === 'plan_not_found') {
+            return apiError(
+              'La institución no tiene planes configurados',
+              409,
+              'Cannot create the fee without a plan',
+              'NO_ACTIVE_PLAN'
+            );
+          }
+
+          if (result.status === 'confirmed') {
+            await advanceAutoDebitBilling(autoDebit.id);
+          }
+
+          return apiSuccess({ received: true, action: 'autodebit_confirmed', status: result.status });
+        }
+      }
+
+      return apiSuccess({ received: true, type: event.type });
+    }
+
+    // Auto-debit: subscription payment failed
+    if (event.type === 'invoice.payment_failed') {
+      const invoice = event.data.object;
+      const subscriptionId = getInvoiceSubscriptionId(invoice);
+
+      if (subscriptionId) {
+        await prisma.autoDebit.updateMany({
+          where: {
+            gateway: 'stripe',
+            gatewaySubscriptionId: subscriptionId,
+            status: 'ACTIVE',
+          },
+          data: { status: 'FAILED' },
+        });
+      }
+
+      return apiSuccess({ received: true, type: event.type });
+    }
+
+    // Auto-debit: subscription cancelled/deleted
+    if (event.type === 'customer.subscription.deleted') {
+      const subscription = event.data.object;
+
+      await prisma.autoDebit.updateMany({
+        where: {
+          gateway: 'stripe',
+          gatewaySubscriptionId: subscription.id,
+        },
+        data: { status: 'CANCELLED' },
+      });
+
+      return apiSuccess({ received: true, type: event.type });
     }
 
     if (event.type !== 'checkout.session.completed') {

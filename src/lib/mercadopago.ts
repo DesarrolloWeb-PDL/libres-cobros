@@ -1,5 +1,11 @@
-import MercadoPagoConfig, { Preference, Payment, WebhookSignatureValidator } from 'mercadopago';
+import MercadoPagoConfig, {
+  Preference,
+  Payment,
+  PreApproval,
+  WebhookSignatureValidator,
+} from 'mercadopago';
 import type { PreferenceRequest } from 'mercadopago/dist/clients/preference/commonTypes';
+import type { PreApprovalRequest } from 'mercadopago/dist/clients/preApproval/commonTypes';
 
 function createMercadoPagoConfig(accessToken: string): MercadoPagoConfig {
   return new MercadoPagoConfig({ accessToken });
@@ -70,6 +76,9 @@ export async function getMercadoPagoPayment(
   status: string;
   externalReference: string | null;
   metadata: Record<string, unknown> | null;
+  transactionAmount: number | null;
+  /** Set when the charge was originated by a Preapproval (auto-debit). */
+  preapprovalId: string | null;
 }> {
   const client = new Payment(createMercadoPagoConfig(accessToken));
   const response = await client.get({ id: paymentId });
@@ -79,6 +88,87 @@ export async function getMercadoPagoPayment(
     status: response.status ?? 'unknown',
     externalReference: response.external_reference ?? null,
     metadata: response.metadata ?? null,
+    transactionAmount: response.transaction_amount ?? null,
+    // `preapproval_id` is returned by the API for auto-debit charges but is not
+    // declared on the SDK's PaymentResponse type yet.
+    preapprovalId: (response as { preapproval_id?: string }).preapproval_id ?? null,
+  };
+}
+
+export interface CreateMpPreapprovalInput {
+  /** Per-institution access token resolved from the institution's SiteConfig. */
+  accessToken: string;
+  payerEmail: string;
+  /** Monthly ARS amount. */
+  amount: number;
+  clubName: string;
+  /** Institution slug carried in external_reference for webhook institution resolution. */
+  clubSlug: string;
+  memberId: string;
+  /** Where the member returns after authorizing. */
+  returnUrl: string;
+  /** Webhook URL with `?club_slug=` query param. */
+  notificationUrl: string;
+}
+
+export async function createMpPreapproval(
+  input: CreateMpPreapprovalInput
+): Promise<{ preapprovalId: string; initPoint: string | null }> {
+  const client = new PreApproval(createMercadoPagoConfig(input.accessToken));
+
+  // `notification_url` is accepted by the Preapproval API but not declared on
+  // the SDK's PreApprovalRequest type yet.
+  const body: PreApprovalRequest & { notification_url: string } = {
+    reason: `Cuota mensual - ${input.clubName}`,
+    external_reference: `${input.clubSlug}:${input.memberId}`,
+    payer_email: input.payerEmail,
+    back_url: input.returnUrl,
+    status: 'pending',
+    auto_recurring: {
+      frequency: 1,
+      frequency_type: 'months',
+      transaction_amount: input.amount,
+      currency_id: 'ARS',
+    },
+    notification_url: input.notificationUrl,
+  };
+
+  const response = await client.create({ body });
+
+  return {
+    preapprovalId: String(response.id ?? ''),
+    initPoint: response.init_point ?? null,
+  };
+}
+
+export async function cancelMpPreapproval(
+  preapprovalId: string,
+  accessToken: string
+): Promise<void> {
+  const client = new PreApproval(createMercadoPagoConfig(accessToken));
+  await client.update({ id: preapprovalId, body: { status: 'cancelled' } });
+}
+
+export async function getMpPreapproval(
+  preapprovalId: string,
+  accessToken: string
+): Promise<{
+  id: string;
+  status: string;
+  payerEmail: string | null;
+  autoRecurring: { transaction_amount: number } | null;
+}> {
+  const client = new PreApproval(createMercadoPagoConfig(accessToken));
+  const response = await client.get({ id: preapprovalId });
+
+  return {
+    id: String(response.id ?? preapprovalId),
+    status: response.status ?? 'unknown',
+    payerEmail: response.payer_email ?? null,
+    autoRecurring:
+      response.auto_recurring?.transaction_amount != null
+        ? { transaction_amount: response.auto_recurring.transaction_amount }
+        : null,
   };
 }
 

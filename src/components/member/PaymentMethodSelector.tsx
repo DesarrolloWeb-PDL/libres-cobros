@@ -88,7 +88,7 @@ export function PaymentMethodSelector({
           feeId: fee.id,
           method,
           memberDni,
-          ...(institutionSlug && { clubSlug: institutionSlug }),
+          ...(institutionSlug && { institutionSlug }),
         }),
       });
 

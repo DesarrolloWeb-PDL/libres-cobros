@@ -44,6 +44,7 @@ model Club {
   siteConfigs     SiteConfig[]
   adminUsers      AdminUser[]
   invoices        ProviderInvoice[]
+  autoDebits      AutoDebit[]
 }
 
 model ProviderInvoice {
@@ -81,6 +82,7 @@ model Member {
   fees      Fee[]
   payments  Payment[]
   smsLogs      SmsLog[]
+  autoDebits   AutoDebit[]
 
   @@unique([clubId, dni])
   @@unique([clubId, email])
@@ -238,6 +240,27 @@ model SiteConfig {
 
   @@unique([clubId, key])
   @@index([clubId])
+}
+
+model AutoDebit {
+  id                    String   @id @default(cuid())
+  clubId                String
+  memberId              String
+  gateway               String   // 'mercadopago' | 'stripe'
+  gatewaySubscriptionId String   // MP preapproval ID or Stripe subscription ID
+  status                String   @default("PENDING_AUTH") // PENDING_AUTH | ACTIVE | PAUSED | CANCELLED | FAILED
+  amount                Float    // monthly amount locked at subscription creation
+  payerEmail            String?
+  nextBillingAt         DateTime?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  club                  Club     @relation(fields: [clubId], references: [id])
+  member                Member   @relation(fields: [memberId], references: [id])
+
+  @@unique([clubId, memberId]) // one auto-debit per member per club
+  @@unique([gateway, gatewaySubscriptionId])
+  @@index([clubId])
+  @@index([status])
 }
 
 model AdminUser {
