@@ -2,9 +2,10 @@ import twilio from 'twilio';
 import { prisma } from '@/lib/db';
 import type { Prisma } from '@prisma/client';
 import { sendWhatsAppMessage, sendWhatsAppBulkReminders } from '@/lib/whatsapp';
+import { sendEmailReminder } from '@/lib/email';
 
 export type SmsMessageStatus = 'SENT' | 'FAILED' | 'SKIPPED';
-export type MessageChannel = 'sms' | 'whatsapp';
+export type MessageChannel = 'sms' | 'whatsapp' | 'email';
 
 export interface BulkResult {
   sent: number;
@@ -44,18 +45,24 @@ async function getSiteConfig(
 
 /**
  * Detecta el canal de mensajería configurado para una institución.
- * Prioridad: WhatsApp > SMS (si ambos están configurados, usa WhatsApp)
+ * Prioridad: WhatsApp > Email > SMS (si hay varios configurados, usa el de mayor prioridad)
  */
 export async function getConfiguredChannel(clubId: string): Promise<MessageChannel> {
-  const [whatsappPhoneId, whatsappToken, twilioSid] = await Promise.all([
+  const [whatsappPhoneId, whatsappToken, resendApiKey, twilioSid] = await Promise.all([
     getSiteConfig(prisma, clubId, 'whatsapp_phone_number_id'),
     getSiteConfig(prisma, clubId, 'whatsapp_access_token'),
+    getSiteConfig(prisma, clubId, 'resend_api_key'),
     getSiteConfig(prisma, clubId, 'twilio_account_sid'),
   ]);
 
   // Si WhatsApp está configurado, usarlo (es gratis y más efectivo)
   if (whatsappPhoneId && whatsappToken) {
     return 'whatsapp';
+  }
+
+  // Si Resend está configurado, usar email
+  if (resendApiKey) {
+    return 'email';
   }
 
   // Si Twilio está configurado, usar SMS
@@ -189,6 +196,16 @@ async function sendReminder(memberId: string): Promise<BulkResult> {
 
     const { clubId } = member;
 
+    // Si el canal configurado es email, delegar al módulo de email
+    const channel = await getConfiguredChannel(clubId);
+    if (channel === 'email') {
+      const emailResult = await sendEmailReminder(memberId);
+      result.sent += emailResult.sent;
+      result.failed += emailResult.failed;
+      result.skipped += emailResult.skipped;
+      return result;
+    }
+
     if (!member.phone || member.phone.trim() === '') {
       await logAttempt(clubId, memberId, 'payment_reminder', 'FAILED', '', undefined, 'Socio sin teléfono');
       result.skipped += 1;
@@ -221,7 +238,7 @@ async function sendReminder(memberId: string): Promise<BulkResult> {
     ].join('\n');
 
     // Usar el canal configurado (WhatsApp o SMS)
-    const { externalId, channel } = await sendMessage(clubId, member.phone, messageBody);
+    const { externalId } = await sendMessage(clubId, member.phone, messageBody);
 
     await logAttempt(
       clubId,

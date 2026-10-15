@@ -36,6 +36,8 @@ const CONFIG_KEYS = [
   'twilio_account_sid',
   'twilio_auth_token',
   'twilio_phone_number',
+  'resend_api_key',
+  'resend_from_email',
 ];
 
 function serializeConfig(config: {
@@ -222,6 +224,8 @@ function getConfigDescription(key: string): string {
     twilio_account_sid: 'Account SID de Twilio',
     twilio_auth_token: 'Auth Token de Twilio',
     twilio_phone_number: 'Número de teléfono de Twilio (formato +1...)',
+    resend_api_key: 'API Key de Resend para envío de emails',
+    resend_from_email: 'Email remitente (ej: Cuotas <cuotas@tudominio.com>)',
   };
   return descriptions[key] ?? '';
 }
