@@ -29,6 +29,11 @@ const problemCards = [
     description:
       'Otras no te dejan empezar de a poco: desde el primer socio ya hay un mínimo fijo mensual. Para un club de barrio con 30 o 40 socios, eso puede ser una parte grande de lo que el club recauda por mes.',
   },
+  {
+    title: 'Un link de pago no alcanza',
+    description:
+      'Mandar el aviso y esperar no es un sistema de cobro. La mayoría de los socios no paga solo con el empujón del WhatsApp: hay que perseguir, recordar, insistir — y la morosidad se come el presupuesto del club.',
+  },
 ];
 
 const steps = [
@@ -44,13 +49,19 @@ const steps = [
   },
   {
     icon: Wallet,
-    title: 'Cobrá como vos quieras',
+    title: 'Activá el débito automático y cobrá solo',
     description:
-      'Enviá links de pago por WhatsApp, aceptá Mercado Pago o tarjeta, y registrá a mano los cobros en efectivo. Todo queda en un solo lugar.',
+      'El socio autoriza una vez y la cuota se cobra sola todos los meses. Para el resto, links por WhatsApp, Mercado Pago, tarjeta y efectivo cargado a mano — todo en un solo lugar.',
   },
 ];
 
 const features = [
+  {
+    icon: CreditCard,
+    title: 'Débito automático: la cuota se cobra sola',
+    description:
+      'El socio autoriza una vez con Mercado Pago o Stripe y la cuota se cobra sola cada mes. Sin perseguir a nadie, sin depender de que alguien abra el link. Lo activás o desactivás desde el panel.',
+  },
   {
     icon: Percent,
     title: 'Precio publicado, 0% sobre lo que recaudás',
@@ -68,11 +79,6 @@ const features = [
     title: 'Recordatorios por WhatsApp y email',
     description:
       'Avisá a tus socios las cuotas pendientes por WhatsApp y email, con plantillas que se personalizan solas.',
-  },
-  {
-    icon: CreditCard,
-    title: 'Débito automático con Mercado Pago y Stripe',
-    description: 'El socio autoriza una vez y la cuota se cobra sola todos los meses.',
   },
   {
     icon: Receipt,
@@ -117,6 +123,11 @@ const plans = [
 
 const faqs = [
   {
+    question: '¿Cómo funciona el débito automático?',
+    answer:
+      'El socio autoriza una vez — con Mercado Pago o tarjeta — y la cuota se cobra sola todos los meses, sin que tenga que hacer nada. Vos lo ves y lo controlás desde el panel, y se puede desactivar cuando quieras.',
+  },
+  {
     question: '¿Hay comisión sobre lo que recaudo?',
     answer:
       'No. Cero porcentaje. Pagás el abono mensual publicado y nada más. Las comisiones de Mercado Pago o Stripe por procesar pagos las cobra el medio de pago, no nosotros, y siempre las ves en tu panel.',
@@ -157,7 +168,8 @@ export default function LandingPage() {
           Cobrá tus cuotas sin comisiones ni letra chica.
         </h1>
         <p className="max-w-xl text-muted-foreground leading-relaxed mb-8 text-lg">
-          Un precio publicado. Sin porcentaje sobre lo que recaudás. Gratis hasta 50 socios.
+          Débito automático incluido. Un precio publicado, sin porcentaje sobre lo que recaudás.
+          Gratis hasta 50 socios.
         </p>
         <div className="flex flex-col sm:flex-row gap-4">
           <Link
@@ -331,10 +343,12 @@ export default function LandingPage() {
         {/* Final CTA */}
         <section className="py-20 px-6 border-t border-border bg-muted/30 text-center">
           <div className="max-w-2xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Empezá gratis. El precio ya lo conocés.</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
+              Empezá gratis. Que la cuota se cobre sola.
+            </h2>
             <p className="text-muted-foreground leading-relaxed mb-8">
-              Si tu club tiene hasta 50 socios, no pagás nada. Y si crece, el siguiente paso está
-              publicado — sin sorpresas ni porcentajes.
+              Si tu club tiene hasta 50 socios, no pagás nada. Activá el débito automático y dejá
+              de perseguir cobros — el precio siguiente está publicado, sin sorpresas.
             </p>
             <Link
               href="/registro"
