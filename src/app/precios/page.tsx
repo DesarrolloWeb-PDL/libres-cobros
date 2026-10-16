@@ -127,7 +127,8 @@ export default function PricingPage() {
         <Link href="/">
           <Logo size={100} showScroll={false} />
         </Link>
-        <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-4 mt-6">
+        <p className="text-2xl font-bold tracking-tight mb-2 mt-4">Libres Cobros</p>
+        <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-4">
           Precios
         </p>
         <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4 max-w-2xl">

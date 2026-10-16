@@ -161,7 +161,10 @@ export default function LandingPage() {
       <header className="relative flex flex-col items-center justify-center min-h-[72vh] px-6 pt-[calc(env(safe-area-inset-top)_+_4rem)] text-center">
         {/* TODO(launch): replace logo-only hero visual with a real product screenshot (admin panel with cuotas) */}
         <Logo size={120} showScroll={false} />
-        <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-4 mt-6">
+        <p className="text-2xl sm:text-3xl font-bold tracking-tight mb-4 mt-4">
+          Libres Cobros
+        </p>
+        <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-4">
           Para clubes e instituciones
         </p>
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-4 max-w-3xl">
