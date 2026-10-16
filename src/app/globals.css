@@ -97,8 +97,8 @@
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
   --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-heading: var(--font-heading);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -108,36 +108,38 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* Violet-tinted neutrals (not pure greys) so every surface belongs to the
+   brand family. Brand violet #7c3aed stays the 600 step of the ramp. */
 :root {
-  --background: #f8f9fb;
-  --foreground: #111827;
+  --background: #faf9fd;
+  --foreground: #17141f;
   --accent: #7c3aed;
   --accent-hover: #6d28d9;
-  --muted: #6b7280;
-  --muted-foreground: #68707e;
-  --border: #e5e7eb;
+  --muted: #66627a;
+  --muted-foreground: #635f72;
+  --border: #e9e5f0;
   --card: #ffffff;
-  --card-foreground: #111827;
+  --card-foreground: #17141f;
   --primary: #7c3aed;
   --primary-foreground: #ffffff;
-  --secondary: #f3f4f6;
-  --secondary-foreground: #111827;
+  --secondary: #f1eef7;
+  --secondary-foreground: #17141f;
   --destructive: #dc2626;
   --ring: #7c3aed;
-  --input: #8b93a1;
+  --input: #8b869c;
   --chart-1: #7c3aed;
   --chart-2: #a78bfa;
   --chart-3: #c4b5fd;
   --chart-4: #5b21b6;
   --chart-5: #4c1d95;
   --radius: 0.625rem;
-  --sidebar: #fafafa;
-  --sidebar-foreground: #111827;
+  --sidebar: #f7f5fb;
+  --sidebar-foreground: #17141f;
   --sidebar-primary: #7c3aed;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f3f4f6;
-  --sidebar-accent-foreground: #111827;
-  --sidebar-border: #e5e7eb;
+  --sidebar-accent: #f1eef7;
+  --sidebar-accent-foreground: #17141f;
+  --sidebar-border: #e9e5f0;
   --sidebar-ring: #7c3aed;
 }
 
@@ -160,22 +162,22 @@
 }
 
 .dark {
-  --background: #0a0a0a;
-  --foreground: #e5e7eb;
+  --background: #0c0a12;
+  --foreground: #edeaf2;
   --accent: #a78bfa;
   --accent-hover: #c4b5fd;
-  --muted: #9ca3af;
-  --muted-foreground: #9ca3af;
-  --border: #262626;
-  --card: #141414;
-  --card-foreground: #e5e7eb;
+  --muted: #9d97ad;
+  --muted-foreground: #9d97ad;
+  --border: #2c2738;
+  --card: #15121d;
+  --card-foreground: #edeaf2;
   --primary: #a78bfa;
-  --primary-foreground: #0a0a0a;
-  --secondary: #262626;
-  --secondary-foreground: #e5e7eb;
+  --primary-foreground: #0c0a12;
+  --secondary: #211c2d;
+  --secondary-foreground: #edeaf2;
   --destructive: #ef4444;
   --ring: #a78bfa;
-  --input: #71717a;
+  --input: #7c7690;
   --chart-1: #a78bfa;
   --chart-2: #7c3aed;
   --chart-3: #5b21b6;

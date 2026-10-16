@@ -127,11 +127,11 @@ export default function PricingPage() {
         <Link href="/">
           <Logo size={100} showScroll={false} />
         </Link>
-        <p className="text-2xl font-bold tracking-tight mb-2 mt-4">Libres Cobros</p>
+        <p className="text-3xl sm:text-4xl font-heading font-extrabold tracking-tight mb-2 mt-4">Libres Cobros</p>
         <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-4">
           Precios
         </p>
-        <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4 max-w-2xl">
+        <h1 className="text-4xl sm:text-5xl font-heading font-extrabold tracking-tight mb-4 max-w-2xl">
           Precios publicados. Sin sorpresas.
         </h1>
         <p className="max-w-xl text-muted-foreground leading-relaxed mb-6 text-lg">
@@ -161,9 +161,9 @@ export default function PricingPage() {
                     plan.highlight ? 'border-accent ring-1 ring-accent' : 'border-border'
                   }`}
                 >
-                  <h2 className="text-lg font-semibold">{plan.name}</h2>
+                  <h2 className="text-lg font-heading font-bold">{plan.name}</h2>
                   <p className="text-sm text-muted-foreground mb-4">{plan.audience}</p>
-                  <p className="text-3xl font-bold mb-1">{plan.price}</p>
+                  <p className="text-3xl font-heading font-extrabold mb-1">{plan.price}</p>
                   <p className="text-sm text-muted-foreground mb-6">{plan.period}</p>
                   <ul className="space-y-2 mb-8">
                     {plan.features.map((feature) => (
@@ -203,12 +203,12 @@ export default function PricingPage() {
               <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-3">
                 Compromisos
               </p>
-              <h2 className="text-3xl sm:text-4xl font-bold">Cómo cobramos, en claro</h2>
+              <h2 className="text-3xl sm:text-4xl font-heading font-extrabold tracking-tight">Cómo cobramos, en claro</h2>
             </div>
             <div className="grid gap-6 sm:grid-cols-2">
               {commitments.map((item) => (
                 <div key={item.title} className="p-6 rounded-xl border border-border bg-card">
-                  <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
+                  <h3 className="text-lg font-heading font-bold mb-2">{item.title}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
                 </div>
               ))}
@@ -221,7 +221,7 @@ export default function PricingPage() {
           <div className="max-w-3xl mx-auto">
             <div className="text-center mb-12">
               <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-3">FAQ</p>
-              <h2 className="text-3xl sm:text-4xl font-bold">Preguntas sobre el precio</h2>
+              <h2 className="text-3xl sm:text-4xl font-heading font-extrabold tracking-tight">Preguntas sobre el precio</h2>
             </div>
             <div className="space-y-3">
               {faqs.map((faq) => (
@@ -248,7 +248,7 @@ export default function PricingPage() {
         {/* Final CTA */}
         <section className="py-20 px-6 border-t border-border bg-muted/30 text-center">
           <div className="max-w-2xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
+            <h2 className="text-3xl sm:text-4xl font-heading font-extrabold tracking-tight mb-4">
               Si tu club tiene hasta 50 socios, hoy sale gratis.
             </h2>
             <p className="text-muted-foreground leading-relaxed mb-8">

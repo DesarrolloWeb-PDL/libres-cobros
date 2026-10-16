@@ -105,7 +105,7 @@ export default function RegisterPage() {
             <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-3">
               Cómo funciona
             </p>
-            <h2 className="text-3xl sm:text-4xl font-bold">Empezar es simple</h2>
+            <h2 className="text-3xl sm:text-4xl font-heading font-extrabold tracking-tight">Empezar es simple</h2>
           </div>
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {steps.map((step, index) => {
@@ -120,7 +120,7 @@ export default function RegisterPage() {
                       {String(index + 1).padStart(2, '0')}
                     </span>
                   </div>
-                  <h3 className="text-lg font-semibold mb-2">{step.title}</h3>
+                  <h3 className="text-lg font-heading font-bold mb-2">{step.title}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     {step.description}
                   </p>
@@ -138,7 +138,7 @@ export default function RegisterPage() {
             <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-3">
               Beneficios
             </p>
-            <h2 className="text-3xl sm:text-4xl font-bold">Todo para cobrar en orden</h2>
+            <h2 className="text-3xl sm:text-4xl font-heading font-extrabold tracking-tight">Todo para cobrar en orden</h2>
           </div>
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {benefits.map((benefit) => {
@@ -151,7 +151,7 @@ export default function RegisterPage() {
                   <div className="flex size-12 items-center justify-center rounded-lg bg-accent/10 mb-4">
                     <Icon className="size-6 text-accent" />
                   </div>
-                  <h3 className="text-lg font-semibold mb-2">{benefit.title}</h3>
+                  <h3 className="text-lg font-heading font-bold mb-2">{benefit.title}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     {benefit.description}
                   </p>
@@ -168,7 +168,7 @@ export default function RegisterPage() {
           <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-3">
             Planes y costos
           </p>
-          <h2 className="text-3xl sm:text-4xl font-bold mb-6">
+          <h2 className="text-3xl sm:text-4xl font-heading font-extrabold tracking-tight mb-6">
             Precio publicado, sin porcentaje sobre lo que recaudás
           </h2>
           <div className="space-y-4 text-muted-foreground leading-relaxed text-left sm:text-center">
@@ -199,7 +199,7 @@ export default function RegisterPage() {
             <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-3">
               Registro
             </p>
-            <h2 className="text-2xl sm:text-3xl font-bold mb-2">Creá tu cuenta</h2>
+            <h2 className="text-2xl sm:text-3xl font-heading font-extrabold tracking-tight mb-2">Creá tu cuenta</h2>
             <p className="text-sm text-muted-foreground">
               Tu registro queda pendiente de aprobación por el equipo de Libres Cobros.
             </p>

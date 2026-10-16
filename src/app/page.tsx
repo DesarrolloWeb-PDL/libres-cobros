@@ -160,17 +160,17 @@ export default function LandingPage() {
       {/* Hero */}
       <header className="relative flex flex-col items-center justify-center min-h-[72vh] px-6 pt-[calc(env(safe-area-inset-top)_+_4rem)] text-center">
         {/* TODO(launch): replace logo-only hero visual with a real product screenshot (admin panel with cuotas) */}
-        <Logo size={120} showScroll={false} />
-        <p className="text-2xl sm:text-3xl font-bold tracking-tight mb-4 mt-4">
+        <Logo size={110} showScroll={false} />
+        <h1 className="text-5xl sm:text-6xl md:text-7xl font-heading font-extrabold tracking-tight mb-4 mt-5">
           Libres Cobros
-        </p>
-        <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-4">
+        </h1>
+        <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-5">
           Para clubes e instituciones
         </p>
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-4 max-w-3xl">
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-heading font-semibold tracking-tight mb-6 max-w-2xl text-muted-foreground">
           Cobrá tus cuotas sin comisiones ni letra chica.
-        </h1>
-        <p className="max-w-xl text-muted-foreground leading-relaxed mb-8 text-lg">
+        </h2>
+        <p className="max-w-xl text-muted-foreground leading-relaxed mb-8">
           Débito automático incluido. Un precio publicado, sin porcentaje sobre lo que recaudás.
           Gratis hasta 50 socios.
         </p>
@@ -200,14 +200,14 @@ export default function LandingPage() {
               <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-3">
                 El problema
               </p>
-              <h2 className="text-3xl sm:text-4xl font-bold">
+              <h2 className="text-3xl sm:text-4xl font-heading font-extrabold tracking-tight">
                 Cobrar la cuota no debería costar un porcentaje de lo que el club recauda.
               </h2>
             </div>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {problemCards.map((card) => (
                 <div key={card.title} className="p-6 rounded-xl border border-border bg-card">
-                  <h3 className="text-lg font-semibold mb-2">{card.title}</h3>
+                  <h3 className="text-lg font-heading font-bold mb-2">{card.title}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">{card.description}</p>
                 </div>
               ))}
@@ -222,7 +222,7 @@ export default function LandingPage() {
               <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-3">
                 Cómo funciona
               </p>
-              <h2 className="text-3xl sm:text-4xl font-bold">Tres pasos y empezás a cobrar</h2>
+              <h2 className="text-3xl sm:text-4xl font-heading font-extrabold tracking-tight">Tres pasos y empezás a cobrar</h2>
             </div>
             <div className="grid gap-8 sm:grid-cols-3">
               {steps.map((step, index) => {
@@ -237,7 +237,7 @@ export default function LandingPage() {
                         {String(index + 1).padStart(2, '0')}
                       </span>
                     </div>
-                    <h3 className="text-lg font-semibold mb-2">{step.title}</h3>
+                    <h3 className="text-lg font-heading font-bold mb-2">{step.title}</h3>
                     <p className="text-sm text-muted-foreground leading-relaxed">{step.description}</p>
                   </div>
                 );
@@ -253,7 +253,7 @@ export default function LandingPage() {
               <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-3">
                 Funciones
               </p>
-              <h2 className="text-3xl sm:text-4xl font-bold">Lo esencial, sin letra chica</h2>
+              <h2 className="text-3xl sm:text-4xl font-heading font-extrabold tracking-tight">Lo esencial, sin letra chica</h2>
             </div>
             <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
               {features.map((feature) => {
@@ -263,7 +263,7 @@ export default function LandingPage() {
                     <div className="flex size-12 items-center justify-center rounded-lg bg-accent/10 mb-4">
                       <Icon className="size-6 text-accent" />
                     </div>
-                    <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
+                    <h3 className="text-lg font-heading font-bold mb-2">{feature.title}</h3>
                     <p className="text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
                   </div>
                 );
@@ -280,7 +280,7 @@ export default function LandingPage() {
               <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-3">
                 Precios
               </p>
-              <h2 className="text-3xl sm:text-4xl font-bold">El precio que ves es el precio que pagás</h2>
+              <h2 className="text-3xl sm:text-4xl font-heading font-extrabold tracking-tight">El precio que ves es el precio que pagás</h2>
             </div>
             <div className="grid gap-6 sm:grid-cols-3">
               {plans.map((plan) => (
@@ -322,7 +322,7 @@ export default function LandingPage() {
           <div className="max-w-3xl mx-auto">
             <div className="text-center mb-12">
               <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-3">FAQ</p>
-              <h2 className="text-3xl sm:text-4xl font-bold">Preguntas que nos hacen siempre</h2>
+              <h2 className="text-3xl sm:text-4xl font-heading font-extrabold tracking-tight">Preguntas que nos hacen siempre</h2>
             </div>
             <div className="space-y-3">
               {faqs.map((faq) => (
@@ -346,7 +346,7 @@ export default function LandingPage() {
         {/* Final CTA */}
         <section className="py-20 px-6 border-t border-border bg-muted/30 text-center">
           <div className="max-w-2xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
+            <h2 className="text-3xl sm:text-4xl font-heading font-extrabold tracking-tight mb-4">
               Empezá gratis. Que la cuota se cobre sola.
             </h2>
             <p className="text-muted-foreground leading-relaxed mb-8">

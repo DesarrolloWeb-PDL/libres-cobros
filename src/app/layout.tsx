@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Manrope } from "next/font/google";
+import { Inter, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { Providers } from "@/components/providers";
@@ -7,9 +7,24 @@ import { PwaRegistration } from "@/components/PwaRegistration";
 import { SuperAdminThemeInjector } from "@/components/SuperAdminThemeInjector";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
-const manrope = Manrope({
+/* Type system: Inter (body/UI — most-used Google Font), Plus Jakarta Sans
+   (headings — display weight and personality), JetBrains Mono (kickers/
+   labels). Poppins is deliberately excluded (competitor trade dress). */
+const inter = Inter({
   variable: "--font-sans",
   subsets: ["latin"],
+});
+
+const jakarta = Plus_Jakarta_Sans({
+  variable: "--font-heading",
+  subsets: ["latin"],
+  weight: ["600", "700", "800"],
+});
+
+const jetbrains = JetBrains_Mono({
+  variable: "--font-mono",
+  subsets: ["latin"],
+  weight: ["500", "600"],
 });
 
 export const viewport: Viewport = {
@@ -19,7 +34,7 @@ export const viewport: Viewport = {
   // Fallback only — SuperAdminThemeInjector / ThemeToggle keep meta[theme-color] live.
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#7c3aed" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+    { media: "(prefers-color-scheme: dark)", color: "#0c0a12" },
   ],
 };
 
@@ -48,7 +63,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body className={`${manrope.variable} min-h-full flex flex-col font-sans antialiased`}>
+      <body className={`${inter.variable} ${jakarta.variable} ${jetbrains.variable} min-h-full flex flex-col font-sans antialiased`}>
         <Providers>{children}</Providers>
         <SuperAdminThemeInjector />
         <ThemeToggle />
