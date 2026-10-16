@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Manrope } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { PwaRegistration } from "@/components/PwaRegistration";
@@ -25,7 +26,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "Libres Cobros",
   description:
-    "Sistema de gestión de cobro",
+    "Cobrá tus cuotas sin comisiones ni letra chica: precio publicado, sin porcentaje sobre lo que recaudás y gratis hasta 50 socios.",
   manifest: "/manifest.json",
   icons: {
     icon: [
@@ -52,6 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SuperAdminThemeInjector />
         <ThemeToggle />
         <PwaRegistration />
+        <Analytics />
       </body>
     </html>
   );

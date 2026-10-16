@@ -86,8 +86,8 @@ export default function RegisterPage() {
           Registrá tu club
         </h1>
         <p className="max-w-xl text-muted-foreground leading-relaxed mb-6">
-          Empezá a gestionar socios, cuotas y cobros en minutos. Sin instalaciones, sin costos
-          fijos: cobrá online y controlá todo desde un solo lugar.
+          Registrá tu club hoy. Gratis hasta 50 socios, y el precio completo está publicado — sin
+          porcentaje de lo que recaudás.
         </p>
         <a
           href="#registro"
@@ -169,21 +169,24 @@ export default function RegisterPage() {
             Planes y costos
           </p>
           <h2 className="text-3xl sm:text-4xl font-bold mb-6">
-            Sin costos fijos, sin sorpresas
+            Precio publicado, sin porcentaje sobre lo que recaudás
           </h2>
           <div className="space-y-4 text-muted-foreground leading-relaxed text-left sm:text-center">
             <p>
-              Cada institución configura y administra sus propias cuotas de socios dentro del
-              panel: vos decidís los importes y las categorías.
+              Hasta 50 socios, <strong className="text-foreground">gratis para siempre</strong>.
+              Sin tarjeta y sin prueba que vence: el plan de club de barrio se queda.
             </p>
             <p>
-              Libres Cobros cobra una <strong className="text-foreground">comisión por cada pago
-              procesado</strong>. Cada institución define el tipo de comisión (porcentual o fija)
-              desde su panel de administración.
+              Por encima de 50 socios el precio está publicado en{' '}
+              <Link href="/precios" className="text-accent hover:underline">
+                /precios
+              </Link>
+              : un abono fijo mensual por tramo de socios, sin sorpresas.
             </p>
             <p className="flex items-center justify-center gap-2 sm:justify-center">
               <Percent className="size-4 text-accent shrink-0" />
-              Sin cuotas mensuales de plataforma y sin costos ocultos: solo pagás cuando cobrás.
+              Sin porcentaje sobre lo que recaudás: ni del pago online, ni del efectivo que
+              cargás a mano.
             </p>
           </div>
         </div>

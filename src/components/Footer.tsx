@@ -32,6 +32,7 @@ const sections = [
   {
     title: 'Para clubes',
     links: [
+      { label: 'Precios', href: '/precios' },
       { label: 'Registrar club', href: '/registro' },
       { label: 'Iniciar Sesión', href: '/login' },
       { label: 'Panel de administración', href: '/admin' },
@@ -42,6 +43,13 @@ const sections = [
     links: [
       { label: 'Portal de socios', href: '/pagos' },
       { label: 'Pagar cuota', href: '/pagos' },
+    ],
+  },
+  {
+    title: 'Legal y ayuda',
+    links: [
+      { label: 'Soporte', href: '/soporte' },
+      { label: 'Política de Privacidad', href: '/privacidad' },
     ],
   },
 ];

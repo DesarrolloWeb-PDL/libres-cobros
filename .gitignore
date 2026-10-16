@@ -46,3 +46,6 @@ next-env.d.ts
 
 # SDD artifacts
 .atl/
+
+# Internal competitive research and launch planning (never publish)
+replica/
