@@ -141,7 +141,7 @@ export default function PricingPage() {
         </p>
         <Link
           href="/registro"
-          className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-lg bg-accent text-white font-medium hover:bg-accent/90 transition-colors"
+          className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-lg bg-accent text-white font-medium hover:bg-accent/90 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         >
           Registrar mi club
           <ArrowRight className="size-4" />
@@ -175,7 +175,7 @@ export default function PricingPage() {
                   </ul>
                   <Link
                     href="/registro"
-                    className={`mt-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors ${
+                    className={`mt-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
                       plan.highlight
                         ? 'bg-accent text-white hover:bg-accent/90'
                         : 'border border-border hover:bg-muted'
@@ -229,7 +229,7 @@ export default function PricingPage() {
                   key={faq.question}
                   className="group rounded-xl border border-border bg-card px-6 py-4"
                 >
-                  <summary className="cursor-pointer font-semibold list-none flex items-center justify-between gap-4">
+                  <summary className="cursor-pointer font-semibold list-none flex items-center justify-between gap-4 rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
                     {faq.question}
                     <span aria-hidden className="text-accent shrink-0 group-open:hidden">
                       +
@@ -257,7 +257,7 @@ export default function PricingPage() {
             </p>
             <Link
               href="/registro"
-              className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-lg bg-accent text-white font-medium hover:bg-accent/90 transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-lg bg-accent text-white font-medium hover:bg-accent/90 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
               Registrar mi club
               <ArrowRight className="size-4" />

@@ -177,14 +177,14 @@ export default function LandingPage() {
         <div className="flex flex-col sm:flex-row gap-4">
           <Link
             href="/registro"
-            className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-lg bg-accent text-white font-medium hover:bg-accent/90 transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-lg bg-accent text-white font-medium hover:bg-accent/90 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
             Registrar mi club
             <ArrowRight className="size-4" />
           </Link>
           <Link
             href="/login"
-            className="inline-flex items-center justify-center px-8 py-3 rounded-lg border border-border font-medium hover:bg-muted transition-colors"
+            className="inline-flex items-center justify-center px-8 py-3 rounded-lg border border-border font-medium hover:bg-muted transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
             Ingresar
           </Link>
@@ -204,7 +204,7 @@ export default function LandingPage() {
                 Cobrar la cuota no debería costar un porcentaje de lo que el club recauda.
               </h2>
             </div>
-            <div className="grid gap-6 sm:grid-cols-2">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {problemCards.map((card) => (
                 <div key={card.title} className="p-6 rounded-xl border border-border bg-card">
                   <h3 className="text-lg font-semibold mb-2">{card.title}</h3>
@@ -296,7 +296,7 @@ export default function LandingPage() {
                   <p className="text-sm text-muted-foreground mb-6">{plan.period}</p>
                   <Link
                     href="/registro"
-                    className={`mt-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors ${
+                    className={`mt-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
                       plan.highlight
                         ? 'bg-accent text-white hover:bg-accent/90'
                         : 'border border-border hover:bg-muted'
@@ -327,7 +327,7 @@ export default function LandingPage() {
             <div className="space-y-3">
               {faqs.map((faq) => (
                 <details key={faq.question} className="group rounded-xl border border-border bg-card px-6 py-4">
-                  <summary className="cursor-pointer font-semibold list-none flex items-center justify-between gap-4">
+                  <summary className="cursor-pointer font-semibold list-none flex items-center justify-between gap-4 rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
                     {faq.question}
                     <span aria-hidden className="text-accent shrink-0 group-open:hidden">
                       +
@@ -355,7 +355,7 @@ export default function LandingPage() {
             </p>
             <Link
               href="/registro"
-              className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-lg bg-accent text-white font-medium hover:bg-accent/90 transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-lg bg-accent text-white font-medium hover:bg-accent/90 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
               Registrar mi club
               <ArrowRight className="size-4" />
