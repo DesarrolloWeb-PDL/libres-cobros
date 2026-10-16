@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { MemberForm, type MemberFormData } from '@/components/admin/MemberForm';
+import { AdminAutoDebitSection } from '@/components/admin/AdminAutoDebitSection';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/toast';
 
@@ -85,6 +86,8 @@ export function EditMemberClient({ member }: EditMemberClientProps) {
         isLoading={isLoading}
         submitLabel="Guardar cambios"
       />
+
+      <AdminAutoDebitSection memberId={member.id} memberEmail={member.email} />
     </>
   );
 }
