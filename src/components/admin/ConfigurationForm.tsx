@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Save, Building2, MessageSquare, Percent, Palette, Loader2, CreditCard } from 'lucide-react';
+import { Save, Building2, MessageSquare, Percent, Palette, Loader2, CreditCard, ReceiptText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -41,6 +41,9 @@ const siteConfigLabels: Record<string, string> = {
   twilio_phone_number: 'Número de teléfono',
   resend_api_key: 'API Key',
   resend_from_email: 'Email remitente',
+  arca_enabled: 'Emitir comprobantes electrónicos (ARCA)',
+  arca_cuit: 'CUIT de la institución',
+  arca_punto_vta: 'Punto de venta',
 };
 
 const siteConfigPlaceholders: Record<string, string> = {
@@ -55,6 +58,8 @@ const siteConfigPlaceholders: Record<string, string> = {
   twilio_phone_number: 'Ej: +541112345678',
   resend_api_key: 'Ej: re_xxxxxxxx',
   resend_from_email: 'Ej: Cuotas <cuotas@tudominio.com>',
+  arca_cuit: 'Ej: 30712345678',
+  arca_punto_vta: 'Ej: 1',
 };
 
 const COLOR_PRESETS = [
@@ -197,6 +202,10 @@ export function ConfigurationForm({
                   <CreditCard className="size-4 mr-2" />
                   Medios de pago
                 </TabsTrigger>
+                <TabsTrigger value="arca">
+                  <ReceiptText className="size-4 mr-2" />
+                  Facturación ARCA
+                </TabsTrigger>
                 <TabsTrigger value="messaging">
                   <MessageSquare className="size-4 mr-2" />
                   Mensajería
@@ -320,6 +329,60 @@ export function ConfigurationForm({
                       })}
                     </div>
                   </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="arca" className="mt-5">
+                <div className="space-y-4">
+                  <div className="mb-4">
+                    <h3 className="text-sm font-medium">Facturación electrónica ARCA</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Al habilitar esta opción, cada pago confirmado genera automáticamente un
+                      Recibo C (comprobante tipo 15 para monotributo) ante ARCA (ex AFIP). La
+                      institución debe autorizar previamente a nuestra empresa en ARCA
+                      (Mis Representaciones) con su CUIT, y figurar inscripta como monotributista
+                      habilitada para comprobantes electrónicos.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      id="site-arca_enabled"
+                      type="checkbox"
+                      checked={getConfig('arca_enabled')?.value === 'true'}
+                      onChange={(e) => updateSiteConfig('arca_enabled', e.target.checked ? 'true' : 'false')}
+                      className="size-4 rounded border-gray-300"
+                    />
+                    <Label htmlFor="site-arca_enabled" className="text-sm font-medium">
+                      {siteConfigLabels.arca_enabled}
+                    </Label>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {['arca_cuit', 'arca_punto_vta'].map((key) => {
+                      const config = getConfig(key);
+                      if (!config) return null;
+                      return (
+                        <div key={key} className="space-y-2">
+                          <Label htmlFor={`site-${key}`} className="text-sm font-medium">
+                            {siteConfigLabels[key] ?? key}
+                          </Label>
+                          <Input
+                            id={`site-${key}`}
+                            type="text"
+                            inputMode="numeric"
+                            maxLength={key === 'arca_cuit' ? 11 : undefined}
+                            placeholder={siteConfigPlaceholders[key] ?? ''}
+                            value={config.value}
+                            onChange={(e) => updateSiteConfig(key, e.target.value)}
+                            className="h-10"
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    La emisión usa el certificado digital de nuestra empresa; la institución solo
+                    necesita autorizarnos en ARCA y completar su CUIT y punto de venta acá.
+                  </p>
                 </div>
               </TabsContent>
 

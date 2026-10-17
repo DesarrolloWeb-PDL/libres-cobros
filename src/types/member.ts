@@ -2,9 +2,16 @@ import { z } from 'zod';
 
 export const MemberCategorySchema = z.enum(['ADULT', 'FAMILY', 'MINOR']);
 export const MemberStatusSchema = z.enum(['ACTIVE', 'INACTIVE']);
+export const MemberIvaCondicionSchema = z.enum(['CF', 'MONO', 'RI', 'EXENTO']);
 
 export const MemberFormSchema = z.object({
   dni: z.string().min(1, 'El DNI es obligatorio').regex(/^\d+$/, 'El DNI debe ser numérico'),
+  cuit: z
+    .string()
+    .regex(/^\d{11}$/, 'El CUIT debe tener 11 dígitos')
+    .optional()
+    .or(z.literal('')),
+  ivaCondicion: MemberIvaCondicionSchema.default('CF'),
   firstName: z.string().min(1, 'El nombre es obligatorio'),
   lastName: z.string().min(1, 'El apellido es obligatorio'),
   email: z.string().email('El email no es válido').optional().or(z.literal('')),
@@ -30,6 +37,8 @@ export type MemberImportRowInput = z.infer<typeof MemberImportRowSchema>;
 export interface MemberListItem {
   id: string;
   dni: string;
+  cuit: string | null;
+  ivaCondicion: string;
   firstName: string;
   lastName: string;
   email: string | null;

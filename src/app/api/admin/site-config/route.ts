@@ -42,6 +42,9 @@ const CONFIG_KEYS = [
   'twilio_phone_number',
   'resend_api_key',
   'resend_from_email',
+  'arca_enabled',
+  'arca_cuit',
+  'arca_punto_vta',
 ];
 
 function serializeConfig(config: {
@@ -234,6 +237,9 @@ function getConfigDescription(key: string): string {
     twilio_phone_number: 'Número de teléfono de Twilio (formato +1...)',
     resend_api_key: 'API Key de Resend para envío de emails',
     resend_from_email: 'Email remitente (ej: Cuotas <cuotas@tudominio.com>)',
+    arca_enabled: 'Emitir comprobantes electrónicos ARCA (Recibo C) ante cada pago confirmado',
+    arca_cuit: 'CUIT de la institución ante ARCA (11 dígitos)',
+    arca_punto_vta: 'Punto de venta ARCA habilitado para la emisión (número entero)',
   };
   return descriptions[key] ?? '';
 }

@@ -45,6 +45,7 @@ model Club {
   adminUsers      AdminUser[]
   invoices        ProviderInvoice[]
   autoDebits      AutoDebit[]
+  comprobantes    Comprobante[]
 }
 
 model ProviderInvoice {
@@ -66,6 +67,8 @@ model Member {
   id        String   @id @default(cuid())
   clubId    String
   dni       String
+  cuit      String?  // Employer CUIT for ARCA receipt emission (optional)
+  ivaCondicion String @default("CF") // CF | MONO | RI | EXENTO (CondicionIvaReceptor)
   firstName String
   lastName  String
   email     String?
@@ -83,6 +86,7 @@ model Member {
   payments  Payment[]
   smsLogs      SmsLog[]
   autoDebits   AutoDebit[]
+  comprobantes Comprobante[]
 
   @@unique([clubId, dni])
   @@unique([clubId, email])
@@ -156,6 +160,7 @@ model Payment {
   fee                     Fee      @relation(fields: [feeId], references: [id])
   member                  Member   @relation(fields: [memberId], references: [id])
   commissions             Commission[]
+  comprobante             Comprobante?
 
   @@index([feeId])
   @@index([memberId])
@@ -261,6 +266,37 @@ model AutoDebit {
   @@unique([gateway, gatewaySubscriptionId])
   @@index([clubId])
   @@index([status])
+}
+
+// ARCA (ex-AFIP) electronic receipt — Phase 1: Recibo C (tipo 15) only.
+// One row per confirmed payment emission attempt. `paymentId` is unique so the
+// row itself is the idempotency lock for the emission.
+model Comprobante {
+  id          String   @id @default(cuid())
+  clubId      String
+  paymentId   String   @unique
+  memberId    String
+  tipo        Int      @default(15)
+  ptoVta      Int
+  nro         Int
+  cae         String   @default("")
+  caeVto      DateTime?
+  total       Float
+  docTipo     Int
+  docNro      Int
+  condicionIvaReceptor Int
+  estado      String   @default("PENDIENTE") // PENDIENTE | AUTORIZADO | ERROR
+  error       String?
+  rawRequest  String?
+  rawResponse String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  club        Club     @relation(fields: [clubId], references: [id])
+  payment     Payment  @relation(fields: [paymentId], references: [id])
+  member      Member   @relation(fields: [memberId], references: [id])
+
+  @@index([clubId])
+  @@index([estado])
 }
 
 model AdminUser {

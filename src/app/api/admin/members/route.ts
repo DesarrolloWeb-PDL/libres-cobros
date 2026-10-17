@@ -7,6 +7,8 @@ import { CreateMemberSchema } from '@/types/member';
 function serializeMember(member: {
   id: string;
   dni: string;
+  cuit: string | null;
+  ivaCondicion: string;
   firstName: string;
   lastName: string;
   email: string | null;
@@ -50,8 +52,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { email, planId, ...data } = parsed.data;
+    const { email, planId, cuit, ...data } = parsed.data;
     const normalizedEmail = email && email.trim() !== '' ? email.trim() : null;
+    const normalizedCuit = cuit && cuit.trim() !== '' ? cuit.trim() : null;
 
     if (planId) {
       const plan = await prisma.plan.findFirst({
@@ -84,6 +87,7 @@ export async function POST(request: NextRequest) {
       data: {
         ...data,
         email: normalizedEmail,
+        cuit: normalizedCuit,
         clubId: ctx.institutionId,
         ...(planId && { planId }),
       },

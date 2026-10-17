@@ -7,6 +7,8 @@ import { UpdateMemberSchema } from '@/types/member';
 function serializeMember(member: {
   id: string;
   dni: string;
+  cuit: string | null;
+  ivaCondicion: string;
   firstName: string;
   lastName: string;
   email: string | null;
@@ -81,7 +83,7 @@ export async function PUT(
       );
     }
 
-    const { email, dni, planId, ...rest } = parsed.data;
+    const { email, dni, planId, cuit, ...rest } = parsed.data;
 
     if (dni && dni !== existing.dni) {
       const duplicateDni = await prisma.member.findUnique({
@@ -117,6 +119,7 @@ export async function PUT(
       data: {
         ...rest,
         ...(dni && { dni }),
+        ...(cuit !== undefined && { cuit: cuit && cuit.trim() !== '' ? cuit.trim() : null }),
         ...(email !== undefined && { email: normalizedEmail }),
         ...(planId !== undefined && { planId: planId ?? null }),
       },

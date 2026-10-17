@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { headers } from 'next/headers';
 import QRCode from 'qrcode';
 import { prisma } from '@/lib/db';
+import { buildArcaQrUrl } from '@/lib/arca';
 import { TicketPDF } from '@/components/member/TicketPDF';
 import { TicketActions } from '@/components/member/TicketActions';
 
@@ -79,6 +80,40 @@ export default async function TicketPage({ params }: TicketPageProps) {
     notFound();
   }
 
+  const comprobante = await prisma.comprobante.findUnique({
+    where: { paymentId: payment.id },
+  });
+
+  // ARCA QR needs the club's fiscal CUIT (the emitter on the receipt).
+  let comprobanteQrDataUrl: string | null = null;
+  if (comprobante && comprobante.estado === 'AUTORIZADO') {
+    const arcaCuitConfig = await prisma.siteConfig.findUnique({
+      where: { clubId_key: { clubId: club.id, key: 'arca_cuit' } },
+    });
+    const arcaCuit = arcaCuitConfig?.value?.trim();
+    if (arcaCuit && comprobante.caeVto) {
+      try {
+        const arcaQrUrl = buildArcaQrUrl({
+          emitterCuit: arcaCuit,
+          tipo: comprobante.tipo,
+          ptoVta: comprobante.ptoVta,
+          nro: comprobante.nro,
+          cae: comprobante.cae,
+          caeVto: comprobante.caeVto.toISOString().slice(0, 10).replace(/-/g, ''),
+          importe: comprobante.total,
+        });
+        comprobanteQrDataUrl = await QRCode.toDataURL(arcaQrUrl, {
+          width: 240,
+          margin: 2,
+          errorCorrectionLevel: 'M',
+        });
+      } catch {
+        // QR is a convenience; the CAE text block is the authoritative data.
+        comprobanteQrDataUrl = null;
+      }
+    }
+  }
+
   const headersList = await headers();
   const host = headersList.get('host') ?? 'localhost';
   const protocol = host.includes('localhost') ? 'http' : 'https';
@@ -118,6 +153,19 @@ export default async function TicketPage({ params }: TicketPageProps) {
           }}
           confirmationUrl={confirmationUrl}
           qrDataUrl={qrDataUrl}
+          comprobante={
+            comprobante && comprobante.estado === 'AUTORIZADO'
+              ? {
+                  tipo: comprobante.tipo,
+                  ptoVta: comprobante.ptoVta,
+                  nro: comprobante.nro,
+                  cae: comprobante.cae,
+                  caeVto: comprobante.caeVto?.toISOString() ?? null,
+                  total: comprobante.total,
+                  qrDataUrl: comprobanteQrDataUrl,
+                }
+              : null
+          }
         />
         <TicketActions />
       </main>

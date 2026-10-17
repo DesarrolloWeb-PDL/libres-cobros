@@ -34,6 +34,16 @@ const dateFormatter = new Intl.DateTimeFormat('es-AR', {
   minute: '2-digit',
 });
 
+export interface TicketComprobante {
+  tipo: number;
+  ptoVta: number;
+  nro: number;
+  cae: string;
+  caeVto: string | null;
+  total: number;
+  qrDataUrl?: string | null;
+}
+
 export interface TicketPDFProps {
   institution: {
     name: string;
@@ -60,6 +70,17 @@ export interface TicketPDFProps {
   };
   confirmationUrl: string;
   qrDataUrl: string;
+  comprobante?: TicketComprobante | null;
+}
+
+function formatComprobanteNumber(ptoVta: number, nro: number): string {
+  return `${String(ptoVta).padStart(4, '0')}-${String(nro).padStart(8, '0')}`;
+}
+
+function formatCaeVto(caeVto: string): string {
+  const match = /^(\d{4})(\d{2})(\d{2})$/.exec(caeVto.slice(0, 10).replace(/-/g, ''));
+  if (!match) return caeVto;
+  return `${match[3]}/${match[2]}/${match[1]}`;
 }
 
 function getMethodLabel(method: string): string {
@@ -78,6 +99,7 @@ export function TicketPDF({
   fee,
   confirmationUrl,
   qrDataUrl,
+  comprobante = null,
 }: TicketPDFProps) {
   const primaryColor = institution.primaryColor ?? '#7c3aed';
   const accentStyle = { '--ticket-accent': primaryColor } as React.CSSProperties;
@@ -122,7 +144,10 @@ export function TicketPDF({
           Comprobante de Pago
         </h2>
         <p className="text-xs font-medium text-muted-foreground">
-          No es documento fiscal · Referencia: <span className="font-mono">{payment.id}</span>
+          {comprobante
+            ? 'Comprobante fiscal electrónico autorizado por ARCA · '
+            : 'No es documento fiscal · '}
+          Referencia: <span className="font-mono">{payment.id}</span>
         </p>
       </section>
 
@@ -193,6 +218,51 @@ export function TicketPDF({
         </div>
       </section>
 
+      {/* ARCA authorized fiscal receipt */}
+      {comprobante && (
+        <section className="mb-6 rounded-xl border-2 border-emerald-300 bg-emerald-50/50 p-5">
+          <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-emerald-700">
+            Comprobante ARCA — Recibo C
+          </h3>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="grid gap-1 text-sm">
+              <div className="flex justify-between gap-6">
+                <span className="text-muted-foreground">Comprobante</span>
+                <span className="font-mono font-medium">
+                  {formatComprobanteNumber(comprobante.ptoVta, comprobante.nro)}
+                </span>
+              </div>
+              <div className="flex justify-between gap-6">
+                <span className="text-muted-foreground">CAE</span>
+                <span className="font-mono font-medium">{comprobante.cae}</span>
+              </div>
+              {comprobante.caeVto && (
+                <div className="flex justify-between gap-6">
+                  <span className="text-muted-foreground">Vencimiento del CAE</span>
+                  <span className="font-medium">{formatCaeVto(comprobante.caeVto)}</span>
+                </div>
+              )}
+              <div className="flex justify-between gap-6">
+                <span className="text-muted-foreground">Total autorizado</span>
+                <span className="font-medium">{currencyFormatter.format(comprobante.total)}</span>
+              </div>
+            </div>
+            {comprobante.qrDataUrl && (
+              <div className="shrink-0 self-center">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={comprobante.qrDataUrl}
+                  alt="Código QR del comprobante ARCA"
+                  width={100}
+                  height={100}
+                  className="size-[100px] rounded-lg border border-emerald-200 bg-white"
+                />
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
       {/* Footer / QR */}
       <footer className="mt-8 flex flex-col items-center gap-4 border-t border-gray-200 pt-6 sm:flex-row sm:justify-between">
         <div className="text-center text-xs text-muted-foreground sm:text-left">
@@ -212,11 +282,18 @@ export function TicketPDF({
       </footer>
 
       {/* Legal disclaimer */}
-      <div className="mt-6 rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3 text-center text-[10px] uppercase leading-relaxed text-muted-foreground">
-        Este documento es un comprobante de pago informativo y no constituye una factura fiscal
-        válida. Para fines impositivos, solicitá el correspondiente comprobante fiscal ante la
-        administración de {institution.name}.
-      </div>
+      {comprobante ? (
+        <div className="mt-6 rounded-lg border border-dashed border-emerald-300 bg-emerald-50 p-3 text-center text-[10px] uppercase leading-relaxed text-emerald-800">
+          Recibo C electrónico autorizado por ARCA. Verificá su validez con el código QR o en
+          serviciosweb.afip.gob.ar. Este ticket es una copia informativa del comprobante fiscal.
+        </div>
+      ) : (
+        <div className="mt-6 rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3 text-center text-[10px] uppercase leading-relaxed text-muted-foreground">
+          Este documento es un comprobante de pago informativo y no constituye una factura fiscal
+          válida. Para fines impositivos, solicitá el correspondiente comprobante fiscal ante la
+          administración de {institution.name}.
+        </div>
+      )}
     </div>
   );
 }

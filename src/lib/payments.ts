@@ -19,7 +19,7 @@ export async function confirmPayment(
   paymentId: string,
   opts: ConfirmPaymentOptions = {}
 ): Promise<ConfirmPaymentResult> {
-  return prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const payment = await tx.payment.findUnique({
       where: { id: paymentId },
       include: { fee: true },
@@ -30,7 +30,7 @@ export async function confirmPayment(
     }
 
     if (payment.status === 'PAID' || payment.fee.status === 'PAID') {
-      return { status: 'already-paid' };
+      return { status: 'already-paid' as const };
     }
 
     const club = await tx.club.findUnique({
@@ -61,9 +61,24 @@ export async function confirmPayment(
     const commission = await createCommission(tx, updatedPayment, club);
 
     return {
-      status: 'paid',
+      status: 'paid' as const,
       paymentId: updatedPayment.id,
       commissionId: commission?.id ?? null,
     };
   });
+
+  // ARCA receipt emission runs AFTER the transaction commits and only for
+  // freshly confirmed payments. Dynamic import + try/catch so deployments
+  // without ARCA env/config never break the payment flow (emitirReciboC
+  // itself never throws; the catch is defense in depth).
+  if (result.status === 'paid') {
+    try {
+      const { emitirReciboC } = await import('@/lib/arca');
+      await emitirReciboC(result.paymentId);
+    } catch (error) {
+      console.error('[arca] receipt emission failed', error);
+    }
+  }
+
+  return result;
 }

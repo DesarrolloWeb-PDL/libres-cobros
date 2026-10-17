@@ -11,6 +11,8 @@ import { toast } from '@/components/ui/toast';
 interface Member {
   id: string;
   dni: string;
+  cuit?: string | null;
+  ivaCondicion?: string | null;
   firstName: string;
   lastName: string;
   email: string | null;
@@ -29,6 +31,8 @@ export function EditMemberClient({ member }: EditMemberClientProps) {
 
   const initialData: MemberFormData = {
     dni: member.dni,
+    cuit: member.cuit ?? '',
+    ivaCondicion: member.ivaCondicion ?? 'CF',
     firstName: member.firstName,
     lastName: member.lastName,
     email: member.email ?? '',

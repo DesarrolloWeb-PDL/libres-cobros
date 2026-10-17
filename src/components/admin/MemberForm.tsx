@@ -11,6 +11,8 @@ import type { PlanListItem } from '@/types/fee';
 
 export interface MemberFormData {
   dni: string;
+  cuit: string;
+  ivaCondicion: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -18,6 +20,13 @@ export interface MemberFormData {
   planId: string;
   notes: string;
 }
+
+const IVA_CONDICION_OPTIONS = [
+  { value: 'CF', label: 'Consumidor Final' },
+  { value: 'MONO', label: 'Monotributo' },
+  { value: 'RI', label: 'Responsable Inscripto' },
+  { value: 'EXENTO', label: 'Exento' },
+];
 
 interface MemberFormProps {
   title: string;
@@ -36,6 +45,8 @@ export function MemberForm({
 }: MemberFormProps) {
   const [formData, setFormData] = useState<MemberFormData>({
     dni: initialData?.dni ?? '',
+    cuit: initialData?.cuit ?? '',
+    ivaCondicion: initialData?.ivaCondicion ?? 'CF',
     firstName: initialData?.firstName ?? '',
     lastName: initialData?.lastName ?? '',
     email: initialData?.email ?? '',
@@ -135,6 +146,36 @@ export function MemberForm({
               />
               {errors.planId && (
                 <p className="text-sm text-destructive">{errors.planId}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="cuit">CUIT (opcional)</Label>
+              <Input
+                id="cuit"
+                value={formData.cuit}
+                onChange={(e) => updateField('cuit', e.target.value)}
+                placeholder="30-12345678-9"
+                inputMode="numeric"
+                maxLength={11}
+                aria-invalid={!!errors.cuit}
+              />
+              {errors.cuit && (
+                <p className="text-sm text-destructive">{errors.cuit}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ivaCondicion">Condición frente al IVA</Label>
+              <StyledSelect
+                value={formData.ivaCondicion}
+                onChange={(value) => updateField('ivaCondicion', value)}
+                options={IVA_CONDICION_OPTIONS}
+              />
+              {errors.ivaCondicion && (
+                <p className="text-sm text-destructive">{errors.ivaCondicion}</p>
               )}
             </div>
           </div>
