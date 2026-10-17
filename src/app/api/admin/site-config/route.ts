@@ -66,16 +66,28 @@ export async function GET(request: NextRequest) {
   try {
     const ctx = await requireInstitution(request);
 
-    // Si no hay institución seleccionada, devolver configs vacías para evitar crash
+    // Platform-level configs (SUPER_ADMIN without an institution selection).
+    // Stored with clubId = null; theme lives on /api/admin/theme instead.
     if (!ctx.institutionId) {
-      const emptyConfigs: SiteConfigListItem[] = CONFIG_KEYS.map((key) => ({
-        id: '',
-        key,
-        value: '',
-        description: getConfigDescription(key),
-        updatedAt: new Date().toISOString(),
-      }));
-      return apiSuccess({ data: emptyConfigs, theme: null });
+      const platformConfigs = await prisma.siteConfig.findMany({
+        where: { clubId: null, key: { in: CONFIG_KEYS } },
+        orderBy: { key: 'asc' },
+      });
+
+      const platformMap = new Map(platformConfigs.map((c) => [c.key, c]));
+      const ensuredPlatform = await prisma.$transaction(
+        CONFIG_KEYS.filter((key) => !platformMap.has(key)).map((key) =>
+          prisma.siteConfig.create({
+            data: { clubId: null, key, value: '' },
+          })
+        )
+      );
+
+      const allPlatform = [...platformConfigs, ...ensuredPlatform].sort((a, b) =>
+        a.key.localeCompare(b.key)
+      );
+
+      return apiSuccess({ data: allPlatform.map(serializeConfig), theme: null });
     }
 
     const configs = await prisma.siteConfig.findMany({
@@ -128,20 +140,19 @@ export async function PUT(request: NextRequest) {
   try {
     const ctx = await requireInstitution(request);
 
-    if (!ctx.institutionId) {
-      return apiError(
-        'Seleccione una institución',
-        400,
-        'Se requiere una institución para actualizar la configuración',
-        'INSTITUTION_REQUIRED'
-      );
-    }
-
     const body = await request.json();
-    
+
     // Check if it's a theme update
     const themeParsed = UpdateThemeSchema.safeParse(body);
     if (themeParsed.success) {
+      if (!ctx.institutionId) {
+        return apiError(
+          'Seleccione una institución',
+          400,
+          'Se requiere una institución para actualizar el tema',
+          'INSTITUTION_REQUIRED'
+        );
+      }
       const { primaryColor, secondaryColor, accentColor, bgColor } = themeParsed.data;
 
       // Update all config records for this club with the new theme
@@ -152,7 +163,7 @@ export async function PUT(request: NextRequest) {
 
       return apiSuccess({ message: 'Tema actualizado correctamente' });
     }
-    
+
     // Otherwise, process as config update
     const parsed = UpdateSiteConfigSchema.safeParse(body);
 
@@ -188,6 +199,37 @@ export async function PUT(request: NextRequest) {
           'VALIDATION_ERROR'
         );
       }
+    }
+
+    // Platform-level config (SUPER_ADMIN without institution selection).
+    // @@unique([clubId, key]) treats NULLs as distinct in PostgreSQL, so upsert
+    // via the compound key is unreliable — use findFirst + update/create.
+    if (!ctx.institutionId) {
+      const updated = await prisma.$transaction(async (tx) => {
+        const results = [];
+        for (const config of configs) {
+          const existing = await tx.siteConfig.findFirst({
+            where: { clubId: null, key: config.key },
+          });
+          if (existing) {
+            results.push(
+              await tx.siteConfig.update({
+                where: { id: existing.id },
+                data: { value: config.value },
+              })
+            );
+          } else {
+            results.push(
+              await tx.siteConfig.create({
+                data: { clubId: null, key: config.key, value: config.value },
+              })
+            );
+          }
+        }
+        return results;
+      });
+
+      return apiSuccess({ data: updated.map(serializeConfig) });
     }
 
     const updated = await prisma.$transaction(
