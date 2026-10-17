@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Save, Building2, MessageSquare, Percent, Palette, Loader2 } from 'lucide-react';
+import { Save, Building2, MessageSquare, Percent, Palette, Loader2, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -30,6 +30,10 @@ const siteConfigLabels: Record<string, string> = {
   bank_name: 'Banco',
   bank_holder: 'Titular',
   bank_reference: 'Referencia / Concepto',
+  mercadopago_access_token: 'Access Token',
+  mercadopago_client_secret: 'Client Secret',
+  stripe_secret_key: 'Secret Key',
+  stripe_webhook_secret: 'Webhook signing secret',
   whatsapp_phone_number_id: 'Phone Number ID',
   whatsapp_access_token: 'Access Token',
   twilio_account_sid: 'Account SID',
@@ -40,6 +44,10 @@ const siteConfigLabels: Record<string, string> = {
 };
 
 const siteConfigPlaceholders: Record<string, string> = {
+  mercadopago_access_token: 'Ej: APP_USR-...',
+  mercadopago_client_secret: 'Ej: abc123...',
+  stripe_secret_key: 'Ej: sk_live_...',
+  stripe_webhook_secret: 'Ej: whsec_...',
   whatsapp_phone_number_id: 'Ej: 1234567890',
   whatsapp_access_token: 'Ej: EAAG...',
   twilio_account_sid: 'Ej: AC1234567890...',
@@ -185,6 +193,10 @@ export function ConfigurationForm({
                   <Building2 className="size-4 mr-2" />
                   Datos bancarios
                 </TabsTrigger>
+                <TabsTrigger value="payments">
+                  <CreditCard className="size-4 mr-2" />
+                  Medios de pago
+                </TabsTrigger>
                 <TabsTrigger value="messaging">
                   <MessageSquare className="size-4 mr-2" />
                   Mensajería
@@ -223,6 +235,90 @@ export function ConfigurationForm({
                         </div>
                       );
                     })}
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="payments" className="mt-5">
+                <div className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="mb-4">
+                      <h3 className="text-sm font-medium">Mercado Pago</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Credenciales de tu cuenta Mercado Pago para cobros y débito automático.
+                        Se obtienen en{' '}
+                        <a
+                          href="https://www.mercadopago.com.ar/developers/panel/app"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline underline-offset-2"
+                        >
+                          Tu aplicación → Credenciales
+                        </a>
+                        . Usá siempre las de producción.
+                      </p>
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      {['mercadopago_access_token', 'mercadopago_client_secret'].map((key) => {
+                        const config = getConfig(key);
+                        if (!config) return null;
+                        return (
+                          <div key={key} className="space-y-2">
+                            <Label htmlFor={`site-${key}`} className="text-sm font-medium">
+                              {siteConfigLabels[key] ?? key}
+                            </Label>
+                            <Input
+                              id={`site-${key}`}
+                              type="password"
+                              placeholder={siteConfigPlaceholders[key] ?? ''}
+                              value={config.value}
+                              onChange={(e) => updateSiteConfig(key, e.target.value)}
+                              className="h-10"
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="mb-4">
+                      <h3 className="text-sm font-medium">Stripe</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Credenciales de tu cuenta Stripe para cobros y suscripciones. Se obtienen
+                        en{' '}
+                        <a
+                          href="https://dashboard.stripe.com/apikeys"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline underline-offset-2"
+                        >
+                          Developers → API keys
+                        </a>
+                        . El webhook signing secret viene del endpoint de webhooks configurado.
+                      </p>
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      {['stripe_secret_key', 'stripe_webhook_secret'].map((key) => {
+                        const config = getConfig(key);
+                        if (!config) return null;
+                        return (
+                          <div key={key} className="space-y-2">
+                            <Label htmlFor={`site-${key}`} className="text-sm font-medium">
+                              {siteConfigLabels[key] ?? key}
+                            </Label>
+                            <Input
+                              id={`site-${key}`}
+                              type="password"
+                              placeholder={siteConfigPlaceholders[key] ?? ''}
+                              value={config.value}
+                              onChange={(e) => updateSiteConfig(key, e.target.value)}
+                              className="h-10"
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               </TabsContent>
