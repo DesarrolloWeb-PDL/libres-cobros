@@ -41,8 +41,22 @@ export async function POST(request: NextRequest) {
         select: { status: true },
       });
 
-      if (club && club.status !== 'ACTIVE') {
-        return apiError('Invalid credentials', 401);
+      if (club && club.status === 'PENDING') {
+        return apiError(
+          'Tu institución está pendiente de aprobación. Contactá al administrador de la plataforma para que active tu cuenta.',
+          403,
+          'Club status is PENDING',
+          'CLUB_NOT_APPROVED'
+        );
+      }
+
+      if (club && club.status === 'INACTIVE') {
+        return apiError(
+          'Tu institución está desactivada. Contactá al administrador de la plataforma.',
+          403,
+          'Club status is INACTIVE',
+          'CLUB_INACTIVE'
+        );
       }
     }
 

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { CreditCard, Wallet, Landmark, Loader2, ArrowLeft } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { CreditCard, Wallet, Landmark, Loader2, ArrowLeft, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -24,6 +24,8 @@ interface PaymentMethodSelectorProps {
 }
 
 type PaymentMethod = 'stripe' | 'mercadopago' | 'bank_transfer';
+
+type MethodAvailability = Record<PaymentMethod, boolean>;
 
 const methods: { id: PaymentMethod; label: string; description: string; icon: React.ReactNode }[] = [
   {
@@ -61,6 +63,39 @@ export function PaymentMethodSelector({
   const [loadingMethod, setLoadingMethod] = useState<PaymentMethod | null>(null);
   const [bankTransfer, setBankTransfer] = useState<BankTransferInfoData | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [availability, setAvailability] = useState<MethodAvailability | null>(null);
+  const [availabilityLoading, setAvailabilityLoading] = useState(false);
+
+  // Ask the checkout endpoint which methods this institution actually
+  // configured, so members only see methods that can succeed.
+  useEffect(() => {
+    if (!open || !institutionSlug) return;
+
+    let cancelled = false;
+    setAvailabilityLoading(true);
+
+    fetch(`/api/checkout?clubSlug=${encodeURIComponent(institutionSlug)}`)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        if (!cancelled && data?.data) {
+          setAvailability(data.data as MethodAvailability);
+        }
+      })
+      .catch(() => {
+        // Availability unknown: keep showing all methods (existing behavior).
+      })
+      .finally(() => {
+        if (!cancelled) setAvailabilityLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, institutionSlug]);
+
+  const visibleMethods = availability
+    ? methods.filter((method) => availability[method.id])
+    : methods;
 
   function reset() {
     setBankTransfer(null);
@@ -144,9 +179,18 @@ export function PaymentMethodSelector({
               Elegir otro método
             </Button>
           </div>
+        ) : availabilityLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="size-6 animate-spin text-primary" />
+          </div>
+        ) : visibleMethods.length === 0 ? (
+          <div className="flex items-start gap-2 rounded-xl bg-muted/30 p-4 text-sm text-muted-foreground">
+            <AlertCircle className="mt-0.5 size-4 shrink-0" />
+            <span>Los pagos online no están disponibles por el momento. Contactá con tu institución.</span>
+          </div>
         ) : (
           <div className="space-y-3">
-            {methods.map((method) => {
+            {visibleMethods.map((method) => {
               const isLoading = loadingMethod === method.id;
               const disabled = loadingMethod !== null && !isLoading;
 

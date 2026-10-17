@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { adminFetch } from '@/lib/admin-fetch';
 import { ConfigurationForm } from '@/components/admin/ConfigurationForm';
 import type { SiteConfigListResponse } from '@/types/config';
+import type { ClubListItem } from '@/types/club';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,8 +26,22 @@ export default async function ConfigurationPage() {
     redirect('/login');
   }
 
-  const { siteConfigs } = await getInitialData();
   const isSuperAdmin = session.user.role === 'SUPER_ADMIN';
+
+  let club: ClubListItem | undefined;
+  if (!isSuperAdmin) {
+    try {
+      const clubResponse = await adminFetch('/api/admin/clubs/current');
+      if (clubResponse.ok) {
+        const clubData = await clubResponse.json();
+        club = clubData.data ?? clubData;
+      }
+    } catch {
+      // Club fetch failed — the webhook URL block is skipped without a slug.
+    }
+  }
+
+  const { siteConfigs } = await getInitialData();
 
   return (
     <div className="space-y-6">
@@ -34,12 +49,12 @@ export default async function ConfigurationPage() {
         <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Configuración</h1>
         <p className="text-sm sm:text-base text-muted-foreground">
           {isSuperAdmin
-            ? 'Administrar tasa de comisión, datos bancarios y credenciales de mensajería.'
+            ? 'Administrar datos bancarios, medios de pago y credenciales de mensajería.'
             : 'Administrar datos bancarios, medios de pago y mensajería de tu institución.'}
         </p>
       </div>
 
-      <ConfigurationForm initialSiteConfigs={siteConfigs} />
+      <ConfigurationForm initialSiteConfigs={siteConfigs} clubSlug={club?.slug} />
     </div>
   );
 }

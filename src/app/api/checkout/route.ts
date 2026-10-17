@@ -7,6 +7,65 @@ import { getClubSiteConfigValues } from '@/lib/site-config';
 import { getEffectiveClub } from '@/lib/access';
 import { CheckoutRequestSchema } from '@/types/checkout';
 
+interface PaymentMethodAvailability {
+  stripe: boolean;
+  mercadopago: boolean;
+  bank_transfer: boolean;
+}
+
+/**
+ * Public member-portal endpoint: reports which payment methods an institution
+ * has actually configured, so the UI only offers methods that can succeed.
+ * Identified by clubSlug (or clubId) like the other member-facing routes.
+ */
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = request.nextUrl;
+    const clubSlug = searchParams.get('clubSlug') ?? searchParams.get('slug');
+    const clubId = searchParams.get('clubId');
+
+    if (!clubSlug && !clubId) {
+      return apiError(
+        'Datos inválidos',
+        400,
+        'Se requiere clubSlug o clubId',
+        'VALIDATION_ERROR'
+      );
+    }
+
+    // Only ACTIVE institutions are payable; mirror the checkout POST rule.
+    const club = clubId
+      ? await prisma.club.findFirst({ where: { id: clubId, status: 'ACTIVE' } })
+      : await getEffectiveClub(clubSlug!);
+
+    if (!club) {
+      return apiError(
+        'Institución no encontrada',
+        404,
+        'Identificador de institución inválido o inactivo',
+        'INSTITUTION_NOT_FOUND'
+      );
+    }
+
+    const configs = await getClubSiteConfigValues(club.id, [
+      'stripe_secret_key',
+      'mercadopago_access_token',
+      'bank_alias',
+      'bank_cbu',
+    ]);
+
+    const availability: PaymentMethodAvailability = {
+      stripe: Boolean(configs.stripe_secret_key),
+      mercadopago: Boolean(configs.mercadopago_access_token),
+      bank_transfer: Boolean(configs.bank_alias || configs.bank_cbu),
+    };
+
+    return apiSuccess({ data: availability });
+  } catch (error) {
+    return apiDbError(error, 'Error al consultar los medios de pago');
+  }
+}
+
 function getSiteUrl(): string {
   return process.env.NEXT_PUBLIC_URL ?? 'http://localhost:3000';
 }
@@ -99,6 +158,45 @@ export async function POST(request: NextRequest) {
       return apiError('La cuota ya está pagada', 409, 'Fee already paid', 'FEE_ALREADY_PAID');
     }
 
+    // Validate gateway credentials BEFORE creating the Payment row: a
+    // misconfigured institution must not leave orphan PENDING payments.
+    let stripeSecretKey: string | null = null;
+    let mercadoPagoAccessToken: string | null = null;
+
+    if (method === 'stripe') {
+      const { stripe_secret_key: secretKey } = await getClubSiteConfigValues(club.id, [
+        'stripe_secret_key',
+      ]);
+
+      if (!secretKey) {
+        return apiError(
+          'Stripe no configurado para esta institución',
+          500,
+          'stripe_secret_key no configurado',
+          'STRIPE_NOT_CONFIGURED'
+        );
+      }
+
+      stripeSecretKey = secretKey;
+    }
+
+    if (method === 'mercadopago') {
+      const { mercadopago_access_token: accessToken } = await getClubSiteConfigValues(club.id, [
+        'mercadopago_access_token',
+      ]);
+
+      if (!accessToken) {
+        return apiError(
+          'MercadoPago no configurado para esta institución',
+          500,
+          'mercadopago_access_token no configurado',
+          'MERCADOPAGO_NOT_CONFIGURED'
+        );
+      }
+
+      mercadoPagoAccessToken = accessToken;
+    }
+
     const payment = await prisma.payment.create({
       data: {
         clubId: club.id,
@@ -118,93 +216,77 @@ export async function POST(request: NextRequest) {
     const failureUrl = `${confirmUrl}?payment_id=${payment.id}&provider=${method}&status=failure`;
     const pendingUrl = `${confirmUrl}?payment_id=${payment.id}&provider=${method}&status=pending`;
 
-    if (method === 'stripe') {
-      const { stripe_secret_key: secretKey } = await getClubSiteConfigValues(club.id, [
-        'stripe_secret_key',
-      ]);
+    // The gateways reference payment.id (metadata / external_reference), so the
+    // row must exist before the call. If the call fails, delete it so no orphan
+    // PENDING payment is left behind.
+    try {
+      if (method === 'stripe') {
+        const session = await createStripeCheckoutSession({
+          paymentId: payment.id,
+          feeId,
+          memberId: member.id,
+          amount: fee.amount,
+          clubSlug: club.slug,
+          secretKey: stripeSecretKey!,
+          successUrl,
+          cancelUrl,
+        });
 
-      if (!secretKey) {
-        return apiError(
-          'Stripe no configurado para esta institución',
-          500,
-          'stripe_secret_key no configurado',
-          'STRIPE_NOT_CONFIGURED'
-        );
+        await prisma.payment.update({
+          where: { id: payment.id },
+          data: { stripeSessionId: session.sessionId },
+        });
+
+        return apiSuccess({
+          paymentId: payment.id,
+          checkoutUrl: session.url,
+          method,
+        });
       }
 
-      const session = await createStripeCheckoutSession({
-        paymentId: payment.id,
-        feeId,
-        memberId: member.id,
-        amount: fee.amount,
-        clubSlug: club.slug,
-        secretKey,
-        successUrl,
-        cancelUrl,
-      });
+      if (method === 'mercadopago') {
+        const notificationUrl = `${baseUrl}/api/webhooks/mercadopago?club_slug=${club.slug}`;
+        const preference = await createMercadoPagoPreference({
+          paymentId: payment.id,
+          feeId,
+          amount: fee.amount,
+          memberName: `${member.firstName} ${member.lastName}`,
+          clubSlug: club.slug,
+          accessToken: mercadoPagoAccessToken!,
+          successUrl,
+          failureUrl,
+          pendingUrl,
+          notificationUrl,
+        });
 
-      await prisma.payment.update({
-        where: { id: payment.id },
-        data: { stripeSessionId: session.sessionId },
-      });
+        await prisma.payment.update({
+          where: { id: payment.id },
+          data: { mercadopagoPreferenceId: preference.preferenceId },
+        });
+
+        return apiSuccess({
+          paymentId: payment.id,
+          checkoutUrl: preference.initPoint,
+          method,
+        });
+      }
+
+      const bankTransfer = await getBankTransferInfo(club.id);
 
       return apiSuccess({
         paymentId: payment.id,
-        checkoutUrl: session.url,
         method,
+        bankTransfer: {
+          ...bankTransfer,
+          reference: payment.bankTransferRef ?? '',
+        },
       });
+    } catch (error) {
+      await prisma.payment
+        .delete({ where: { id: payment.id } })
+        .catch(() => undefined); // best-effort cleanup; surface the original error
+      throw error;
     }
-
-    if (method === 'mercadopago') {
-      const { mercadopago_access_token: accessToken } = await getClubSiteConfigValues(club.id, [
-        'mercadopago_access_token',
-      ]);
-
-      if (!accessToken) {
-        return apiError(
-          'MercadoPago no configurado para esta institución',
-          500,
-          'mercadopago_access_token no configurado',
-          'MERCADOPAGO_NOT_CONFIGURED'
-        );
-      }
-
-      const notificationUrl = `${baseUrl}/api/webhooks/mercadopago?club_slug=${club.slug}`;
-      const preference = await createMercadoPagoPreference({
-        paymentId: payment.id,
-        feeId,
-        amount: fee.amount,
-        memberName: `${member.firstName} ${member.lastName}`,
-        clubSlug: club.slug,
-        accessToken,
-        successUrl,
-        failureUrl,
-        pendingUrl,
-        notificationUrl,
-      });
-
-      await prisma.payment.update({
-        where: { id: payment.id },
-        data: { mercadopagoPreferenceId: preference.preferenceId },
-      });
-
-      return apiSuccess({
-        paymentId: payment.id,
-        checkoutUrl: preference.initPoint,
-        method,
-      });
-    }
-
-    const bankTransfer = await getBankTransferInfo(club.id);
-
-    return apiSuccess({
-      paymentId: payment.id,
-      method,
-      bankTransfer: {
-        ...bankTransfer,
-        reference: payment.bankTransferRef ?? '',
-      },
-    });
   } catch (error) {
     return apiDbError(error, 'Error al procesar el checkout');
   }

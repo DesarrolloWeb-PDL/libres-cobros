@@ -1,7 +1,17 @@
 'use client';
 
-import { useState } from 'react';
-import { Save, Building2, MessageSquare, Percent, Loader2, CreditCard, ReceiptText } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import {
+  AlertCircle,
+  Building2,
+  Check,
+  Copy,
+  CreditCard,
+  Loader2,
+  MessageSquare,
+  ReceiptText,
+  Save,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,16 +29,15 @@ import type { SiteConfigListItem, SiteConfigListResponse } from '@/types/config'
 
 interface ConfigurationFormProps {
   initialSiteConfigs: SiteConfigListResponse;
+  clubSlug?: string;
 }
 
 const siteConfigLabels: Record<string, string> = {
-  commission_rate: 'Tasa de comisión (%)',
   bank_alias: 'Alias',
   bank_cbu: 'CBU',
   bank_cuit: 'CUIT',
   bank_name: 'Banco',
   bank_holder: 'Titular',
-  bank_reference: 'Referencia / Concepto',
   mercadopago_access_token: 'Access Token',
   mercadopago_client_secret: 'Client Secret',
   stripe_secret_key: 'Secret Key',
@@ -57,9 +66,35 @@ const siteConfigPlaceholders: Record<string, string> = {
 
 export function ConfigurationForm({
   initialSiteConfigs,
+  clubSlug,
 }: ConfigurationFormProps) {
   const [siteConfigs, setSiteConfigs] = useState<SiteConfigListItem[]>(initialSiteConfigs.data);
   const [isSavingSite, setIsSavingSite] = useState(false);
+  const [origin, setOrigin] = useState('');
+  const [webhookCopied, setWebhookCopied] = useState(false);
+
+  // window.location.origin is only available on the client.
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
+
+  const stripeWebhookUrl =
+    clubSlug && origin ? `${origin}/api/webhooks/stripe?club_slug=${clubSlug}` : '';
+
+  async function handleCopyWebhookUrl() {
+    if (!stripeWebhookUrl) return;
+    try {
+      await navigator.clipboard.writeText(stripeWebhookUrl);
+      setWebhookCopied(true);
+      setTimeout(() => setWebhookCopied(false), 2000);
+    } catch {
+      toast.add({
+        title: 'Error',
+        description: 'No se pudo copiar la URL del webhook',
+        type: 'error',
+      });
+    }
+  }
 
   function updateSiteConfig(key: string, value: string) {
     setSiteConfigs((prev) =>
@@ -137,10 +172,6 @@ export function ConfigurationForm({
                   <MessageSquare className="size-4 mr-2" />
                   Mensajería
                 </TabsTrigger>
-                <TabsTrigger value="commission">
-                  <Percent className="size-4 mr-2" />
-                  Comisiones
-                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="bank" className="mt-5">
@@ -152,7 +183,7 @@ export function ConfigurationForm({
                     </p>
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
-                    {['bank_alias', 'bank_cbu', 'bank_cuit', 'bank_name', 'bank_holder', 'bank_reference'].map((key) => {
+                    {['bank_alias', 'bank_cbu', 'bank_cuit', 'bank_name', 'bank_holder'].map((key) => {
                       const config = getConfig(key);
                       if (!config) return null;
                       return (
@@ -215,6 +246,13 @@ export function ConfigurationForm({
                         );
                       })}
                     </div>
+                    <div className="flex items-start gap-2 rounded-xl bg-amber-100 p-3 text-sm text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                      <AlertCircle className="mt-0.5 size-4 shrink-0" />
+                      <span>
+                        Sin el Client Secret, los pagos de Mercado Pago no se van a confirmar
+                        automáticamente. Es obligatorio si usás Mercado Pago.
+                      </span>
+                    </div>
                   </div>
 
                   <div className="space-y-4">
@@ -255,6 +293,39 @@ export function ConfigurationForm({
                         );
                       })}
                     </div>
+                    {stripeWebhookUrl && (
+                      <div className="space-y-2">
+                        <Label htmlFor="stripe-webhook-url" className="text-sm font-medium">
+                          URL de webhook
+                        </Label>
+                        <div className="flex gap-2">
+                          <Input
+                            id="stripe-webhook-url"
+                            type="text"
+                            readOnly
+                            value={stripeWebhookUrl}
+                            className="h-10"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="shrink-0 gap-2"
+                            onClick={handleCopyWebhookUrl}
+                          >
+                            {webhookCopied ? (
+                              <Check className="size-4 text-green-600" />
+                            ) : (
+                              <Copy className="size-4" />
+                            )}
+                            Copiar
+                          </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Registrá este endpoint en tu dashboard de Stripe (Developers →
+                          Webhooks) para que los pagos se confirmen automáticamente.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </TabsContent>
@@ -383,41 +454,6 @@ export function ConfigurationForm({
                         );
                       })}
                     </div>
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="commission" className="mt-5">
-                <div className="space-y-4">
-                  <div className="mb-4">
-                    <h3 className="text-sm font-medium">Comisiones</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Tasa aplicada al calcular comisiones por pago confirmado.
-                    </p>
-                  </div>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    {['commission_rate'].map((key) => {
-                      const config = getConfig(key);
-                      if (!config) return null;
-                      return (
-                        <div key={key} className="space-y-2">
-                          <Label htmlFor={`site-${key}`} className="text-sm font-medium">
-                            {siteConfigLabels[key] ?? key}
-                          </Label>
-                          <Input
-                            id={`site-${key}`}
-                            type="number"
-                            min={0}
-                            max={100}
-                            step={0.01}
-                            placeholder={siteConfigPlaceholders[key] ?? ''}
-                            value={config.value}
-                            onChange={(e) => updateSiteConfig(key, e.target.value)}
-                            className="h-10"
-                          />
-                        </div>
-                      );
-                    })}
                   </div>
                 </div>
               </TabsContent>

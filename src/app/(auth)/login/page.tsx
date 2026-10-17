@@ -52,7 +52,13 @@ export default function AdminLoginPage() {
       });
 
       if (result?.error) {
-        setGlobalError('Email o contraseña incorrectos');
+        // next-auth returns "CredentialsSignin" for generic credential failures;
+        // custom messages thrown by authorize() arrive here verbatim.
+        setGlobalError(
+          result.error === 'CredentialsSignin'
+            ? 'Email o contraseña incorrectos'
+            : result.error
+        );
       } else if (result?.ok) {
         router.push('/admin');
         router.refresh();

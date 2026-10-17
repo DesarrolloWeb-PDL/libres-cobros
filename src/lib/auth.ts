@@ -61,15 +61,26 @@ export const authOptions: NextAuthOptions = {
         }
 
         // Club admins can only log in once their institution is ACTIVE.
-        // PENDING/INACTIVE clubs must not gain access.
+        // PENDING/INACTIVE clubs must not gain access. Throwing (instead of
+        // returning null) surfaces the message on the login form: next-auth
+        // forwards error.message via the ?error= param and signIn({redirect:false})
+        // decodes it into result.error.
         if (user.role === 'ADMIN' && user.clubId) {
           const club = await prisma.club.findUnique({
             where: { id: user.clubId },
             select: { status: true },
           });
 
-          if (club && club.status !== 'ACTIVE') {
-            return null;
+          if (club && club.status === 'PENDING') {
+            throw new Error(
+              'Tu institución está pendiente de aprobación. Contactá al administrador de la plataforma para que active tu cuenta.'
+            );
+          }
+
+          if (club && club.status === 'INACTIVE') {
+            throw new Error(
+              'Tu institución está desactivada. Contactá al administrador de la plataforma.'
+            );
           }
         }
 
