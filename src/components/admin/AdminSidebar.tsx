@@ -22,6 +22,7 @@ import {
   X,
   LogOut,
   Repeat,
+  Palette,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -42,6 +43,7 @@ const navItems = [
   { href: '/admin/usuarios', label: 'Usuarios', icon: UserCog, roles: ['SUPER_ADMIN'] as const },
   { href: '/admin/exportaciones', label: 'Exportaciones', icon: Download, roles: ['SUPER_ADMIN'] as const },
   { href: '/admin/configuracion', label: 'Configuración', icon: Settings, roles: ['SUPER_ADMIN', 'ADMIN'] as const },
+  { href: '/admin/apariencia', label: 'Apariencia', icon: Palette, roles: ['SUPER_ADMIN', 'ADMIN'] as const },
 ];
 
 interface InstitutionData {
