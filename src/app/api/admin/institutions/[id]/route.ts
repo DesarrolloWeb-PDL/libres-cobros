@@ -10,6 +10,7 @@ const InstitutionStatusSchema = z.enum(['ACTIVE', 'INACTIVE', 'PENDING']);
 const UpdateInstitutionSchema = z.object({
   name: z.string().min(1, 'El nombre es obligatorio').optional(),
   siglas: z.string().optional(),
+  phone: z.string().max(50).nullable().optional(),
   slug: z
     .string()
     .min(1, 'El slug es obligatorio')
@@ -45,6 +46,7 @@ function serializeInstitution(institution: {
   id: string;
   name: string;
   siglas?: string | null;
+  phone?: string | null;
   slug: string;
   commissionType: string;
   commissionValue: number;
@@ -158,6 +160,7 @@ export async function PATCH(
       data: {
         ...(parsed.data.name && { name: parsed.data.name }),
         ...(parsed.data.siglas !== undefined && { siglas: parsed.data.siglas }),
+        ...(parsed.data.phone !== undefined && { phone: parsed.data.phone }),
         ...(parsed.data.slug && { slug: parsed.data.slug }),
         ...(parsed.data.commissionType && { commissionType: parsed.data.commissionType }),
         ...(parsed.data.commissionValue !== undefined && {

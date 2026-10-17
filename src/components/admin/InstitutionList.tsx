@@ -120,7 +120,14 @@ export function InstitutionList({ initialData }: InstitutionListProps) {
             ) : (
               institutions.map((institution) => (
                 <TableRow key={institution.id}>
-                  <TableCell className="font-medium">{institution.name}</TableCell>
+                  <TableCell className="font-medium">
+                    {institution.name}
+                    {institution.phone && (
+                      <div className="text-xs text-muted-foreground font-normal">
+                        {institution.phone}
+                      </div>
+                    )}
+                  </TableCell>
                   <TableCell className="text-muted-foreground">{institution.slug}</TableCell>
                   <TableCell>
                     {commissionTypeLabels[institution.commissionType] ?? ''}{' '}

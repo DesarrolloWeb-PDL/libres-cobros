@@ -20,6 +20,7 @@ model Club {
   id              String              @id @default(cuid())
   name            String
   siglas          String?             // Abbreviation for selector
+  phone           String?             // Contact phone for the institution
   slug            String              @unique
   commissionType  ClubCommissionType  @default(PERCENTAGE)
   commissionValue Float               @default(0)

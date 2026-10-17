@@ -24,6 +24,7 @@ export interface InstitutionListItem {
   id: string;
   name: string;
   siglas?: string | null;
+  phone?: string | null;
   slug: string;
   commissionType: string;
   commissionValue: number;

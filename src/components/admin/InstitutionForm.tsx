@@ -23,6 +23,7 @@ export function InstitutionForm({ club }: InstitutionFormProps) {
   const [tempPassword, setTempPassword] = useState<string | null>(null);
   const [name, setName] = useState(club.name);
   const [siglas, setSiglas] = useState(club.siglas || '');
+  const [phone, setPhone] = useState(club.phone || '');
   const [slug, setSlug] = useState(club.slug);
   const [commissionType, setCommissionType] = useState<'PERCENTAGE' | 'FIXED'>(
     club.commissionType as 'PERCENTAGE' | 'FIXED'
@@ -44,6 +45,7 @@ export function InstitutionForm({ club }: InstitutionFormProps) {
         body: JSON.stringify({
           name,
           siglas: siglas || null,
+          phone: phone || null,
           slug,
           commissionType,
           commissionValue: Number(commissionValue),
@@ -170,6 +172,18 @@ export function InstitutionForm({ club }: InstitutionFormProps) {
           <p className="text-xs text-muted-foreground">
             Acrónimo que se muestra en el selector de instituciones
           </p>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="phone" className="text-sm font-medium">Teléfono de contacto</Label>
+          <Input
+            id="phone"
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="Ej: +54 11 1234-5678"
+            className="h-10"
+          />
         </div>
 
         <div className="space-y-2">
