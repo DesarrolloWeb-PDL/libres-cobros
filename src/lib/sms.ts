@@ -1,11 +1,10 @@
-import twilio from 'twilio';
 import { prisma } from '@/lib/db';
 import type { Prisma } from '@prisma/client';
 import { sendWhatsAppMessage, sendWhatsAppBulkReminders } from '@/lib/whatsapp';
 import { sendEmailReminder } from '@/lib/email';
 
 export type SmsMessageStatus = 'SENT' | 'FAILED' | 'SKIPPED';
-export type MessageChannel = 'sms' | 'whatsapp' | 'email';
+export type MessageChannel = 'whatsapp' | 'email';
 
 export interface BulkResult {
   sent: number;
@@ -45,14 +44,13 @@ async function getSiteConfig(
 
 /**
  * Detecta el canal de mensajería configurado para una institución.
- * Prioridad: WhatsApp > Email > SMS (si hay varios configurados, usa el de mayor prioridad)
+ * Prioridad: WhatsApp > Email (si hay ambos configurados, usa WhatsApp)
  */
 export async function getConfiguredChannel(clubId: string): Promise<MessageChannel> {
-  const [whatsappPhoneId, whatsappToken, resendApiKey, twilioSid] = await Promise.all([
+  const [whatsappPhoneId, whatsappToken, resendApiKey] = await Promise.all([
     getSiteConfig(prisma, clubId, 'whatsapp_phone_number_id'),
     getSiteConfig(prisma, clubId, 'whatsapp_access_token'),
     getSiteConfig(prisma, clubId, 'resend_api_key'),
-    getSiteConfig(prisma, clubId, 'twilio_account_sid'),
   ]);
 
   // Si WhatsApp está configurado, usarlo (es gratis y más efectivo)
@@ -65,50 +63,13 @@ export async function getConfiguredChannel(clubId: string): Promise<MessageChann
     return 'email';
   }
 
-  // Si Twilio está configurado, usar SMS
-  if (twilioSid) {
-    return 'sms';
-  }
-
   // Default a WhatsApp (el usuario debería configurar uno)
   return 'whatsapp';
 }
 
 /**
- * Envía un mensaje de texto vía SMS (Twilio)
- */
-export async function sendSms(
-  accountSid: string,
-  authToken: string,
-  fromNumber: string,
-  toNumber: string,
-  body: string
-): Promise<{ externalId: string | null }> {
-  if (!accountSid || !authToken || !fromNumber) {
-    throw new Error(
-      'Configuración de Twilio incompleta. Verificá Account SID, Auth Token y número de teléfono en Configuración de la institución.'
-    );
-  }
-
-  if (!accountSid.startsWith('AC')) {
-    throw new Error(
-      'Account SID inválido. Debe empezar con "AC". Verificá la configuración en Configuración de la institución.'
-    );
-  }
-
-  const client = twilio(accountSid, authToken);
-
-  const message = await client.messages.create({
-    body,
-    from: fromNumber,
-    to: normalizePhone(toNumber),
-  });
-
-  return { externalId: message.sid };
-}
-
-/**
- * Envía un mensaje usando el canal configurado (SMS o WhatsApp)
+ * Envía un mensaje usando el canal configurado (solo WhatsApp).
+ * Para email, usar sendEmail directamente (usa un campo de destinatario distinto).
  */
 export async function sendMessage(
   clubId: string,
@@ -117,37 +78,25 @@ export async function sendMessage(
 ): Promise<{ externalId: string | null; channel: MessageChannel }> {
   const channel = await getConfiguredChannel(clubId);
 
-  if (channel === 'whatsapp') {
-    const [phoneNumberId, accessToken] = await Promise.all([
-      getSiteConfig(prisma, clubId, 'whatsapp_phone_number_id'),
-      getSiteConfig(prisma, clubId, 'whatsapp_access_token'),
-    ]);
-
-    if (!phoneNumberId || !accessToken) {
-      throw new Error(
-        'Configuración de WhatsApp incompleta. Verificá Phone Number ID y Access Token en Configuración de la institución.'
-      );
-    }
-
-    const { externalId } = await sendWhatsAppMessage(phoneNumberId, accessToken, toNumber, body);
-    return { externalId, channel: 'whatsapp' };
-  }
-
-  // SMS (Twilio)
-  const [accountSid, authToken, fromNumber] = await Promise.all([
-    getSiteConfig(prisma, clubId, 'twilio_account_sid'),
-    getSiteConfig(prisma, clubId, 'twilio_auth_token'),
-    getSiteConfig(prisma, clubId, 'twilio_phone_number'),
-  ]);
-
-  if (!accountSid || !authToken || !fromNumber) {
+  if (channel === 'email') {
     throw new Error(
-      'Configuración de Twilio incompleta. Verificá Account SID, Auth Token y número de teléfono en Configuración de la institución.'
+      'El canal de mensajería configurado es email. Usá sendEmail directamente.'
     );
   }
 
-  const { externalId } = await sendSms(accountSid, authToken, fromNumber, toNumber, body);
-  return { externalId, channel: 'sms' };
+  const [phoneNumberId, accessToken] = await Promise.all([
+    getSiteConfig(prisma, clubId, 'whatsapp_phone_number_id'),
+    getSiteConfig(prisma, clubId, 'whatsapp_access_token'),
+  ]);
+
+  if (!phoneNumberId || !accessToken) {
+    throw new Error(
+      'Configuración de WhatsApp incompleta. Verificá Phone Number ID y Access Token en Configuración de la institución.'
+    );
+  }
+
+  const { externalId } = await sendWhatsAppMessage(phoneNumberId, accessToken, toNumber, body);
+  return { externalId, channel: 'whatsapp' };
 }
 
 async function logAttempt(
@@ -237,7 +186,7 @@ async function sendReminder(memberId: string): Promise<BulkResult> {
       `Paga acá: ${paymentUrl}`,
     ].join('\n');
 
-    // Usar el canal configurado (WhatsApp o SMS)
+    // El canal email ya se resolvió arriba; acá solo puede ser WhatsApp
     const { externalId } = await sendMessage(clubId, member.phone, messageBody);
 
     await logAttempt(

@@ -38,9 +38,6 @@ const DEFAULT_SITE_CONFIG_KEYS = [
   'bank_reference',
   'whatsapp_phone_number_id',
   'whatsapp_access_token',
-  'twilio_account_sid',
-  'twilio_auth_token',
-  'twilio_phone_number',
 ];
 
 function serializeClub(club: {

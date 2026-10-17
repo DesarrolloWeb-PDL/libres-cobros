@@ -35,9 +35,6 @@ const siteConfigLabels: Record<string, string> = {
   stripe_webhook_secret: 'Webhook signing secret',
   whatsapp_phone_number_id: 'Phone Number ID',
   whatsapp_access_token: 'Access Token',
-  twilio_account_sid: 'Account SID',
-  twilio_auth_token: 'Auth Token',
-  twilio_phone_number: 'Número de teléfono',
   resend_api_key: 'API Key',
   resend_from_email: 'Email remitente',
   arca_enabled: 'Emitir comprobantes electrónicos (ARCA)',
@@ -52,9 +49,6 @@ const siteConfigPlaceholders: Record<string, string> = {
   stripe_webhook_secret: 'Ej: whsec_...',
   whatsapp_phone_number_id: 'Ej: 1234567890',
   whatsapp_access_token: 'Ej: EAAG...',
-  twilio_account_sid: 'Ej: AC1234567890...',
-  twilio_auth_token: 'Ej: tu_auth_token',
-  twilio_phone_number: 'Ej: +541112345678',
   resend_api_key: 'Ej: re_xxxxxxxx',
   resend_from_email: 'Ej: Cuotas <cuotas@tudominio.com>',
   arca_cuit: 'Ej: 30712345678',
@@ -335,41 +329,6 @@ export function ConfigurationForm({
                     </div>
                     <div className="grid gap-4 sm:grid-cols-2">
                       {['whatsapp_phone_number_id', 'whatsapp_access_token'].map((key) => {
-                        const config = getConfig(key);
-                        if (!config) return null;
-                        return (
-                          <div key={key} className="space-y-2">
-                            <Label htmlFor={`site-${key}`} className="text-sm font-medium">
-                              {siteConfigLabels[key] ?? key}
-                            </Label>
-                            <Input
-                              id={`site-${key}`}
-                              type="text"
-                              placeholder={siteConfigPlaceholders[key] ?? ''}
-                              value={config.value}
-                              onChange={(e) => updateSiteConfig(key, e.target.value)}
-                              className="h-10"
-                            />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="mb-4">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-medium">Twilio SMS (Alternativa)</h3>
-                        <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                          PAGO
-                        </span>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Credenciales de Twilio para envío de recordatorios por SMS. Requiere credenciales de pago.
-                      </p>
-                    </div>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      {['twilio_account_sid', 'twilio_auth_token', 'twilio_phone_number'].map((key) => {
                         const config = getConfig(key);
                         if (!config) return null;
                         return (

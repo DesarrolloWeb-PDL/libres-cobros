@@ -3,7 +3,9 @@ import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
 import { requireInstitution, institutionWhere, AuthError } from '@/lib/access';
-import { sendMessage } from '@/lib/sms';
+import { sendMessage, getConfiguredChannel } from '@/lib/sms';
+import { sendEmail, isEmailConfigured } from '@/lib/email';
+import { getInstitutionSiteConfigValues } from '@/lib/site-config';
 import { resolveMessageTemplate } from '@/lib/messaging';
 import {
   MassMessageFiltersSchema,
@@ -210,11 +212,86 @@ export async function POST(request: NextRequest) {
     let failed = 0;
     const batchSize = 10;
 
+    // Detect the messaging channel once for the whole batch
+    const channel = await getConfiguredChannel(ctx.institutionId);
+
+    // Fetch Resend config once (not per-member) when the channel is email
+    let resendConfig: { apiKey: string; fromEmail: string } | null = null;
+    if (channel === 'email') {
+      if (!(await isEmailConfigured(ctx.institutionId))) {
+        return apiError(
+          'Email no configurado',
+          400,
+          'Verificá la API Key de Resend en Configuración de la institución',
+          'EMAIL_NOT_CONFIGURED'
+        );
+      }
+
+      const resendValues = await getInstitutionSiteConfigValues(ctx.institutionId, [
+        'resend_api_key',
+        'resend_from_email',
+      ]);
+
+      resendConfig = {
+        apiKey: resendValues.resend_api_key ?? '',
+        fromEmail: resendValues.resend_from_email ?? '',
+      };
+    }
+
     for (let i = 0; i < members.length; i += batchSize) {
       const batch = members.slice(i, i + batchSize);
 
       await Promise.all(
         batch.map(async (member) => {
+          const personalizedMessage = resolveMessageTemplate(message, member);
+
+          if (channel === 'email') {
+            if (!member.email || member.email.trim() === '') {
+              await logAttempt(
+                member.clubId,
+                member.id,
+                'SKIPPED',
+                message,
+                null,
+                'Socio sin email'
+              );
+              return;
+            }
+
+            try {
+              const htmlBody = `<p>${personalizedMessage.replace(/\n/g, '<br />')}</p>`;
+              const { externalId } = await sendEmail(
+                resendConfig!.apiKey,
+                resendConfig!.fromEmail,
+                member.email,
+                'Mensaje de tu institución',
+                htmlBody
+              );
+              await logAttempt(
+                member.clubId,
+                member.id,
+                'SENT',
+                personalizedMessage,
+                externalId
+              );
+              sent += 1;
+            } catch (error) {
+              const errorMessage = error instanceof Error ? error.message : String(error);
+              await logAttempt(
+                member.clubId,
+                member.id,
+                'FAILED',
+                personalizedMessage,
+                null,
+                errorMessage
+              );
+              failed += 1;
+            }
+
+            return;
+          }
+
+          // WhatsApp
           if (!member.phone || member.phone.trim() === '') {
             await logAttempt(
               member.clubId,
@@ -226,8 +303,6 @@ export async function POST(request: NextRequest) {
             );
             return;
           }
-
-          const personalizedMessage = resolveMessageTemplate(message, member);
 
           try {
             const { externalId } = await sendMessage(
