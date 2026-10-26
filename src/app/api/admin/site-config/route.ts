@@ -42,6 +42,9 @@ const CONFIG_KEYS = [
   'arca_enabled',
   'arca_cuit',
   'arca_punto_vta',
+  'stripe_enabled',
+  'mercadopago_enabled',
+  'bank_transfer_enabled',
 ];
 
 function serializeConfig(config: {
@@ -276,6 +279,9 @@ function getConfigDescription(key: string): string {
     arca_enabled: 'Emitir comprobantes electrónicos ARCA (Recibo C) ante cada pago confirmado',
     arca_cuit: 'CUIT de la institución ante ARCA (11 dígitos)',
     arca_punto_vta: 'Punto de venta ARCA habilitado para la emisión (número entero)',
+    stripe_enabled: 'Permitir pagos con Stripe a los socios',
+    mercadopago_enabled: 'Permitir pagos con Mercado Pago a los socios',
+    bank_transfer_enabled: 'Permitir pagos por transferencia bancaria a los socios',
   };
   return descriptions[key] ?? '';
 }

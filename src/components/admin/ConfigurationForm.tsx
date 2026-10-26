@@ -49,6 +49,9 @@ const siteConfigLabels: Record<string, string> = {
   arca_enabled: 'Emitir comprobantes electrónicos (ARCA)',
   arca_cuit: 'CUIT de la institución',
   arca_punto_vta: 'Punto de venta',
+  stripe_enabled: 'Ofrecer Stripe a los socios',
+  mercadopago_enabled: 'Ofrecer Mercado Pago a los socios',
+  bank_transfer_enabled: 'Ofrecer transferencia bancaria a los socios',
 };
 
 const siteConfigPlaceholders: Record<string, string> = {
@@ -253,6 +256,22 @@ export function ConfigurationForm({
                         automáticamente. Es obligatorio si usás Mercado Pago.
                       </span>
                     </div>
+                    {getConfig('mercadopago_access_token')?.value && (
+                      <div className="flex items-center gap-2">
+                        <input
+                          id="site-mercadopago_enabled"
+                          type="checkbox"
+                          checked={getConfig('mercadopago_enabled')?.value !== 'false'}
+                          onChange={(e) =>
+                            updateSiteConfig('mercadopago_enabled', e.target.checked ? 'true' : 'false')
+                          }
+                          className="size-4 rounded border-gray-300"
+                        />
+                        <Label htmlFor="site-mercadopago_enabled" className="text-sm font-medium">
+                          {siteConfigLabels.mercadopago_enabled}
+                        </Label>
+                      </div>
+                    )}
                   </div>
 
                   <div className="space-y-4">
@@ -324,6 +343,48 @@ export function ConfigurationForm({
                           Registrá este endpoint en tu dashboard de Stripe (Developers →
                           Webhooks) para que los pagos se confirmen automáticamente.
                         </p>
+                      </div>
+                    )}
+                    {getConfig('stripe_secret_key')?.value && (
+                      <div className="flex items-center gap-2">
+                        <input
+                          id="site-stripe_enabled"
+                          type="checkbox"
+                          checked={getConfig('stripe_enabled')?.value !== 'false'}
+                          onChange={(e) =>
+                            updateSiteConfig('stripe_enabled', e.target.checked ? 'true' : 'false')
+                          }
+                          className="size-4 rounded border-gray-300"
+                        />
+                        <Label htmlFor="site-stripe_enabled" className="text-sm font-medium">
+                          {siteConfigLabels.stripe_enabled}
+                        </Label>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="mb-4">
+                      <h3 className="text-sm font-medium">Transferencia bancaria</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Habilitá o deshabilitá esta opción para los socios. Los datos de la cuenta
+                        se cargan en la pestaña Datos bancarios.
+                      </p>
+                    </div>
+                    {(getConfig('bank_alias')?.value || getConfig('bank_cbu')?.value) && (
+                      <div className="flex items-center gap-2">
+                        <input
+                          id="site-bank_transfer_enabled"
+                          type="checkbox"
+                          checked={getConfig('bank_transfer_enabled')?.value !== 'false'}
+                          onChange={(e) =>
+                            updateSiteConfig('bank_transfer_enabled', e.target.checked ? 'true' : 'false')
+                          }
+                          className="size-4 rounded border-gray-300"
+                        />
+                        <Label htmlFor="site-bank_transfer_enabled" className="text-sm font-medium">
+                          {siteConfigLabels.bank_transfer_enabled}
+                        </Label>
                       </div>
                     )}
                   </div>

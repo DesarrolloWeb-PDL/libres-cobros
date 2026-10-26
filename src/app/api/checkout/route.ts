@@ -13,6 +13,10 @@ interface PaymentMethodAvailability {
   bank_transfer: boolean;
 }
 
+function isPaymentMethodEnabled(value: string | undefined): boolean {
+  return value !== 'false';
+}
+
 /**
  * Public member-portal endpoint: reports which payment methods an institution
  * has actually configured, so the UI only offers methods that can succeed.
@@ -49,15 +53,18 @@ export async function GET(request: NextRequest) {
 
     const configs = await getClubSiteConfigValues(club.id, [
       'stripe_secret_key',
+      'stripe_enabled',
       'mercadopago_access_token',
+      'mercadopago_enabled',
       'bank_alias',
       'bank_cbu',
+      'bank_transfer_enabled',
     ]);
 
     const availability: PaymentMethodAvailability = {
-      stripe: Boolean(configs.stripe_secret_key),
-      mercadopago: Boolean(configs.mercadopago_access_token),
-      bank_transfer: Boolean(configs.bank_alias || configs.bank_cbu),
+      stripe: Boolean(configs.stripe_secret_key) && isPaymentMethodEnabled(configs.stripe_enabled),
+      mercadopago: Boolean(configs.mercadopago_access_token) && isPaymentMethodEnabled(configs.mercadopago_enabled),
+      bank_transfer: Boolean(configs.bank_alias || configs.bank_cbu) && isPaymentMethodEnabled(configs.bank_transfer_enabled),
     };
 
     return apiSuccess({ data: availability });
@@ -158,15 +165,25 @@ export async function POST(request: NextRequest) {
       return apiError('La cuota ya está pagada', 409, 'Fee already paid', 'FEE_ALREADY_PAID');
     }
 
-    // Validate gateway credentials BEFORE creating the Payment row: a
-    // misconfigured institution must not leave orphan PENDING payments.
+    // Validate gateway credentials and enabled flags BEFORE creating the Payment row:
+    // a misconfigured or disabled method must not leave orphan PENDING payments.
     let stripeSecretKey: string | null = null;
     let mercadoPagoAccessToken: string | null = null;
 
     if (method === 'stripe') {
-      const { stripe_secret_key: secretKey } = await getClubSiteConfigValues(club.id, [
+      const { stripe_secret_key: secretKey, stripe_enabled: enabled } = await getClubSiteConfigValues(club.id, [
         'stripe_secret_key',
+        'stripe_enabled',
       ]);
+
+      if (!isPaymentMethodEnabled(enabled)) {
+        return apiError(
+          'Stripe no está habilitado para esta institución',
+          403,
+          'stripe_enabled está desactivado',
+          'PAYMENT_METHOD_DISABLED'
+        );
+      }
 
       if (!secretKey) {
         return apiError(
@@ -181,9 +198,19 @@ export async function POST(request: NextRequest) {
     }
 
     if (method === 'mercadopago') {
-      const { mercadopago_access_token: accessToken } = await getClubSiteConfigValues(club.id, [
+      const { mercadopago_access_token: accessToken, mercadopago_enabled: enabled } = await getClubSiteConfigValues(club.id, [
         'mercadopago_access_token',
+        'mercadopago_enabled',
       ]);
+
+      if (!isPaymentMethodEnabled(enabled)) {
+        return apiError(
+          'Mercado Pago no está habilitado para esta institución',
+          403,
+          'mercadopago_enabled está desactivado',
+          'PAYMENT_METHOD_DISABLED'
+        );
+      }
 
       if (!accessToken) {
         return apiError(
@@ -195,6 +222,32 @@ export async function POST(request: NextRequest) {
       }
 
       mercadoPagoAccessToken = accessToken;
+    }
+
+    if (method === 'bank_transfer') {
+      const { bank_alias: alias, bank_cbu: cbu, bank_transfer_enabled: enabled } = await getClubSiteConfigValues(club.id, [
+        'bank_alias',
+        'bank_cbu',
+        'bank_transfer_enabled',
+      ]);
+
+      if (!isPaymentMethodEnabled(enabled)) {
+        return apiError(
+          'La transferencia bancaria no está habilitada para esta institución',
+          403,
+          'bank_transfer_enabled está desactivado',
+          'PAYMENT_METHOD_DISABLED'
+        );
+      }
+
+      if (!alias && !cbu) {
+        return apiError(
+          'Transferencia bancaria no configurada para esta institución',
+          500,
+          'bank_alias y bank_cbu no configurados',
+          'BANK_TRANSFER_NOT_CONFIGURED'
+        );
+      }
     }
 
     const payment = await prisma.payment.create({
