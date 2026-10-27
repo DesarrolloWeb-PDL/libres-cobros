@@ -66,14 +66,20 @@ export function PaymentMethodSelector({
   const [availability, setAvailability] = useState<MethodAvailability | null>(null);
   const [availabilityLoading, setAvailabilityLoading] = useState(false);
 
+  const [prevOpen, setPrevOpen] = useState(open);
+  const [prevSlug, setPrevSlug] = useState(institutionSlug);
+  if (open !== prevOpen || institutionSlug !== prevSlug) {
+    setPrevOpen(open);
+    setPrevSlug(institutionSlug);
+    if (open && institutionSlug) setAvailabilityLoading(true);
+  }
+
   // Ask the checkout endpoint which methods this institution actually
   // configured, so members only see methods that can succeed.
   useEffect(() => {
     if (!open || !institutionSlug) return;
 
     let cancelled = false;
-    setAvailabilityLoading(true);
-
     fetch(`/api/checkout?clubSlug=${encodeURIComponent(institutionSlug)}`)
       .then((response) => (response.ok ? response.json() : null))
       .then((data) => {
