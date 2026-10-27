@@ -74,4 +74,4 @@ Chain strategy: pending
 
 - [x] 7.1 npx tsc --noEmit + npm run lint clean.
 - [x] 7.2 npm run build clean.
-- [ ] 7.3 Manual cross-club walkthrough passes (script in sdd-tasks handoff).
+- [x] 7.3 Manual cross-club walkthrough passes (DB script + HTTP isolation script, both green).

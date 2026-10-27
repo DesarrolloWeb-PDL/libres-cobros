@@ -154,6 +154,12 @@ async function walkthrough() {
       select: { id: true, clubId: true },
     });
 
+    // Club sin socios: el aislamiento es vacuoso, no hay nada que filtrar.
+    if (clubMembers.length === 0) {
+      test(`Aislamiento ${club.name}`, true, 'Sin socios (aislamiento vacío)');
+      continue;
+    }
+
     const allClubIds = [...new Set(clubMembers.map(m => m.clubId))];
     test(
       `Aislamiento ${club.name}`,
