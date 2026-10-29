@@ -33,6 +33,10 @@ model Club {
   accentColor     String              @default("#5b21b6")
   bgColor         String              @default("#f8fafc")
 
+  // Platform SaaS billing (institution fiscal data for ARCA emission)
+  cuit            String?
+  ivaCondicion    String              @default("CF") // CF | MONO | RI | EXENTO
+
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
   members         Member[]
@@ -47,6 +51,11 @@ model Club {
   invoices        ProviderInvoice[]
   autoDebits      AutoDebit[]
   comprobantes    Comprobante[]
+  saasSubscriptions       SaasSubscription[]
+  saasInvoices            SaasInvoice[]
+  saasAutoDebits          SaasAutoDebit[]
+  saasComprobantes        SaasComprobante[]
+  saasPlanChangeRequests  SaasPlanChangeRequest[]
 }
 
 model ProviderInvoice {
@@ -311,4 +320,127 @@ model AdminUser {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
   club              Club?    @relation(fields: [clubId], references: [id])
+}
+
+// Platform SaaS subscription billing (institution -> platform)
+model SaasPlan {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  minMembers  Int
+  maxMembers  Int
+  priceArs    Float    @default(0)
+  highlight   Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  subscriptions  SaasSubscription[]
+  pendingSubscriptions SaasSubscription[] @relation("PendingSaasPlan")
+  changeRequests SaasPlanChangeRequest[]
+  invoices       SaasInvoice[]
+}
+
+model SaasSubscription {
+  id                  String   @id @default(cuid())
+  institutionId       String   @unique
+  saasPlanId          String
+  pendingSaasPlanId   String?
+  status              String   @default("ACTIVE") // ACTIVE | CANCELLED
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  institution         Club     @relation(fields: [institutionId], references: [id])
+  saasPlan            SaasPlan @relation(fields: [saasPlanId], references: [id])
+  pendingSaasPlan     SaasPlan? @relation("PendingSaasPlan", fields: [pendingSaasPlanId], references: [id])
+
+  @@index([saasPlanId])
+  @@index([status])
+}
+
+model SaasPlanChangeRequest {
+  id                    String   @id @default(cuid())
+  institutionId         String
+  requestedSaasPlanId   String
+  status                String   @default("PENDING") // PENDING | APPROVED | REJECTED
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  institution           Club     @relation(fields: [institutionId], references: [id])
+  requestedSaasPlan     SaasPlan @relation(fields: [requestedSaasPlanId], references: [id])
+
+  @@index([institutionId])
+  @@index([status])
+}
+
+model SaasInvoice {
+  id              String    @id @default(cuid())
+  institutionId   String
+  saasPlanId      String
+  month           Int
+  year            Int
+  amount          Float
+  status          String    @default("PENDING") // PENDING | PAID | OVERDUE
+  dueDate         DateTime
+  paidAt          DateTime?
+  paymentMethod   String?
+  transferRef     String?
+  gatewayPaymentId String?
+  remindersSent   Int       @default(0)
+  lastReminderAt  DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  institution     Club      @relation(fields: [institutionId], references: [id])
+  saasPlan        SaasPlan  @relation(fields: [saasPlanId], references: [id])
+  comprobante     SaasComprobante?
+
+  @@unique([institutionId, month, year])
+  @@index([status])
+  @@index([dueDate])
+  @@index([institutionId])
+}
+
+model SaasAutoDebit {
+  id                    String   @id @default(cuid())
+  institutionId         String   @unique
+  gateway               String   // mercadopago | stripe
+  gatewaySubscriptionId String
+  status                String   @default("PENDING_AUTH") // PENDING_AUTH | ACTIVE | CANCELLED | FAILED
+  amount                Float
+  payerEmail            String?
+  nextBillingAt         DateTime?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  institution           Club     @relation(fields: [institutionId], references: [id])
+
+  @@unique([gateway, gatewaySubscriptionId])
+  @@index([status])
+}
+
+model SaasComprobante {
+  id                  String    @id @default(cuid())
+  institutionId       String
+  invoiceId           String    @unique
+  tipo                Int       @default(15)
+  ptoVta              Int
+  nro                 Int
+  cae                 String    @default("")
+  caeVto              DateTime?
+  total               Float
+  docTipo             Int
+  docNro              BigInt
+  condicionIvaReceptor Int
+  estado              String    @default("PENDIENTE") // PENDIENTE | AUTORIZADO | ERROR
+  error               String?
+  rawRequest          String?
+  rawResponse         String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  institution         Club      @relation(fields: [institutionId], references: [id])
+  invoice             SaasInvoice @relation(fields: [invoiceId], references: [id])
+
+  @@index([institutionId])
+  @@index([estado])
 }
