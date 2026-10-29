@@ -32,3 +32,24 @@ export async function getInstitutionSiteConfigValue(
 // Backward-compatible aliases
 export { getInstitutionSiteConfigValues as getClubSiteConfigValues };
 export { getInstitutionSiteConfigValue as getClubSiteConfigValue };
+
+// Platform-level SiteConfig access (clubId = null). Used for SaaS billing
+// configuration and other platform-wide keys.
+export async function getPlatformSiteConfigValues(
+  keys: string[]
+): Promise<Record<string, string>> {
+  const configs = await prisma.siteConfig.findMany({
+    where: { clubId: null, key: { in: keys } },
+  });
+  return Object.fromEntries(configs.map((c) => [c.key, c.value]));
+}
+
+export async function getPlatformSiteConfigValue(
+  key: string,
+  defaultValue = ''
+): Promise<string> {
+  const config = await prisma.siteConfig.findFirst({
+    where: { clubId: null, key },
+  });
+  return config?.value ?? defaultValue;
+}

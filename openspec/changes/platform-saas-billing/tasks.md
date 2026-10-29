@@ -33,7 +33,7 @@ Chain strategy: pending
 
 ## Phase 2: Config+Types
 
-- [ ] 2.1 site-config.ts + api/admin/site-config: clubId=null saas_* keys per D2/D4/D6 (flag=false); platform resend_*/bank_*; src/types/saas.ts zod schemas + status enums.
+- [x] 2.1 site-config.ts + api/admin/site-config: clubId=null saas_* keys per D2/D4/D6 (flag=false); platform resend_*/bank_*; src/types/saas.ts zod schemas + status enums.
 
 ## Phase 3: Billing+Cron
 
