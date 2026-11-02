@@ -7,6 +7,10 @@
     {
       "path": "/api/cron/fees",
       "schedule": "0 6 1 * *"
+    },
+    {
+      "path": "/api/cron/saas-billing",
+      "schedule": "0 9 * * *"
     }
   ]
 }
