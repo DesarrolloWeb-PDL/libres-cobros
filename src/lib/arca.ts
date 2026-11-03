@@ -909,3 +909,12 @@ export async function emitirReciboC(paymentId: string): Promise<EmitirReciboResu
     return { estado: 'ERROR', error: message };
   }
 }
+
+/**
+ * Stub for platform SaaS subscription invoice emission. Phase 5 implements the
+ * full dual-regime payload builder; Phase 4 only wires the post-commit trigger.
+ */
+export async function emitirComprobanteSaas(invoiceId: string): Promise<EmitirReciboResult> {
+  console.warn(`[arca] emitirComprobanteSaas stub invoked for invoice ${invoiceId}`);
+  return { estado: 'OMITIDO', reason: 'Phase 5 not yet implemented' };
+}

@@ -109,6 +109,8 @@ export interface CreateMpPreapprovalInput {
   returnUrl: string;
   /** Webhook URL with `?club_slug=` query param. */
   notificationUrl: string;
+  /** Optional ISO 8601 start date for the first charge (SaaS fixed billing day). */
+  startDate?: string;
 }
 
 export async function createMpPreapproval(
@@ -118,18 +120,23 @@ export async function createMpPreapproval(
 
   // `notification_url` is accepted by the Preapproval API but not declared on
   // the SDK's PreApprovalRequest type yet.
+  const autoRecurring: PreApprovalRequest['auto_recurring'] & { start_date?: string } = {
+    frequency: 1,
+    frequency_type: 'months',
+    transaction_amount: input.amount,
+    currency_id: 'ARS',
+  };
+  if (input.startDate) {
+    autoRecurring.start_date = input.startDate;
+  }
+
   const body: PreApprovalRequest & { notification_url: string } = {
     reason: `Cuota mensual - ${input.clubName}`,
     external_reference: `${input.clubSlug}:${input.memberId}`,
     payer_email: input.payerEmail,
     back_url: input.returnUrl,
     status: 'pending',
-    auto_recurring: {
-      frequency: 1,
-      frequency_type: 'months',
-      transaction_amount: input.amount,
-      currency_id: 'ARS',
-    },
+    auto_recurring: autoRecurring,
     notification_url: input.notificationUrl,
   };
 

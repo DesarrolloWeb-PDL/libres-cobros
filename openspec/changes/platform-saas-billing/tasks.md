@@ -43,11 +43,11 @@ Chain strategy: stacked-to-main
 
 ## Phase 4: Collection
 
-- [ ] 4.1 tests/unit/saas-autodebit.test.ts: webhook settlement, find-or-create invoice, confirm→emission ordering, bank SUPER_ADMIN-only.
-- [ ] 4.2 src/lib/saas-autodebit.ts per D3: MP preapproval+one-off preference, Stripe anchor, confirmSaasInvoice (PAID → emission).
-- [ ] 4.3 POST /api/admin/saas/institutions/[id]/autodebit: SUPER_ADMIN, in-memory auth URL.
-- [ ] 4.4 api/webhooks/platform/mercadopago + /stripe: platform-secret verify, no club_slug, idempotent.
-- [ ] 4.5 POST /api/admin/saas/invoices/[id]/pay: SUPER_ADMIN, transferRef required.
+- [x] 4.1 tests/unit/saas-autodebit.test.ts: webhook settlement, find-or-create invoice, confirm→emission ordering, bank SUPER_ADMIN-only.
+- [x] 4.2 src/lib/saas-autodebit.ts per D3: MP preapproval+one-off preference, Stripe anchor, confirmSaasInvoice (PAID → emission).
+- [x] 4.3 POST /api/admin/saas/institutions/[id]/autodebit: SUPER_ADMIN, in-memory auth URL.
+- [x] 4.4 api/webhooks/platform/mercadopago + /stripe: platform-secret verify, no club_slug, idempotent.
+- [x] 4.5 POST /api/admin/saas/invoices/[id]/pay: SUPER_ADMIN, transferRef required.
 
 ## Phase 5: ARCA
 
