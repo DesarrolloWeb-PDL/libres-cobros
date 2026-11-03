@@ -26,7 +26,10 @@
  */
 
 import { prisma } from '@/lib/db';
-import { getInstitutionSiteConfigValues } from '@/lib/site-config';
+import {
+  getInstitutionSiteConfigValues,
+  getPlatformSiteConfigValues,
+} from '@/lib/site-config';
 import forge from 'node-forge';
 import { XMLParser } from 'fast-xml-parser';
 
@@ -54,6 +57,19 @@ export interface BuildReciboCPayloadParams {
   condicionIvaReceptor: number; // 5 CF, 6 MONO, 1 RI, 4 EXENTO
   total: number;
   fecha: Date | string; // CbteFch (Argentina emission date, yyyymmdd)
+  auth?: ReciboCAuth;
+}
+
+export interface BuildFecaPayloadParams {
+  ptoVta: number;
+  nro: number;
+  docTipo: number; // 80 = CUIT
+  docNro: number | bigint | string;
+  condicionIvaReceptor: number;
+  total: number;
+  fecha: Date | string;
+  cbteTipo: number; // 15 Recibo C, 1 Factura A, 6 Factura B
+  ivaRate?: number; // e.g. 0.21 for 21%; defaults to 0.21
   auth?: ReciboCAuth;
 }
 
@@ -176,6 +192,56 @@ export async function getArcaConfig(clubId: string): Promise<ArcaClubConfig> {
   };
 }
 
+export interface SaasArcaConfig {
+  enabled: boolean;
+  regime: string;
+  emitterCuit: string | null;
+  ptoVta: number | null;
+  ivaRate: number;
+}
+
+export async function getSaasArcaConfig(): Promise<SaasArcaConfig> {
+  const values = await getPlatformSiteConfigValues([
+    'saas_arca_regime',
+    'saas_arca_pto_vta',
+    'saas_arca_iva_rate',
+  ]);
+
+  const regime = (values.saas_arca_regime ?? 'MONOTRIBUTO').trim();
+  const rawPtoVta = (values.saas_arca_pto_vta ?? '').trim();
+  const ptoVta = /^\d+$/.test(rawPtoVta) ? Number(rawPtoVta) : null;
+
+  const emitterCuit = (process.env.ARCA_CUIT ?? '').trim();
+  const normalizedEmitterCuit = /^\d{11}$/.test(emitterCuit) ? emitterCuit : null;
+
+  const rawRate = (values.saas_arca_iva_rate ?? '21').trim();
+  let ivaRate = 0.21;
+  if (/^\d+(\.\d+)?$/.test(rawRate)) {
+    const parsed = Number(rawRate);
+    // Accept either percentage (21) or decimal (0.21) notation.
+    ivaRate = parsed < 1 ? parsed : parsed / 100;
+  }
+
+  return {
+    enabled: normalizedEmitterCuit !== null && ptoVta !== null,
+    regime,
+    emitterCuit: normalizedEmitterCuit,
+    ptoVta,
+    ivaRate,
+  };
+}
+
+export function resolveSaasCbteTipo(
+  regime: string,
+  institutionIvaCondicion: string
+): number {
+  if (regime === 'RESPONSABLE_INSCRIPTO') {
+    return institutionIvaCondicion === 'RI' ? 1 : 6;
+  }
+  // Default to monotributo Recibo C.
+  return 15;
+}
+
 // ---------------------------------------------------------------------------
 // CondicionIvaReceptor (mandatory in production since 2025-07-01)
 // ---------------------------------------------------------------------------
@@ -274,6 +340,133 @@ export function buildReciboCPayload({
             <wsfe:MonId>PES</wsfe:MonId>
             <wsfe:MonCtz>1.000000</wsfe:MonCtz>
             <wsfe:CondicionIvaReceptor>${condicionIvaReceptor}</wsfe:CondicionIvaReceptor>
+          </wsfe:FECAEDetRequest>
+        </wsfe:FeDetReq>
+      </wsfe:FeCAEReq>
+      <wsfe:FeAuthReq>
+        <wsfe:Token>${escapeXml(auth?.token ?? '')}</wsfe:Token>
+        <wsfe:Sign>${escapeXml(auth?.sign ?? '')}</wsfe:Sign>
+        <wsfe:Cuit>${escapeXml(auth?.cuit ?? '')}</wsfe:Cuit>
+      </wsfe:FeAuthReq>
+    </wsfe:FECAESolicitar>
+  </soapenv:Body>
+</soapenv:Envelope>`;
+}
+
+function ivaRateToAlicuotaId(rate: number): number {
+  // ARCA VAT alícuota codes for common rates.
+  if (Math.abs(rate - 0.21) < 0.001) return 5;
+  if (Math.abs(rate - 0.105) < 0.001) return 4;
+  if (Math.abs(rate - 0.27) < 0.001) return 6;
+  if (Math.abs(rate - 0.05) < 0.001) return 8;
+  if (Math.abs(rate - 0.025) < 0.001) return 9;
+  // Fallback to 21% code when the rate is unrecognized.
+  return 5;
+}
+
+export function buildFecaPayload(params: BuildFecaPayloadParams): string {
+  const {
+    ptoVta,
+    nro,
+    docTipo,
+    docNro,
+    condicionIvaReceptor,
+    total,
+    fecha,
+    cbteTipo,
+    ivaRate = 0.21,
+    auth,
+  } = params;
+
+  const cbteFch = typeof fecha === 'string' ? fecha : formatArcaDate(fecha);
+  const amount = formatAmount(total);
+
+  if (cbteTipo === 15) {
+    // Recibo C (type C): no IVA breakdown. The whole amount goes to
+    // ImpTotConc (no gravado), with ImpNetoGravado/ImpOpEx/ImpTrib = 0.
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:wsfe="http://ar.gov.afip.dif.FEV1/">
+  <soapenv:Header/>
+  <soapenv:Body>
+    <wsfe:FECAESolicitar>
+      <wsfe:FeCAEReq>
+        <wsfe:FeCabReq>
+          <wsfe:CantReg>1</wsfe:CantReg>
+          <wsfe:PtoVta>${ptoVta}</wsfe:PtoVta>
+          <wsfe:CbteTipo>15</wsfe:CbteTipo>
+        </wsfe:FeCabReq>
+        <wsfe:FeDetReq>
+          <wsfe:FECAEDetRequest>
+            <wsfe:Concepto>1</wsfe:Concepto>
+            <wsfe:DocTipo>${docTipo}</wsfe:DocTipo>
+            <wsfe:DocNro>${docNro}</wsfe:DocNro>
+            <wsfe:CbteDesde>${nro}</wsfe:CbteDesde>
+            <wsfe:CbteHasta>${nro}</wsfe:CbteHasta>
+            <wsfe:CbteFch>${cbteFch}</wsfe:CbteFch>
+            <wsfe:ImpTotal>${amount}</wsfe:ImpTotal>
+            <wsfe:ImpTotConc>${amount}</wsfe:ImpTotConc>
+            <wsfe:ImpNetoGravado>0.00</wsfe:ImpNetoGravado>
+            <wsfe:ImpOpEx>0.00</wsfe:ImpOpEx>
+            <wsfe:ImpTrib>0.00</wsfe:ImpTrib>
+            <wsfe:MonId>PES</wsfe:MonId>
+            <wsfe:MonCtz>1.000000</wsfe:MonCtz>
+            <wsfe:CondicionIvaReceptor>${condicionIvaReceptor}</wsfe:CondicionIvaReceptor>
+          </wsfe:FECAEDetRequest>
+        </wsfe:FeDetReq>
+      </wsfe:FeCAEReq>
+      <wsfe:FeAuthReq>
+        <wsfe:Token>${escapeXml(auth?.token ?? '')}</wsfe:Token>
+        <wsfe:Sign>${escapeXml(auth?.sign ?? '')}</wsfe:Sign>
+        <wsfe:Cuit>${escapeXml(auth?.cuit ?? '')}</wsfe:Cuit>
+      </wsfe:FeAuthReq>
+    </wsfe:FECAESolicitar>
+  </soapenv:Body>
+</soapenv:Envelope>`;
+  }
+
+  // Factura A (tipo 1) / Factura B (tipo 6): Concepto 2 (services),
+  // neto gravado and IVA breakup. Prices are IVA-inclusive.
+  const neto = Math.round((total / (1 + ivaRate)) * 100) / 100;
+  const iva = Math.round((total - neto) * 100) / 100;
+  const netoStr = formatAmount(neto);
+  const ivaStr = formatAmount(iva);
+  const alicuotaId = ivaRateToAlicuotaId(ivaRate);
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:wsfe="http://ar.gov.afip.dif.FEV1/">
+  <soapenv:Header/>
+  <soapenv:Body>
+    <wsfe:FECAESolicitar>
+      <wsfe:FeCAEReq>
+        <wsfe:FeCabReq>
+          <wsfe:CantReg>1</wsfe:CantReg>
+          <wsfe:PtoVta>${ptoVta}</wsfe:PtoVta>
+          <wsfe:CbteTipo>${cbteTipo}</wsfe:CbteTipo>
+        </wsfe:FeCabReq>
+        <wsfe:FeDetReq>
+          <wsfe:FECAEDetRequest>
+            <wsfe:Concepto>2</wsfe:Concepto>
+            <wsfe:DocTipo>${docTipo}</wsfe:DocTipo>
+            <wsfe:DocNro>${docNro}</wsfe:DocNro>
+            <wsfe:CbteDesde>${nro}</wsfe:CbteDesde>
+            <wsfe:CbteHasta>${nro}</wsfe:CbteHasta>
+            <wsfe:CbteFch>${cbteFch}</wsfe:CbteFch>
+            <wsfe:ImpTotal>${amount}</wsfe:ImpTotal>
+            <wsfe:ImpTotConc>0.00</wsfe:ImpTotConc>
+            <wsfe:ImpNetoGravado>${netoStr}</wsfe:ImpNetoGravado>
+            <wsfe:ImpOpEx>0.00</wsfe:ImpOpEx>
+            <wsfe:ImpTrib>0.00</wsfe:ImpTrib>
+            <wsfe:ImpIVA>${ivaStr}</wsfe:ImpIVA>
+            <wsfe:MonId>PES</wsfe:MonId>
+            <wsfe:MonCtz>1.000000</wsfe:MonCtz>
+            <wsfe:CondicionIvaReceptor>${condicionIvaReceptor}</wsfe:CondicionIvaReceptor>
+            <wsfe:Iva>
+              <wsfe:AlicIva>
+                <wsfe:Id>${alicuotaId}</wsfe:Id>
+                <wsfe:BaseImp>${netoStr}</wsfe:BaseImp>
+                <wsfe:Importe>${ivaStr}</wsfe:Importe>
+              </wsfe:AlicIva>
+            </wsfe:Iva>
           </wsfe:FECAEDetRequest>
         </wsfe:FeDetReq>
       </wsfe:FeCAEReq>
@@ -911,10 +1104,222 @@ export async function emitirReciboC(paymentId: string): Promise<EmitirReciboResu
 }
 
 /**
- * Stub for platform SaaS subscription invoice emission. Phase 5 implements the
- * full dual-regime payload builder; Phase 4 only wires the post-commit trigger.
+ * Emits a platform SaaS subscription invoice through ARCA.
+ *
+ * - Regime-driven document type: MONOTRIBUTO → Recibo C (tipo 15);
+ *   RESPONSABLE_INSCRIPTO → Factura A (tipo 1) for RI recipients,
+ *   Factura B (tipo 6) otherwise.
+ * - IVA-inclusive prices: neto = total / (1 + saas_arca_iva_rate).
+ * - Idempotent per invoice via the unique SaasComprobante.invoiceId.
+ * - Uses withEmissionLock keyed by emitter CUIT + punto de venta + tipo.
+ * - Missing recipient CUIT is recorded as ERROR; the invoice stays PAID.
  */
-export async function emitirComprobanteSaas(invoiceId: string): Promise<EmitirReciboResult> {
-  console.warn(`[arca] emitirComprobanteSaas stub invoked for invoice ${invoiceId}`);
-  return { estado: 'OMITIDO', reason: 'Phase 5 not yet implemented' };
+export async function emitirComprobanteSaas(
+  invoiceId: string
+): Promise<EmitirReciboResult> {
+  try {
+    const invoice = await prisma.saasInvoice.findUnique({
+      where: { id: invoiceId },
+      include: { institution: true },
+    });
+
+    if (!invoice) {
+      return { estado: 'ERROR', error: `SaaS invoice ${invoiceId} not found` };
+    }
+
+    // Idempotency: the unique SaasComprobante.invoiceId row is the lock.
+    const existing = await prisma.saasComprobante.findUnique({
+      where: { invoiceId },
+    });
+    if (existing) {
+      if (existing.estado === 'AUTORIZADO') {
+        return {
+          estado: 'AUTORIZADO',
+          cae: existing.cae,
+          caeVto: existing.caeVto?.toISOString() ?? null,
+        };
+      }
+      if (existing.estado === 'ERROR') {
+        return {
+          estado: 'ERROR',
+          error: existing.error ?? 'Previous emission failed',
+        };
+      }
+      return {
+        estado: 'OMITIDO',
+        reason:
+          existing.error ??
+          'Emission left in PENDIENTE; reconcile with FECompConsultar',
+      };
+    }
+
+    const config = await getSaasArcaConfig();
+    if (!config.enabled || !config.emitterCuit || config.ptoVta === null) {
+      return { estado: 'OMITIDO', reason: 'Incomplete SaaS ARCA config' };
+    }
+    if (!hasArcaCredentials()) {
+      console.warn(
+        '[arca] ARCA_CUIT/ARCA_KEY/ARCA_CERT env vars are not configured; skipping SaaS emission'
+      );
+      return { estado: 'OMITIDO', reason: 'ARCA credentials not configured' };
+    }
+
+    // Capture narrowed locals so the emission closure keeps non-null types.
+    const emitterCuit: string = config.emitterCuit;
+    const puntoVta: number = config.ptoVta;
+
+    const cbteTipo = resolveSaasCbteTipo(
+      config.regime,
+      invoice.institution.ivaCondicion || 'CF'
+    );
+    const condicionIvaReceptor = getIvaReceptorCode(
+      invoice.institution.ivaCondicion || 'CF'
+    );
+
+    if (!invoice.institution.cuit) {
+      // Lock the missing-fiscal-data case as ERROR so the gap is auditable.
+      await prisma.saasComprobante.create({
+        data: {
+          institutionId: invoice.institutionId,
+          invoiceId: invoice.id,
+          tipo: cbteTipo,
+          ptoVta: puntoVta,
+          nro: 0,
+          total: invoice.amount,
+          docTipo: 80,
+          docNro: BigInt(0),
+          condicionIvaReceptor,
+          estado: 'ERROR',
+          error:
+            'La institución no tiene CUIT configurado; no se puede emitir el comprobante',
+        },
+      });
+      return {
+        estado: 'ERROR',
+        error:
+          'La institución no tiene CUIT configurado; no se puede emitir el comprobante',
+      };
+    }
+
+    // Capture the narrowed recipient CUIT so the async closure keeps a
+    // non-null string type.
+    const recipientCuit: string = invoice.institution.cuit;
+
+    const lockKey = `${emitterCuit}:${puntoVta}:${cbteTipo}`;
+
+    return await withEmissionLock(lockKey, async () => {
+      // Re-check after acquiring the lock (another concurrent call may have
+      // finished while we waited).
+      const raceRow = await prisma.saasComprobante.findUnique({
+        where: { invoiceId },
+      });
+      if (raceRow) {
+        if (raceRow.estado === 'AUTORIZADO') {
+          return {
+            estado: 'AUTORIZADO' as const,
+            cae: raceRow.cae,
+            caeVto: raceRow.caeVto?.toISOString() ?? null,
+          };
+        }
+        return {
+          estado: 'OMITIDO' as const,
+          reason: 'Concurrent emission already created the comprobante row',
+        };
+      }
+
+      // Create the PENDIENTE row FIRST: the unique invoiceId constraint is
+      // the cross-instance guard against double emission. nro is filled in
+      // after FECompUltimoAutorizado (placeholder 0).
+      const comprobante = await prisma.saasComprobante.create({
+        data: {
+          institutionId: invoice.institutionId,
+          invoiceId: invoice.id,
+          tipo: cbteTipo,
+          ptoVta: puntoVta,
+          nro: 0,
+          total: invoice.amount,
+          docTipo: 80,
+          docNro: BigInt(recipientCuit),
+          condicionIvaReceptor,
+          estado: 'PENDIENTE',
+        },
+      });
+
+      try {
+        const auth = await requestTa(emitterCuit);
+        const ultimo = await getUltimoAutorizado(emitterCuit, puntoVta, cbteTipo);
+        const nro = ultimo + 1;
+
+        const xml = buildFecaPayload({
+          ptoVta: puntoVta,
+          nro,
+          docTipo: 80,
+          docNro: recipientCuit,
+          condicionIvaReceptor,
+          total: invoice.amount,
+          fecha: invoice.paidAt ?? new Date(),
+          cbteTipo,
+          ivaRate: config.ivaRate,
+          auth,
+        });
+
+        const caeResult = await solicitarCAE(emitterCuit, xml);
+
+        if (caeResult.resultado === 'A' && caeResult.cae) {
+          const caeVto = parseArcaDate(caeResult.caeVto ?? '');
+          await prisma.saasComprobante.update({
+            where: { id: comprobante.id },
+            data: {
+              nro,
+              cae: caeResult.cae,
+              caeVto,
+              estado: 'AUTORIZADO',
+              rawRequest: xml,
+              rawResponse: caeResult.rawResponse,
+            },
+          });
+          return {
+            estado: 'AUTORIZADO' as const,
+            cae: caeResult.cae,
+            caeVto: caeResult.caeVto,
+          };
+        }
+
+        const messages = [...caeResult.errores, ...caeResult.observaciones];
+        const errorText =
+          messages.length > 0
+            ? `Resultado ${caeResult.resultado}: ${messages.join(' | ')}`
+            : `Resultado ${caeResult.resultado} sin CAE`;
+        await prisma.saasComprobante.update({
+          where: { id: comprobante.id },
+          data: {
+            nro,
+            estado: 'ERROR',
+            error: errorText,
+            rawRequest: xml,
+            rawResponse: caeResult.rawResponse,
+          },
+        });
+        return { estado: 'ERROR' as const, error: errorText };
+      } catch (error) {
+        // Never retry automatically: the outcome of a timed-out FECAESolicitar
+        // is unknown and a blind retry could duplicate the receipt. Mark ERROR;
+        // reconciliation via consultarComprobante + manual retry is the path.
+        const message = error instanceof Error ? error.message : String(error);
+        await prisma.saasComprobante
+          .update({
+            where: { id: comprobante.id },
+            data: { estado: 'ERROR', error: message },
+          })
+          .catch(() => undefined);
+        return { estado: 'ERROR' as const, error: message };
+      }
+    });
+  } catch (error) {
+    // emitirComprobanteSaas must NEVER throw: it runs after payment confirmation
+    // and an emission failure cannot break the payment flow.
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`[arca] emitirComprobanteSaas failed for invoice ${invoiceId}: ${message}`);
+    return { estado: 'ERROR', error: message };
+  }
 }
