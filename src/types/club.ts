@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export const InstitutionCommissionTypeSchema = z.enum(['PERCENTAGE', 'FIXED']);
 export const InstitutionStatusSchema = z.enum(['ACTIVE', 'INACTIVE', 'PENDING']);
+export const IvaCondicionSchema = z.enum(['CF', 'MONO', 'RI', 'EXENTO']);
 
 export const CreateInstitutionSchema = z.object({
   name: z.string().min(1, 'El nombre es obligatorio'),
@@ -13,6 +14,8 @@ export const CreateInstitutionSchema = z.object({
   commissionType: InstitutionCommissionTypeSchema.default('PERCENTAGE'),
   commissionValue: z.number().default(0),
   status: InstitutionStatusSchema.default('ACTIVE'),
+  cuit: z.string().regex(/^\d{11}$/, 'El CUIT debe tener 11 dígitos').optional(),
+  ivaCondicion: IvaCondicionSchema.default('CF'),
 });
 
 export const UpdateInstitutionSchema = CreateInstitutionSchema.partial();
@@ -29,6 +32,9 @@ export interface InstitutionListItem {
   commissionType: string;
   commissionValue: number;
   status: string;
+  // Institution fiscal data for SaaS billing / ARCA
+  cuit?: string | null;
+  ivaCondicion?: string;
   // Institution customization fields
   logoUrl?: string | null;
   primaryColor?: string;
