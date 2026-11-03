@@ -237,3 +237,341 @@ export function SaasSubscriptionPanel({
       setPayingId(null);
     }
   }
+
+  return (
+    <div className="space-y-4">
+      <Tabs defaultValue="requests">
+        <TabsList variant="line">
+          <TabsTrigger value="requests">
+            <RefreshCw className="size-4 mr-2" />
+            Solicitudes
+          </TabsTrigger>
+          <TabsTrigger value="subscriptions">
+            <Wallet className="size-4 mr-2" />
+            Suscripciones
+          </TabsTrigger>
+          <TabsTrigger value="invoices">
+            <CreditCard className="size-4 mr-2" />
+            Facturas
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="requests" className="mt-5 space-y-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <StyledSelect
+              value={requestStatus}
+              onChange={(v) => {
+                setRequestStatus(v);
+                fetchRequests(v);
+              }}
+              options={[
+                { value: '', label: 'Todos' },
+                { value: 'PENDING', label: 'Pendientes' },
+                { value: 'APPROVED', label: 'Aprobadas' },
+                { value: 'REJECTED', label: 'Rechazadas' },
+              ]}
+              placeholder="Estado"
+              className="w-full sm:w-44"
+            />
+          </div>
+
+          <div className="rounded-lg border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Institución</TableHead>
+                  <TableHead>Plan solicitado</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead className="w-40">Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {requests.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
+                      No se encontraron solicitudes
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  requests.map((request) => (
+                    <TableRow key={request.id}>
+                      <TableCell className="font-medium">{request.institution.name}</TableCell>
+                      <TableCell>
+                        {request.requestedSaasPlan.name} ({currencyFormatter.format(request.requestedSaasPlan.priceArs)})
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={request.status === 'PENDING' ? 'secondary' : request.status === 'APPROVED' ? 'default' : 'destructive'}>
+                          {statusLabels[request.status] ?? request.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {request.status === 'PENDING' && (
+                          <div className="flex items-center gap-1">
+                            <Button
+                              size="sm"
+                              onClick={() => handleDecide(request, 'APPROVED')}
+                              disabled={decidingId === request.id}
+                            >
+                              {decidingId === request.id ? (
+                                <Loader2 className="size-3.5 animate-spin" />
+                              ) : (
+                                <Check className="size-3.5" />
+                              )}
+                              Aprobar
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDecide(request, 'REJECTED')}
+                              disabled={decidingId === request.id}
+                            >
+                              <X className="size-3.5" />
+                              Rechazar
+                            </Button>
+                          </div>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="subscriptions" className="mt-5 space-y-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <StyledSelect
+              value={subscriptionStatus}
+              onChange={(v) => {
+                setSubscriptionStatus(v);
+                fetchSubscriptions(v);
+              }}
+              options={[
+                { value: '', label: 'Todos' },
+                { value: 'ACTIVE', label: 'Activas' },
+                { value: 'CANCELLED', label: 'Canceladas' },
+              ]}
+              placeholder="Estado"
+              className="w-full sm:w-44"
+            />
+          </div>
+
+          <div className="rounded-lg border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Institución</TableHead>
+                  <TableHead>Plan actual</TableHead>
+                  <TableHead>Plan pendiente</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead className="w-40">Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {subscriptions.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
+                      No se encontraron suscripciones
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  subscriptions.map((subscription) => (
+                    <TableRow key={subscription.id}>
+                      <TableCell className="font-medium">{subscription.institution.name}</TableCell>
+                      <TableCell>
+                        {subscription.saasPlan.name} ({currencyFormatter.format(subscription.saasPlan.priceArs)})
+                      </TableCell>
+                      <TableCell>
+                        {subscription.pendingSaasPlan ? subscription.pendingSaasPlan.name : '-'}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={subscription.status === 'ACTIVE' ? 'default' : 'secondary'}>
+                          {statusLabels[subscription.status] ?? subscription.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => openEnroll(subscription.institutionId)}
+                          disabled={enrolling === subscription.institutionId}
+                        >
+                          {enrolling === subscription.institutionId ? (
+                            <Loader2 className="size-3.5 animate-spin" />
+                          ) : (
+                            <UserCheck className="size-3.5" />
+                          )}
+                          Débito
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="invoices" className="mt-5 space-y-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <StyledSelect
+              value={invoiceStatus}
+              onChange={(v) => {
+                setInvoiceStatus(v);
+                fetchInvoices(v);
+              }}
+              options={[
+                { value: '', label: 'Todos' },
+                { value: 'PENDING', label: 'Pendientes' },
+                { value: 'PAID', label: 'Pagadas' },
+                { value: 'OVERDUE', label: 'Vencidas' },
+              ]}
+              placeholder="Estado"
+              className="w-full sm:w-44"
+            />
+          </div>
+
+          <div className="rounded-lg border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Institución</TableHead>
+                  <TableHead>Período</TableHead>
+                  <TableHead>Plan</TableHead>
+                  <TableHead>Monto</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead className="w-32">Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {invoices.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+                      No se encontraron facturas
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  invoices.map((invoice) => (
+                    <TableRow key={invoice.id}>
+                      <TableCell className="font-medium">{invoice.institution.name}</TableCell>
+                      <TableCell>
+                        {invoice.month.toString().padStart(2, '0')}/{invoice.year}
+                      </TableCell>
+                      <TableCell>{invoice.saasPlan.name}</TableCell>
+                      <TableCell>{currencyFormatter.format(invoice.amount)}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            invoice.status === 'PAID'
+                              ? 'default'
+                              : invoice.status === 'OVERDUE'
+                                ? 'destructive'
+                                : 'secondary'
+                          }
+                        >
+                          {statusLabels[invoice.status] ?? invoice.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {invoice.status !== 'PAID' && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => openPay(invoice)}
+                            disabled={payingId === invoice.id}
+                          >
+                            {payingId === invoice.id ? (
+                              <Loader2 className="size-3.5 animate-spin" />
+                            ) : (
+                              <Check className="size-3.5" />
+                            )}
+                            Pagar
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      <Dialog open={enrollOpen} onOpenChange={setEnrollOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Configurar débito automático SaaS</DialogTitle>
+            <DialogDescription>
+              Elegí el medio de pago y el email del pagador. Mercado Pago genera un link de autorización.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Medio de pago</Label>
+              <StyledSelect
+                value={enrollGateway}
+                onChange={(v) => setEnrollGateway(v as 'mercadopago' | 'stripe')}
+                options={[
+                  { value: 'mercadopago', label: 'Mercado Pago' },
+                  { value: 'stripe', label: 'Stripe' },
+                ]}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="enroll-email">Email del pagador</Label>
+              <Input
+                id="enroll-email"
+                type="email"
+                value={enrollEmail}
+                onChange={(e) => setEnrollEmail(e.target.value)}
+                placeholder="admin@institucion.com"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEnrollOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleEnroll} disabled={!enrollEmail || enrolling !== null}>
+              {enrolling ? <Loader2 className="size-4 animate-spin mr-2" /> : null}
+              Configurar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={payOpen} onOpenChange={setPayOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirmar pago por transferencia</DialogTitle>
+            <DialogDescription>
+              Marcá como pagada la factura de {payInvoice?.institution.name} ingresando la referencia bancaria.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="transfer-ref">Referencia / comprobante</Label>
+              <Input
+                id="transfer-ref"
+                value={transferRef}
+                onChange={(e) => setTransferRef(e.target.value)}
+                placeholder="Ej: Transferencia #123456"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPayOpen(false)} disabled={payingId !== null}>
+              Cancelar
+            </Button>
+            <Button onClick={handlePay} disabled={!transferRef.trim() || payingId !== null}>
+              {payingId ? <Loader2 className="size-4 animate-spin mr-2" /> : null}
+              Confirmar pago
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
