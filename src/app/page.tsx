@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Logo } from '@/components/Logo';
 import { Footer } from '@/components/Footer';
+import { getActiveLandingPlans, type LandingPlan } from '@/lib/saas-plans';
 import {
   ArrowRight,
   BellRing,
@@ -13,6 +14,8 @@ import {
   Users,
   Wallet,
 } from 'lucide-react';
+
+export const dynamic = 'force-dynamic';
 
 /* Marketing copy (Spanish, voseo) per replica/launch/landing.md — Angle A.
    Comparative claims are generic on purpose; approved wording lives in
@@ -94,33 +97,6 @@ const features = [
   },
 ];
 
-/* PRICING PROPOSAL: confirm before deploy — see replica/launch/pricing.md §3.
-   Stripe products are not created yet and platform self-serve billing is not
-   wired; until both are true, keep these numbers confirmed by the founder. */
-const plans = [
-  {
-    name: 'Club de Barrio',
-    audience: 'Hasta 50 socios',
-    price: '$ 0',
-    period: 'para siempre',
-    highlight: false,
-  },
-  {
-    name: 'Club en Crecimiento',
-    audience: 'De 51 a 200 socios',
-    price: '$ 35.000',
-    period: 'por mes',
-    highlight: true,
-  },
-  {
-    name: 'Institución Grande',
-    audience: 'De 201 a 800 socios',
-    price: '$ 85.000',
-    period: 'por mes',
-    highlight: false,
-  },
-];
-
 const faqs = [
   {
     question: '¿Cómo funciona el débito automático?',
@@ -154,7 +130,9 @@ const faqs = [
   },
 ];
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const landingPlans: LandingPlan[] = await getActiveLandingPlans();
+
   return (
     <div className="flex min-h-screen flex-col">
       {/* Hero */}
@@ -273,7 +251,7 @@ export default function LandingPage() {
         </section>
 
         {/* Pricing */}
-        {/* PRICING PROPOSAL: confirm before deploy — replica/launch/pricing.md */}
+        {/* Prices are rendered from the active SaaS plan catalog (D7). Deactivated plans are hidden. */}
         <section id="precios" className="py-16 px-6 border-t border-border bg-muted/30 scroll-mt-16">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
@@ -283,9 +261,9 @@ export default function LandingPage() {
               <h2 className="text-3xl sm:text-4xl font-heading font-extrabold tracking-tight">El precio que ves es el precio que pagás</h2>
             </div>
             <div className="grid gap-6 sm:grid-cols-3">
-              {plans.map((plan) => (
+              {landingPlans.map((plan) => (
                 <div
-                  key={plan.name}
+                  key={plan.id}
                   className={`p-6 rounded-xl border bg-card flex flex-col ${
                     plan.highlight ? 'border-accent ring-1 ring-accent' : 'border-border'
                   }`}

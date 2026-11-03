@@ -3,6 +3,7 @@ import * as xlsx from 'xlsx';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
 import { requireInstitution, AuthError } from '@/lib/access';
+import { checkTierAlert } from '@/lib/saas-billing';
 import { CreateMemberSchema } from '@/types/member';
 
 interface ImportError {
@@ -202,6 +203,14 @@ export async function POST(request: NextRequest) {
         data: membersToCreate.map((m) => ({ ...m, clubId: ctx.institutionId! })),
         skipDuplicates: true,
       });
+
+      const memberCount = await prisma.member.count({ where: { clubId: ctx.institutionId } });
+      const triggerMember = await prisma.member.findFirst({
+        where: { clubId: ctx.institutionId, dni: { in: membersToCreate.map((m) => m.dni) } },
+        orderBy: { createdAt: 'desc' },
+        select: { id: true },
+      });
+      await checkTierAlert(ctx.institutionId, memberCount, triggerMember?.id);
     }
 
     return apiSuccess({ imported: membersToCreate.length, errors });
