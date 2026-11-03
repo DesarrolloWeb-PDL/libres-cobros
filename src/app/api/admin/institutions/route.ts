@@ -6,6 +6,7 @@ import { requireInstitution, AuthError } from '@/lib/access';
 
 const InstitutionCommissionTypeSchema = z.enum(['PERCENTAGE', 'FIXED']);
 const InstitutionStatusSchema = z.enum(['ACTIVE', 'INACTIVE', 'PENDING']);
+const IvaCondicionSchema = z.enum(['CF', 'MONO', 'RI', 'EXENTO']);
 
 const CreateInstitutionSchema = z.object({
   name: z.string().min(1, 'El nombre es obligatorio'),
@@ -17,6 +18,8 @@ const CreateInstitutionSchema = z.object({
   commissionType: InstitutionCommissionTypeSchema.default('PERCENTAGE'),
   commissionValue: z.number().default(0),
   status: InstitutionStatusSchema.default('ACTIVE'),
+  cuit: z.string().regex(/^\d{11}$/).optional(),
+  ivaCondicion: IvaCondicionSchema.default('CF'),
 });
 
 function validateCommission(
@@ -121,6 +124,8 @@ export async function POST(request: NextRequest) {
         commissionType,
         commissionValue,
         status: parsed.data.status,
+        cuit: parsed.data.cuit ?? null,
+        ivaCondicion: parsed.data.ivaCondicion,
       },
     });
 

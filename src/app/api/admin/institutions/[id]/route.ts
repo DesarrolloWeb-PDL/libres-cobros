@@ -6,6 +6,7 @@ import { requireInstitution, AuthError } from '@/lib/access';
 
 const InstitutionCommissionTypeSchema = z.enum(['PERCENTAGE', 'FIXED']);
 const InstitutionStatusSchema = z.enum(['ACTIVE', 'INACTIVE', 'PENDING']);
+const IvaCondicionSchema = z.enum(['CF', 'MONO', 'RI', 'EXENTO']);
 
 const UpdateInstitutionSchema = z.object({
   name: z.string().min(1, 'El nombre es obligatorio').optional(),
@@ -19,6 +20,8 @@ const UpdateInstitutionSchema = z.object({
   commissionType: InstitutionCommissionTypeSchema.optional(),
   commissionValue: z.number().optional(),
   status: InstitutionStatusSchema.optional(),
+  cuit: z.string().regex(/^\d{11}$/).nullable().optional(),
+  ivaCondicion: IvaCondicionSchema.optional(),
   logoUrl: z.string().url().nullable().optional(),
   primaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
   secondaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
@@ -51,6 +54,8 @@ function serializeInstitution(institution: {
   commissionType: string;
   commissionValue: number;
   status: string;
+  cuit?: string | null;
+  ivaCondicion?: string;
   logoUrl?: string | null;
   primaryColor?: string;
   secondaryColor?: string;
@@ -167,6 +172,8 @@ export async function PATCH(
           commissionValue: parsed.data.commissionValue,
         }),
         ...(parsed.data.status && { status: parsed.data.status }),
+        ...(parsed.data.cuit !== undefined && { cuit: parsed.data.cuit }),
+        ...(parsed.data.ivaCondicion && { ivaCondicion: parsed.data.ivaCondicion }),
         ...(parsed.data.logoUrl !== undefined && { logoUrl: parsed.data.logoUrl }),
         ...(parsed.data.primaryColor && { primaryColor: parsed.data.primaryColor }),
         ...(parsed.data.secondaryColor && { secondaryColor: parsed.data.secondaryColor }),

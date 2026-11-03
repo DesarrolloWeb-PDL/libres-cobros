@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Key, Loader2, Palette } from 'lucide-react';
+import { ArrowLeft, Key, Loader2, Palette, ReceiptText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,6 +32,10 @@ export function InstitutionForm({ club }: InstitutionFormProps) {
   const [status, setStatus] = useState<'ACTIVE' | 'INACTIVE'>(
     club.status as 'ACTIVE' | 'INACTIVE'
   );
+  const [cuit, setCuit] = useState(club.cuit ?? '');
+  const [ivaCondicion, setIvaCondicion] = useState<'CF' | 'MONO' | 'RI' | 'EXENTO'>(
+    (club.ivaCondicion as 'CF' | 'MONO' | 'RI' | 'EXENTO') ?? 'CF'
+  );
   const [bgColor, setBgColor] = useState<string>(club.bgColor ?? '#f8fafc');
 
   async function handleSubmit(e: React.FormEvent) {
@@ -50,6 +54,8 @@ export function InstitutionForm({ club }: InstitutionFormProps) {
           commissionType,
           commissionValue: Number(commissionValue),
           status,
+          cuit: cuit.trim() || null,
+          ivaCondicion,
           bgColor,
         }),
       });
@@ -240,6 +246,45 @@ export function InstitutionForm({ club }: InstitutionFormProps) {
             ]}
             className="h-10"
           />
+        </div>
+
+        <div className="space-y-3 rounded-xl border bg-muted/30 p-4">
+          <div className="flex items-center gap-2">
+            <ReceiptText className="size-4 text-muted-foreground" />
+            <Label className="text-sm font-medium">Datos fiscales (SaaS / ARCA)</Label>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="cuit" className="text-sm font-medium">CUIT</Label>
+              <Input
+                id="cuit"
+                type="text"
+                inputMode="numeric"
+                maxLength={11}
+                value={cuit}
+                onChange={(e) => setCuit(e.target.value.replace(/\D/g, '').slice(0, 11))}
+                placeholder="Ej: 30712345678"
+                className="h-10"
+              />
+              <p className="text-xs text-muted-foreground">
+                11 dígitos, sin guiones. Requerido para emitir comprobantes ante ARCA.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ivaCondicion" className="text-sm font-medium">Condición ante IVA</Label>
+              <StyledSelect
+                value={ivaCondicion}
+                onChange={(v) => setIvaCondicion(v as 'CF' | 'MONO' | 'RI' | 'EXENTO')}
+                options={[
+                  { value: 'CF', label: 'Consumidor Final' },
+                  { value: 'MONO', label: 'Monotributo' },
+                  { value: 'RI', label: 'Responsable Inscripto' },
+                  { value: 'EXENTO', label: 'Exento' },
+                ]}
+                className="h-10"
+              />
+            </div>
+          </div>
         </div>
 
         <div className="space-y-3 rounded-xl border bg-muted/30 p-4">
