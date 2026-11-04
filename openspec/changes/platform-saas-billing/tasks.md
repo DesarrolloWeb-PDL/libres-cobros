@@ -12,7 +12,7 @@ Read `node_modules/next/dist/docs/` first; conform to D1–D7.
 
 Decision needed before apply: Yes
 Chained PRs recommended: Yes
-Chain strategy: pending
+Chain strategy: stacked-to-main
 400-line budget risk: High
 
 ### Work Units
@@ -37,9 +37,9 @@ Chain strategy: pending
 
 ## Phase 3: Billing+Cron
 
-- [ ] 3.1 tests/unit/saas-billing.test.ts (mocked Prisma): boundaries 50/51/200/201/800/801, idempotency, pending-swap, $0 skip, cadence.
-- [ ] 3.2 src/lib/saas-billing.ts per D2/D6: runSaasBilling, OVERDUE sweep, deduped email reminders, checkTierAlert (never throws).
-- [ ] 3.3 api/cron/saas-billing/route.ts (authorizeCron/CRON_SECRET) + vercel.json daily entry.
+- [x] 3.1 tests/unit/saas-billing.test.ts (mocked Prisma): boundaries 50/51/200/201/800/801, idempotency, pending-swap, $0 skip, cadence.
+- [x] 3.2 src/lib/saas-billing.ts per D2/D6: runSaasBilling, OVERDUE sweep, deduped email reminders, checkTierAlert (never throws).
+- [x] 3.3 api/cron/saas-billing/route.ts (authorizeCron/CRON_SECRET) + vercel.json daily entry.
 
 ## Phase 4: Collection
 
