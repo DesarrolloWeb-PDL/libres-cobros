@@ -690,7 +690,7 @@ export function signLoginTicketRequest(taXml: string, certPem: string, keyPem: s
   return Buffer.from(der, 'binary').toString('base64');
 }
 
-async function requestTa(
+export async function requestTa(
   cuit: string,
   creds?: { certPem: string; keyPem: string }
 ): Promise<TaCredentials> {
