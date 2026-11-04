@@ -51,10 +51,10 @@ Chain strategy: stacked-to-main
 
 ## Phase 5: ARCA
 
-- [ ] 5.1 tests/unit/arca-saas.test.ts: tipo 15/1/6 shapes, IVA total/(1+rate), regime→tipo, missing CUIT → ERROR.
-- [ ] 5.2 arca.ts per D4: buildFecaPayload({cbteTipo,ivaRate?}), emitirComprobanteSaas (regime→tipo, idempotent, withEmissionLock).
-- [ ] 5.3 emitirReciboC/buildReciboCPayload byte-compatible: arca.test.ts green unedited.
-- [ ] 5.4 Emission post-commit from confirmSaasInvoice; failure recorded, PAID unchanged.
+- [x] 5.1 tests/unit/arca-saas.test.ts: tipo 15/1/6 shapes, IVA total/(1+rate), regime→tipo, missing CUIT → ERROR.
+- [x] 5.2 arca.ts per D4: buildFecaPayload({cbteTipo,ivaRate?}), emitirComprobanteSaas (regime→tipo, idempotent, withEmissionLock).
+- [x] 5.3 emitirReciboC/buildReciboCPayload byte-compatible: arca.test.ts green unedited.
+- [x] 5.4 Emission post-commit from confirmSaasInvoice; failure recorded, PAID unchanged.
 
 ## Phase 6: Admin API+UI
 
