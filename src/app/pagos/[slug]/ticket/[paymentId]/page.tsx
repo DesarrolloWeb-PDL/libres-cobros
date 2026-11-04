@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import { headers } from 'next/headers';
 import QRCode from 'qrcode';
 import { prisma } from '@/lib/db';
-import { buildArcaQrUrl } from '@/lib/arca';
+import { buildArcaQrUrl, resolveClubArcaEmitterCuit } from '@/lib/arca';
 import { TicketPDF } from '@/components/member/TicketPDF';
 import { TicketActions } from '@/components/member/TicketActions';
 
@@ -85,12 +85,11 @@ export default async function TicketPage({ params }: TicketPageProps) {
   });
 
   // ARCA QR needs the club's fiscal CUIT (the emitter on the receipt).
+  // resolveClubArcaEmitterCuit uses the same source ordering as credential
+  // resolution so the QR and the emission always agree on the emitter CUIT.
   let comprobanteQrDataUrl: string | null = null;
   if (comprobante && comprobante.estado === 'AUTORIZADO') {
-    const arcaCuitConfig = await prisma.siteConfig.findUnique({
-      where: { clubId_key: { clubId: club.id, key: 'arca_cuit' } },
-    });
-    const arcaCuit = arcaCuitConfig?.value?.trim();
+    const arcaCuit = await resolveClubArcaEmitterCuit(club.id);
     if (arcaCuit && comprobante.caeVto) {
       try {
         const arcaQrUrl = buildArcaQrUrl({

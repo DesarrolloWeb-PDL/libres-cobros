@@ -113,6 +113,9 @@ export const SAAS_SITE_CONFIG_KEYS = [
   'saas_arca_regime',
   'saas_arca_iva_rate',
   'saas_arca_pto_vta',
+  'saas_arca_cuit',
+  'saas_arca_cert',
+  'saas_arca_key',
   'saas_reminder_days',
 ] as const;
 

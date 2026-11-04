@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
 import { requireInstitution, AuthError } from '@/lib/access';
+import { encryptArcaKey } from '@/lib/arca';
 import type { SiteConfigListItem, SiteConfigListResponse } from '@/types/config';
 
 const UpdateSiteConfigSchema = z.object({
@@ -42,6 +43,8 @@ const CONFIG_KEYS = [
   'arca_enabled',
   'arca_cuit',
   'arca_punto_vta',
+  'arca_cert',
+  'arca_key',
   'stripe_enabled',
   'mercadopago_enabled',
   'bank_transfer_enabled',
@@ -51,8 +54,61 @@ const CONFIG_KEYS = [
   'saas_arca_regime',
   'saas_arca_iva_rate',
   'saas_arca_pto_vta',
+  'saas_arca_cuit',
+  'saas_arca_cert',
+  'saas_arca_key',
   'saas_reminder_days',
 ];
+
+// Institution-scoped keys must only be written when an institution is selected.
+const INSTITUTION_ONLY_KEYS = [
+  'commission_rate',
+  'bank_alias',
+  'bank_cbu',
+  'bank_cuit',
+  'bank_name',
+  'bank_holder',
+  'bank_reference',
+  'mercadopago_access_token',
+  'mercadopago_client_secret',
+  'stripe_secret_key',
+  'stripe_webhook_secret',
+  'whatsapp_phone_number_id',
+  'whatsapp_access_token',
+  'resend_api_key',
+  'resend_from_email',
+  'arca_enabled',
+  'arca_cuit',
+  'arca_punto_vta',
+  'arca_cert',
+  'arca_key',
+  'stripe_enabled',
+  'mercadopago_enabled',
+  'bank_transfer_enabled',
+];
+
+// Platform-scoped keys must only be written when no institution is selected.
+const PLATFORM_ONLY_KEYS = [
+  'saas_billing_enabled',
+  'saas_billing_day',
+  'saas_arca_regime',
+  'saas_arca_iva_rate',
+  'saas_arca_pto_vta',
+  'saas_arca_cuit',
+  'saas_arca_cert',
+  'saas_arca_key',
+  'saas_reminder_days',
+];
+
+const PRIVATE_KEY_CONFIG_KEYS = new Set(['arca_key', 'saas_arca_key']);
+const CERT_CONFIG_KEYS = new Set(['arca_cert', 'saas_arca_cert']);
+
+function maskCertValue(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+  const tail = trimmed.slice(-20);
+  return tail.length === 20 ? `···${tail}` : '';
+}
 
 function serializeConfig(config: {
   id: string;
@@ -60,11 +116,37 @@ function serializeConfig(config: {
   value: string;
   updatedAt: Date;
 }): SiteConfigListItem {
+  const key = config.key;
+  const rawValue = config.value;
+  const configured = rawValue.trim().length > 0;
+
+  if (PRIVATE_KEY_CONFIG_KEYS.has(key)) {
+    return {
+      id: config.id,
+      key,
+      value: '',
+      keyConfigured: configured,
+      description: getConfigDescription(key),
+      updatedAt: config.updatedAt.toISOString(),
+    };
+  }
+
+  if (CERT_CONFIG_KEYS.has(key)) {
+    return {
+      id: config.id,
+      key,
+      value: maskCertValue(rawValue),
+      certConfigured: configured,
+      description: getConfigDescription(key),
+      updatedAt: config.updatedAt.toISOString(),
+    };
+  }
+
   return {
     id: config.id,
-    key: config.key,
-    value: config.value,
-    description: getConfigDescription(config.key),
+    key,
+    value: rawValue,
+    description: getConfigDescription(key),
     updatedAt: config.updatedAt.toISOString(),
   };
 }
@@ -195,6 +277,22 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    // Enforce scoping: institution keys require an institution selection and
+    // platform keys require the platform-wide scope. This closes the cross-
+    // tenant write hole where a SUPER_ADMIN without an institution selected
+    // would write arca_* rows with clubId=null (dead data).
+    const scopeError = ctx.institutionId
+      ? configs.find((c) => PLATFORM_ONLY_KEYS.includes(c.key))
+      : configs.find((c) => INSTITUTION_ONLY_KEYS.includes(c.key));
+    if (scopeError) {
+      return apiError(
+        'Clave fuera de alcance',
+        400,
+        `${scopeError.key} no puede guardarse en este ámbito`,
+        'VALIDATION_ERROR'
+      );
+    }
+
     const commissionRate = configs.find((c) => c.key === 'commission_rate');
     if (commissionRate) {
       const rate = parseFloat(commissionRate.value);
@@ -208,50 +306,55 @@ export async function PUT(request: NextRequest) {
       }
     }
 
+    const clubId = ctx.institutionId;
+
     // Platform-level config (SUPER_ADMIN without institution selection).
     // @@unique([clubId, key]) treats NULLs as distinct in PostgreSQL, so upsert
     // via the compound key is unreliable — use findFirst + update/create.
-    if (!ctx.institutionId) {
-      const updated = await prisma.$transaction(async (tx) => {
-        const results = [];
-        for (const config of configs) {
-          const existing = await tx.siteConfig.findFirst({
-            where: { clubId: null, key: config.key },
-          });
-          if (existing) {
-            results.push(
-              await tx.siteConfig.update({
-                where: { id: existing.id },
-                data: { value: config.value },
-              })
-            );
-          } else {
-            results.push(
-              await tx.siteConfig.create({
-                data: { clubId: null, key: config.key, value: config.value },
-              })
-            );
-          }
+    const updated = await prisma.$transaction(async (tx) => {
+      const results = [];
+      for (const config of configs) {
+        const existing = clubId
+          ? await tx.siteConfig.findUnique({
+              where: { clubId_key: { clubId, key: config.key } },
+            })
+          : await tx.siteConfig.findFirst({
+              where: { clubId: null, key: config.key },
+            });
+
+        const isSecretKey = PRIVATE_KEY_CONFIG_KEYS.has(config.key);
+        const isCertKey = CERT_CONFIG_KEYS.has(config.key);
+        const currentValue = existing?.value ?? '';
+
+        // Write-only secrets: an empty/masked value means "keep existing".
+        // This lets the UI show "configured" without echoing the PEM back.
+        let nextValue = config.value;
+        if ((isSecretKey || isCertKey) && !nextValue.trim()) {
+          nextValue = currentValue;
         }
-        return results;
-      });
+        if (isSecretKey && nextValue.trim() && nextValue !== currentValue) {
+          nextValue = encryptArcaKey(nextValue);
+        }
 
-      return apiSuccess({ data: updated.map(serializeConfig) });
-    }
-
-    const updated = await prisma.$transaction(
-      configs.map((config) =>
-        prisma.siteConfig.upsert({
-          where: { clubId_key: { clubId: ctx.institutionId!, key: config.key } },
-          update: { value: config.value },
-          create: {
-            clubId: ctx.institutionId!,
-            key: config.key,
-            value: config.value,
-          },
-        })
-      )
-    );
+        if (existing) {
+          results.push(
+            await tx.siteConfig.update({
+              where: { id: existing.id },
+              data: { value: nextValue },
+            })
+          );
+        } else {
+          results.push(
+            await tx.siteConfig.create({
+              data: clubId
+                ? { clubId, key: config.key, value: nextValue }
+                : { clubId: null, key: config.key, value: nextValue },
+            })
+          );
+        }
+      }
+      return results;
+    });
 
     const response: SiteConfigListResponse = {
       data: updated.map(serializeConfig),
@@ -286,6 +389,8 @@ function getConfigDescription(key: string): string {
     arca_enabled: 'Emitir comprobantes electrónicos ARCA (Recibo C) ante cada pago confirmado',
     arca_cuit: 'CUIT de la institución ante ARCA (11 dígitos)',
     arca_punto_vta: 'Punto de venta ARCA habilitado para la emisión (número entero)',
+    arca_cert: 'Certificado X.509 de la institución ante ARCA (PEM)',
+    arca_key: 'Clave privada X.509 de la institución ante ARCA (PEM, cifrada en reposo)',
     stripe_enabled: 'Permitir pagos con Stripe a los socios',
     mercadopago_enabled: 'Permitir pagos con Mercado Pago a los socios',
     bank_transfer_enabled: 'Permitir pagos por transferencia bancaria a los socios',
@@ -294,6 +399,9 @@ function getConfigDescription(key: string): string {
     saas_arca_regime: 'Regimen ARCA plataforma: MONOTRIBUTO o RESPONSABLE_INSCRIPTO',
     saas_arca_iva_rate: 'Tasa de IVA (porcentaje) para comprobantes SaaS (default 21)',
     saas_arca_pto_vta: 'Punto de venta ARCA para comprobantes SaaS plataforma',
+    saas_arca_cuit: 'CUIT emisor de la plataforma ante ARCA (11 dígitos)',
+    saas_arca_cert: 'Certificado X.509 de la plataforma ante ARCA (PEM)',
+    saas_arca_key: 'Clave privada X.509 de la plataforma ante ARCA (PEM, cifrada en reposo)',
     saas_reminder_days: 'Dias de recordatorio de vencimiento SaaS (CSV, ej: 1,7,15; vacio = desactivado)',
   };
   return descriptions[key] ?? '';

@@ -19,6 +19,10 @@ export interface SiteConfigListItem {
   value: string;
   description: string;
   updatedAt: string;
+  /** True when a write-only private key is configured (value is never returned). */
+  keyConfigured?: boolean;
+  /** True when a certificate is configured (value is masked in responses). */
+  certConfigured?: boolean;
 }
 
 export interface SiteConfigTheme {

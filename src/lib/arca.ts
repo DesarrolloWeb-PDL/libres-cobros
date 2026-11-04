@@ -30,6 +30,11 @@ import {
   getInstitutionSiteConfigValues,
   getPlatformSiteConfigValues,
 } from '@/lib/site-config';
+import { decryptArcaKey } from '@/lib/arca-crypto';
+
+// encryptArcaKey is re-exported for consumers that store credentials (e.g. API
+// routes), keeping the encryption surface in one place.
+export { encryptArcaKey } from '@/lib/arca-crypto';
 import forge from 'node-forge';
 import { XMLParser } from 'fast-xml-parser';
 
@@ -39,8 +44,16 @@ import { XMLParser } from 'fast-xml-parser';
 
 export interface ArcaClubConfig {
   enabled: boolean;
-  cuit: string | null; // club's CUIT (fiscal emitter, represented by ours)
+  cuit: string | null; // club's CUIT (fiscal emitter)
   ptoVta: number | null;
+  certConfigured: boolean;
+  keyConfigured: boolean;
+}
+
+export interface ArcaCredentials {
+  cuit: string;
+  certPem: string;
+  keyPem: string;
 }
 
 export interface ReciboCAuth {
@@ -178,6 +191,8 @@ export async function getArcaConfig(clubId: string): Promise<ArcaClubConfig> {
     'arca_enabled',
     'arca_cuit',
     'arca_punto_vta',
+    'arca_cert',
+    'arca_key',
   ]);
 
   const rawPtoVta = (values.arca_punto_vta ?? '').trim();
@@ -189,6 +204,8 @@ export async function getArcaConfig(clubId: string): Promise<ArcaClubConfig> {
     enabled: values.arca_enabled === 'true',
     cuit: normalizedCuit,
     ptoVta: ptoVta !== null && ptoVta > 0 ? ptoVta : null,
+    certConfigured: (values.arca_cert ?? '').trim().length > 0,
+    keyConfigured: (values.arca_key ?? '').trim().length > 0,
   };
 }
 
@@ -205,13 +222,14 @@ export async function getSaasArcaConfig(): Promise<SaasArcaConfig> {
     'saas_arca_regime',
     'saas_arca_pto_vta',
     'saas_arca_iva_rate',
+    'saas_arca_cuit',
   ]);
 
   const regime = (values.saas_arca_regime ?? 'MONOTRIBUTO').trim();
   const rawPtoVta = (values.saas_arca_pto_vta ?? '').trim();
   const ptoVta = /^\d+$/.test(rawPtoVta) ? Number(rawPtoVta) : null;
 
-  const emitterCuit = (process.env.ARCA_CUIT ?? '').trim();
+  const emitterCuit = (values.saas_arca_cuit?.trim() || process.env.ARCA_CUIT || '').trim();
   const normalizedEmitterCuit = /^\d{11}$/.test(emitterCuit) ? emitterCuit : null;
 
   const rawRate = (values.saas_arca_iva_rate ?? '21').trim();
@@ -229,6 +247,98 @@ export async function getSaasArcaConfig(): Promise<SaasArcaConfig> {
     ptoVta,
     ivaRate,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Credential resolution — stored per-tenant / platform / env fallback
+// ---------------------------------------------------------------------------
+
+function normalizePem(value: string): string | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  try {
+    return decodePemEnv(trimmed);
+  } catch {
+    return null;
+  }
+}
+
+function readEnvArcaCredentials(): ArcaCredentials | null {
+  const cuit = (process.env.ARCA_CUIT ?? '').trim();
+  const certRaw = (process.env.ARCA_CERT ?? '').trim();
+  const keyRaw = (process.env.ARCA_KEY ?? '').trim();
+  if (!cuit || !certRaw || !keyRaw) return null;
+  if (!/^\d{11}$/.test(cuit)) return null;
+
+  const certPem = normalizePem(certRaw);
+  const keyPem = normalizePem(keyRaw);
+  if (!certPem || !keyPem) return null;
+
+  return { cuit, certPem, keyPem };
+}
+
+/**
+ * Resolve the ARCA credentials for a club, with fallback to platform stored
+ * credentials and then to env vars. This MUST be the single source of truth
+ * for both TA signing and emitter CUIT resolution so the two never diverge.
+ */
+export async function resolveClubArcaCredentials(clubId: string): Promise<ArcaCredentials | null> {
+  const values = await getInstitutionSiteConfigValues(clubId, ['arca_cuit', 'arca_cert', 'arca_key']);
+
+  const cuit = (values.arca_cuit ?? '').trim();
+  const certPem = normalizePem(values.arca_cert ?? '');
+  const encryptedKey = (values.arca_key ?? '').trim();
+  const keyPem = encryptedKey ? decryptArcaKey(encryptedKey) : null;
+
+  if (/^\d{11}$/.test(cuit) && certPem && keyPem) {
+    return { cuit, certPem, keyPem };
+  }
+
+  return resolvePlatformArcaCredentials();
+}
+
+/**
+ * Resolve platform ARCA credentials from stored SiteConfig, falling back to
+ * env vars. Used for SaaS invoices (platform → institution).
+ */
+export async function resolvePlatformArcaCredentials(): Promise<ArcaCredentials | null> {
+  const values = await getPlatformSiteConfigValues([
+    'saas_arca_cuit',
+    'saas_arca_cert',
+    'saas_arca_key',
+  ]);
+
+  const cuit = (values.saas_arca_cuit ?? '').trim();
+  const certPem = normalizePem(values.saas_arca_cert ?? '');
+  const encryptedKey = (values.saas_arca_key ?? '').trim();
+  const keyPem = encryptedKey ? decryptArcaKey(encryptedKey) : null;
+
+  if (/^\d{11}$/.test(cuit) && certPem && keyPem) {
+    return { cuit, certPem, keyPem };
+  }
+
+  return readEnvArcaCredentials();
+}
+
+/**
+ * Resolve the emitter CUIT for a club receipt. Uses the same source ordering
+ * as credential resolution so the QR page and emission logic stay in sync.
+ */
+export async function resolveClubArcaEmitterCuit(clubId: string): Promise<string | null> {
+  const creds = await resolveClubArcaCredentials(clubId);
+  if (creds) return creds.cuit;
+
+  // No credentials at all: still try to provide a CUIT for the QR from stored config/env.
+  const values = await getInstitutionSiteConfigValues(clubId, ['arca_cuit']);
+  const cuit = (values.arca_cuit ?? '').trim();
+  if (/^\d{11}$/.test(cuit)) return cuit;
+
+  const platformCuit = (await getPlatformSiteConfigValues(['saas_arca_cuit'])).saas_arca_cuit ?? '';
+  const normalizedPlatformCuit = platformCuit.trim();
+  if (/^\d{11}$/.test(normalizedPlatformCuit)) return normalizedPlatformCuit;
+
+  const envCuit = (process.env.ARCA_CUIT ?? '').trim();
+  return /^\d{11}$/.test(envCuit) ? envCuit : null;
 }
 
 export function resolveSaasCbteTipo(
@@ -535,21 +645,8 @@ interface TaCredentials {
 // deployments will each hold their own TA — that is fine, WSAA allows several.
 const taCache = new Map<string, TaCredentials>();
 
-function readArcaCredentials(): { cuit: string; certPem: string; keyPem: string } | null {
-  const cuit = (process.env.ARCA_CUIT ?? '').trim();
-  const certRaw = (process.env.ARCA_CERT ?? '').trim();
-  const keyRaw = (process.env.ARCA_KEY ?? '').trim();
-  if (!cuit || !certRaw || !keyRaw) return null;
-  if (!/^\d{11}$/.test(cuit)) return null;
-  try {
-    return { cuit, certPem: decodePemEnv(certRaw), keyPem: decodePemEnv(keyRaw) };
-  } catch {
-    return null;
-  }
-}
-
 export function hasArcaCredentials(): boolean {
-  return readArcaCredentials() !== null;
+  return readEnvArcaCredentials() !== null;
 }
 
 function buildLoginTicketRequestXml(cuit: string): string {
@@ -593,18 +690,25 @@ export function signLoginTicketRequest(taXml: string, certPem: string, keyPem: s
   return Buffer.from(der, 'binary').toString('base64');
 }
 
-async function requestTa(cuit: string): Promise<TaCredentials> {
+export async function requestTa(
+  cuit: string,
+  creds?: { certPem: string; keyPem: string }
+): Promise<TaCredentials> {
   const cached = taCache.get(cuit);
   if (cached && cached.expiresAt > Date.now()) {
     return cached;
   }
 
-  const creds = readArcaCredentials();
-  if (!creds) {
+  const resolved = creds ?? readEnvArcaCredentials();
+  if (!resolved) {
     throw new Error('ARCA credentials are not configured');
   }
 
-  const cms = signLoginTicketRequest(buildLoginTicketRequestXml(cuit), creds.certPem, creds.keyPem);
+  const cms = signLoginTicketRequest(
+    buildLoginTicketRequestXml(cuit),
+    resolved.certPem,
+    resolved.keyPem
+  );
 
   const envelope = `<?xml version="1.0" encoding="UTF-8"?>
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:wsaa="http://wsaa.view.sua.dvadac.com.ar/">
@@ -683,8 +787,13 @@ function authXml(auth: FeAuthParams): string {
     </wsfe:FeAuthReq>`;
 }
 
-export async function getUltimoAutorizado(cuit: string, ptoVta: number, tipo = 15): Promise<number> {
-  const auth = await requestTa(cuit);
+export async function getUltimoAutorizado(
+  cuit: string,
+  ptoVta: number,
+  tipo = 15,
+  creds?: { certPem: string; keyPem: string }
+): Promise<number> {
+  const auth = await requestTa(cuit, creds);
   const body = `<?xml version="1.0" encoding="UTF-8"?>
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:wsfe="http://ar.gov.afip.dif.FEV1/">
   <soapenv:Header/>
@@ -827,9 +936,10 @@ export async function consultarComprobante(
   cuit: string,
   ptoVta: number,
   nro: number,
-  tipo = 15
+  tipo = 15,
+  creds?: { certPem: string; keyPem: string }
 ): Promise<{ cae: string; caeVto: string | null; resultado: string } | null> {
-  const auth = await requestTa(cuit);
+  const auth = await requestTa(cuit, creds);
   const body = `<?xml version="1.0" encoding="UTF-8"?>
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:wsfe="http://ar.gov.afip.dif.FEV1/">
   <soapenv:Header/>
@@ -953,9 +1063,11 @@ export async function emitirReciboC(paymentId: string): Promise<EmitirReciboResu
     // Capture narrowed locals so the emission closure keeps non-null types.
     const clubCuit: string = config.cuit;
     const puntoVta: number = config.ptoVta;
-    if (!hasArcaCredentials()) {
+
+    const credentials = await resolveClubArcaCredentials(payment.clubId);
+    if (!credentials) {
       console.warn(
-        '[arca] ARCA_CUIT/ARCA_KEY/ARCA_CERT env vars are not configured; skipping emission'
+        '[arca] No ARCA credentials found for club (stored/platform/env); skipping emission'
       );
       return { estado: 'OMITIDO', reason: 'ARCA credentials not configured' };
     }
@@ -1027,8 +1139,8 @@ export async function emitirReciboC(paymentId: string): Promise<EmitirReciboResu
       });
 
       try {
-        const auth = await requestTa(clubCuit);
-        const ultimo = await getUltimoAutorizado(clubCuit, puntoVta);
+        const auth = await requestTa(clubCuit, credentials);
+        const ultimo = await getUltimoAutorizado(clubCuit, puntoVta, 15, credentials);
         const nro = ultimo + 1;
 
         const xml = buildReciboCPayload({
@@ -1042,7 +1154,7 @@ export async function emitirReciboC(paymentId: string): Promise<EmitirReciboResu
           auth,
         });
 
-        const caeResult = await solicitarCAE(clubCuit, xml);
+        const caeResult = await solicitarCAE(credentials.cuit, xml);
 
         if (caeResult.resultado === 'A' && caeResult.cae) {
           const caeVto = parseArcaDate(caeResult.caeVto ?? '');
@@ -1157,9 +1269,11 @@ export async function emitirComprobanteSaas(
     if (!config.enabled || !config.emitterCuit || config.ptoVta === null) {
       return { estado: 'OMITIDO', reason: 'Incomplete SaaS ARCA config' };
     }
-    if (!hasArcaCredentials()) {
+
+    const credentials = await resolvePlatformArcaCredentials();
+    if (!credentials) {
       console.warn(
-        '[arca] ARCA_CUIT/ARCA_KEY/ARCA_CERT env vars are not configured; skipping SaaS emission'
+        '[arca] No platform ARCA credentials found (stored/env); skipping SaaS emission'
       );
       return { estado: 'OMITIDO', reason: 'ARCA credentials not configured' };
     }
@@ -1246,8 +1360,8 @@ export async function emitirComprobanteSaas(
       });
 
       try {
-        const auth = await requestTa(emitterCuit);
-        const ultimo = await getUltimoAutorizado(emitterCuit, puntoVta, cbteTipo);
+        const auth = await requestTa(emitterCuit, credentials);
+        const ultimo = await getUltimoAutorizado(emitterCuit, puntoVta, cbteTipo, credentials);
         const nro = ultimo + 1;
 
         const xml = buildFecaPayload({
@@ -1263,7 +1377,7 @@ export async function emitirComprobanteSaas(
           auth,
         });
 
-        const caeResult = await solicitarCAE(emitterCuit, xml);
+        const caeResult = await solicitarCAE(credentials.cuit, xml);
 
         if (caeResult.resultado === 'A' && caeResult.cae) {
           const caeVto = parseArcaDate(caeResult.caeVto ?? '');
