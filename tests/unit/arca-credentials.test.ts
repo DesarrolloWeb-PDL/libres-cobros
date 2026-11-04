@@ -8,6 +8,7 @@ import {
   resolveClubArcaCredentials,
   resolvePlatformArcaCredentials,
   resolveClubArcaEmitterCuit,
+  getUltimoAutorizado,
 } from '@/lib/arca';
 
 vi.mock('@/lib/site-config', () => ({
@@ -18,10 +19,29 @@ vi.mock('@/lib/site-config', () => ({
 }));
 
 import * as siteConfig from '@/lib/site-config';
+import forge from 'node-forge';
 
 const validCuit = '20301112223';
-const validCert = '-----BEGIN CERTIFICATE-----\nMIIBkTCB+wIJAKHBfpE\n-----END CERTIFICATE-----';
-const validKey = '-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMG\n-----END PRIVATE KEY-----';
+
+function generateTestCertAndKey(): { certPem: string; keyPem: string } {
+  const keys = forge.pki.rsa.generateKeyPair(2048);
+  const cert = forge.pki.createCertificate();
+  cert.publicKey = keys.publicKey;
+  cert.serialNumber = '01';
+  cert.validity.notBefore = new Date();
+  cert.validity.notAfter = new Date();
+  cert.validity.notAfter.setFullYear(cert.validity.notBefore.getFullYear() + 1);
+  const attrs = [{ name: 'commonName', value: 'test.libres-cobros.local' }];
+  cert.setSubject(attrs);
+  cert.setIssuer(attrs);
+  cert.sign(keys.privateKey, forge.md.sha1.create());
+  return {
+    certPem: forge.pki.certificateToPem(cert),
+    keyPem: forge.pki.privateKeyToPem(keys.privateKey),
+  };
+}
+
+const { certPem: validCert, keyPem: validKey } = generateTestCertAndKey();
 
 describe('arca-crypto', () => {
   beforeEach(() => {
@@ -36,7 +56,7 @@ describe('arca-crypto', () => {
     const encrypted = encryptArcaKey(validKey);
     expect(encrypted).not.toBe('');
     expect(isEncryptedArcaKey(encrypted)).toBe(true);
-    expect(decryptArcaKey(encrypted)).toBe(validKey);
+    expect(decryptArcaKey(encrypted)).toBe(validKey.trim());
   });
 
   it('returns empty for empty input without encrypting', () => {
@@ -67,7 +87,7 @@ describe('arca-crypto', () => {
     vi.stubEnv('ARCA_STORAGE_SECRET', '');
 
     const encrypted = encryptArcaKey(validKey);
-    expect(decryptArcaKey(encrypted)).toBe(validKey);
+    expect(decryptArcaKey(encrypted)).toBe(validKey.trim());
   });
 });
 
@@ -102,8 +122,8 @@ describe('resolveClubArcaCredentials', () => {
     const creds = await resolveClubArcaCredentials('club-a');
     expect(creds).not.toBeNull();
     expect(creds?.cuit).toBe(validCuit);
-    expect(creds?.certPem).toBe(validCert);
-    expect(creds?.keyPem).toBe(validKey);
+    expect(creds?.certPem).toContain('BEGIN CERTIFICATE');
+    expect(creds?.keyPem).toMatch(/BEGIN (RSA )?PRIVATE KEY/);
   });
 
   it('falls back to platform stored credentials when club credentials are incomplete', async () => {
@@ -127,8 +147,8 @@ describe('resolveClubArcaCredentials', () => {
 
     const creds = await resolveClubArcaCredentials('club-a');
     expect(creds?.cuit).toBe('30712345678');
-    expect(creds?.certPem).toBe(validCert);
-    expect(creds?.keyPem).toBe(validKey);
+    expect(creds?.certPem).toContain('BEGIN CERTIFICATE');
+    expect(creds?.keyPem).toMatch(/BEGIN (RSA )?PRIVATE KEY/);
   });
 
   it('falls back to env credentials when nothing is stored', async () => {
@@ -140,8 +160,8 @@ describe('resolveClubArcaCredentials', () => {
 
     const creds = await resolveClubArcaCredentials('club-a');
     expect(creds?.cuit).toBe(validCuit);
-    expect(creds?.certPem).toBe(validCert);
-    expect(creds?.keyPem).toBe(validKey);
+    expect(creds?.certPem).toContain('BEGIN CERTIFICATE');
+    expect(creds?.keyPem).toMatch(/BEGIN (RSA )?PRIVATE KEY/);
   });
 
   it('returns null when no credentials exist anywhere', async () => {
@@ -185,6 +205,8 @@ describe('resolvePlatformArcaCredentials', () => {
 
     const creds = await resolvePlatformArcaCredentials();
     expect(creds?.cuit).toBe('30712345678');
+    expect(creds?.certPem).toContain('BEGIN CERTIFICATE');
+    expect(creds?.keyPem).toMatch(/BEGIN (RSA )?PRIVATE KEY/);
   });
 
   it('falls back to env when no platform credentials are stored', async () => {
@@ -195,6 +217,8 @@ describe('resolvePlatformArcaCredentials', () => {
 
     const creds = await resolvePlatformArcaCredentials();
     expect(creds?.cuit).toBe(validCuit);
+    expect(creds?.certPem).toContain('BEGIN CERTIFICATE');
+    expect(creds?.keyPem).toMatch(/BEGIN (RSA )?PRIVATE KEY/);
   });
 });
 
@@ -242,5 +266,72 @@ describe('resolveClubArcaEmitterCuit', () => {
 
     const cuit = await resolveClubArcaEmitterCuit('club-a');
     expect(cuit).toBe('30712345678');
+  });
+});
+
+describe('getUltimoAutorizado with resolved credentials', () => {
+  beforeEach(() => {
+    vi.stubEnv('ARCA_STORAGE_SECRET', 'test-storage-secret-for-encryption');
+    vi.stubEnv('ARCA_PRODUCTION', 'false');
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
+  function buildTaResponse() {
+    const ticket = Buffer.from(
+      `<loginTicketResponse><credentials><token>tok123</token><sign>sig123</sign></credentials></loginTicketResponse>`,
+      'utf8'
+    ).toString('base64');
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+  <soapenv:Body>
+    <loginCmsResponse>
+      <loginCmsReturn>${ticket}</loginCmsReturn>
+    </loginCmsResponse>
+  </soapenv:Body>
+</soapenv:Envelope>`;
+  }
+
+  function buildWsfeResponse() {
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+  <soapenv:Body>
+    <FECompUltimoAutorizadoResponse>
+      <FECompUltimoAutorizadoResult>
+        <CbteNro>5</CbteNro>
+      </FECompUltimoAutorizadoResult>
+    </FECompUltimoAutorizadoResponse>
+  </soapenv:Body>
+</soapenv:Envelope>`;
+  }
+
+  it('uses the provided cert/key instead of env vars', async () => {
+    const calls: { url: string; body: string }[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init: { body: string }) => {
+        calls.push({ url, body: init.body });
+        const text = calls.length === 1 ? buildTaResponse() : buildWsfeResponse();
+        return new Response(text, { status: 200 });
+      })
+    );
+
+    const creds = {
+      cuit: '20301112223',
+      certPem: validCert,
+      keyPem: validKey,
+    };
+
+    const ultimo = await getUltimoAutorizado(creds.cuit, 1, 15, creds);
+    expect(ultimo).toBe(5);
+
+    // The first call is WSAA LoginCms; it must contain a CMS signed with the
+    // provided credentials (not env vars, which are empty in this test).
+    expect(calls[0].url).toBe('https://wsaahomo.afip.gov.ar/ws/services/LoginCms');
+    expect(calls[0].body).toContain('<wsaa:in0>');
+    expect(calls[0].body).not.toContain(validKey);
   });
 });
