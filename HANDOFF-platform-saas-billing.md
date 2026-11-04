@@ -183,6 +183,42 @@ Make ARCA fiscal emission work per-tenant with UI-managed credentials, so each i
 - Real ARCA homolog smoke with stored credentials (platform + one institution) to confirm TA + FECAESolicitar end-to-end.
 - Optional: admin UI to clear/replace existing cert/key explicitly (currently replace only by pasting a new value).
 
+## Phase 10: Subscription status login alerts
+
+### Goal
+Add visibility (no suspension/cancellation) for institution admins at login and for superadmins in the subscription panel: due-soon and overdue SaaS invoice alerts.
+
+### Commits
+
+- `310ec57` feat(saas): add subscription alert domain, config key and unit tests
+- `50da425` feat(admin,ui): add dismissible institution subscription alert banner
+- `b6f4c7e` feat(admin,saas): show overdue institutions in subscription panel
+
+### Verification evidence (automated)
+
+- Branch: `feat/saas-billing-phase-10-subscription-alerts` (from `feat/saas-billing-phase-09-arca-credentials`).
+- `npx vitest run` → 199 passed (23 files). Baseline was 179 passed (21 files); +20 new tests.
+- `npx tsc --noEmit` → 0 errors.
+- `npm run lint` → 0 errors, 5 pre-existing warnings unchanged.
+- `npm run build` → success.
+- `saas_billing_enabled` remains `false`; no production flag flip.
+
+### What changed
+
+- `src/lib/saas-subscription-alert.ts`: cheap queries using the `[institutionId, month, year]` unique index; due-soon window (default 5 days, configurable via `saas_due_soon_days`); overdue days calculation; overdue institution grouping using the indexed `status` column.
+- `src/app/api/admin/site-config/route.ts` + `src/types/saas.ts`: allowlisted `saas_due_soon_days` as platform-only with description.
+- `src/components/ui/alert.tsx`: reusable Alert/AlertTitle/AlertDescription component in the existing design system.
+- `src/components/admin/SubscriptionAlertBanner.tsx`: dismissible banner (localStorage per invoice) rendered on the admin dashboard for institution admins.
+- `src/app/admin/page.tsx`: fetches and renders the institution subscription alert when `saas_billing_enabled` is true.
+- `src/app/admin/saas/suscripciones/page.tsx` + `src/components/admin/SaasSubscriptionPanel.tsx`: superadmin overdue-institution alert reused in the existing subscription panel.
+- New tests: `tests/unit/subscription-alerts.test.ts` (14 tests), `tests/components/SubscriptionAlertBanner.test.tsx` (5 tests), plus 1 additional test in `tests/components/SaasSubscriptionPanel.test.tsx`.
+
+### What remains
+
+- Phase 8.2 manual success criteria still pending.
+- Real ARCA homolog smoke with stored credentials.
+- Optional: explicit cert/key clear/replace UI.
+
 ## Engram references
 
 - #565 SDD Session Preflight

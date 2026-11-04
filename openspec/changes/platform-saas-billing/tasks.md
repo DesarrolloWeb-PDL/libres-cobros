@@ -81,3 +81,13 @@ Chain strategy: stacked-to-main
 - [x] 9.5 InstitutionForm fiscal CUIT mirrored to club-scoped `arca_cuit`; ticket QR page uses `resolveClubArcaEmitterCuit` for CUIT consistency.
 - [x] 9.6 POST `/api/admin/arca/test-credentials` returns `{ok, environment, error?}` without emitting documents.
 - [x] 9.7 Automated verification: `npx vitest run` 179 passed (21 files), `npx tsc --noEmit` 0 errors, `npm run lint` 0 errors + 5 warnings, `npm run build` success.
+
+## Phase 10: Subscription status login alerts
+
+- [x] 10.1 Add `saas_due_soon_days` platform SiteConfig key to allowlist, scope and descriptions.
+- [x] 10.2 Domain logic in `src/lib/saas-subscription-alert.ts`: current-month invoice lookup via `[institutionId, month, year]`, due-soon window (default 5 days), overdue days, institution scoping, overdue institution grouping.
+- [x] 10.3 Institution admin login-time alert: dismissible banner on `/admin` dashboard for ADMIN users when `saas_billing_enabled` is true.
+- [x] 10.4 Superadmin visibility: overdue institution alert reused in the existing `/admin/saas/suscripciones` subscription panel.
+- [x] 10.5 Unit tests: boundary window, overdue days, institution scoping, config default.
+- [x] 10.6 Component tests: dismissible banner, overdue panel indicator.
+- [x] 10.7 Automated verification: `npx vitest run` 199 passed (23 files), `npx tsc --noEmit` 0 errors, `npm run lint` 0 errors + 5 warnings, `npm run build` success.

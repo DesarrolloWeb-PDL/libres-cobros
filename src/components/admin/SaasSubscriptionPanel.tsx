@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import {
+  AlertCircle,
   Check,
   CreditCard,
   Loader2,
@@ -33,6 +34,7 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/components/ui/toast';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import type {
   SaasPlanChangeRequestListItem,
   SaasPlanChangeRequestListResponse,
@@ -41,11 +43,13 @@ import type {
   SaasInvoiceListItem,
   SaasInvoiceListResponse,
 } from '@/types/saas';
+import type { OverdueInstitution } from '@/lib/saas-subscription-alert';
 
 interface SaasSubscriptionPanelProps {
   initialRequests: SaasPlanChangeRequestListResponse;
   initialSubscriptions: SaasSubscriptionListResponse;
   initialInvoices: SaasInvoiceListResponse;
+  initialOverdue?: OverdueInstitution[];
 }
 
 const currencyFormatter = new Intl.NumberFormat('es-AR', {
@@ -67,10 +71,12 @@ export function SaasSubscriptionPanel({
   initialRequests,
   initialSubscriptions,
   initialInvoices,
+  initialOverdue = [],
 }: SaasSubscriptionPanelProps) {
   const [requests, setRequests] = useState<SaasPlanChangeRequestListItem[]>(initialRequests.data);
   const [subscriptions, setSubscriptions] = useState<SaasSubscriptionListItem[]>(initialSubscriptions.data);
   const [invoices, setInvoices] = useState<SaasInvoiceListItem[]>(initialInvoices.data);
+  const [overdue] = useState<OverdueInstitution[]>(initialOverdue);
 
   const [requestStatus, setRequestStatus] = useState('');
   const [subscriptionStatus, setSubscriptionStatus] = useState('');
@@ -240,6 +246,25 @@ export function SaasSubscriptionPanel({
 
   return (
     <div className="space-y-4">
+      {overdue.length > 0 && (
+        <Alert variant="destructive">
+          <AlertCircle className="mt-0.5" />
+          <AlertTitle>Instituciones con facturas vencidas</AlertTitle>
+          <AlertDescription>
+            <ul className="mt-2 space-y-1">
+              {overdue.map((item) => (
+                <li key={item.institutionId}>
+                  {item.name} — {item.count}{' '}
+                  {item.count === 1 ? 'factura vencida' : 'facturas vencidas'} · hace{' '}
+                  {item.daysOverdue}{' '}
+                  {item.daysOverdue === 1 ? 'día' : 'días'}
+                </li>
+              ))}
+            </ul>
+          </AlertDescription>
+        </Alert>
+      )}
+
       <Tabs defaultValue="requests">
         <TabsList variant="line">
           <TabsTrigger value="requests">

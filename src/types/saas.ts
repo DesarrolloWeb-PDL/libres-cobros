@@ -117,6 +117,7 @@ export const SAAS_SITE_CONFIG_KEYS = [
   'saas_arca_cert',
   'saas_arca_key',
   'saas_reminder_days',
+  'saas_due_soon_days',
 ] as const;
 
 export type SaasSiteConfigKey = (typeof SAAS_SITE_CONFIG_KEYS)[number];

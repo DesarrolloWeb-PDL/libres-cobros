@@ -58,6 +58,7 @@ const CONFIG_KEYS = [
   'saas_arca_cert',
   'saas_arca_key',
   'saas_reminder_days',
+  'saas_due_soon_days',
 ];
 
 // Institution-scoped keys must only be written when an institution is selected.
@@ -98,6 +99,7 @@ const PLATFORM_ONLY_KEYS = [
   'saas_arca_cert',
   'saas_arca_key',
   'saas_reminder_days',
+  'saas_due_soon_days',
 ];
 
 const PRIVATE_KEY_CONFIG_KEYS = new Set(['arca_key', 'saas_arca_key']);
@@ -403,6 +405,7 @@ function getConfigDescription(key: string): string {
     saas_arca_cert: 'Certificado X.509 de la plataforma ante ARCA (PEM)',
     saas_arca_key: 'Clave privada X.509 de la plataforma ante ARCA (PEM, cifrada en reposo)',
     saas_reminder_days: 'Dias de recordatorio de vencimiento SaaS (CSV, ej: 1,7,15; vacio = desactivado)',
+    saas_due_soon_days: 'Dias de anticipacion para mostrar la alerta de vencimiento proximo SaaS (default 5)',
   };
   return descriptions[key] ?? '';
 }

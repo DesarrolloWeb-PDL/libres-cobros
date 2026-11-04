@@ -6,6 +6,7 @@ import type {
   SaasSubscriptionListResponse,
   SaasInvoiceListResponse,
 } from '@/types/saas';
+import type { OverdueInstitution } from '@/lib/saas-subscription-alert';
 
 const requests: SaasPlanChangeRequestListResponse = {
   data: [
@@ -109,5 +110,31 @@ describe('SaasSubscriptionPanel', () => {
         })
       );
     });
+  });
+
+  it('renders an overdue alert when institutions have overdue invoices', () => {
+    const overdue: OverdueInstitution[] = [
+      {
+        institutionId: 'club-1',
+        name: 'Club Libre',
+        count: 1,
+        oldestDueDate: new Date('2026-11-05T00:00:00.000Z'),
+        daysOverdue: 3,
+      },
+    ];
+
+    render(
+      <SaasSubscriptionPanel
+        initialRequests={requests}
+        initialSubscriptions={subscriptions}
+        initialInvoices={invoices}
+        initialOverdue={overdue}
+      />
+    );
+
+    expect(screen.getByText(/Instituciones con facturas vencidas/i)).toBeInTheDocument();
+    expect(screen.getByRole('listitem')).toHaveTextContent(
+      /Club Libre — 1 factura vencida · hace 3 días/
+    );
   });
 });
