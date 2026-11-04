@@ -116,6 +116,8 @@ export interface CreateStripeSubscriptionInput {
   memberId: string;
   /** Where the member returns after managing the subscription in the portal. */
   returnUrl: string;
+  /** Optional billing-cycle anchor for fixed billing day (SaaS). */
+  billingCycleAnchor?: Date;
 }
 
 export async function createStripeSubscription(
@@ -139,7 +141,7 @@ export async function createStripeSubscription(
 
   const productId = await ensureMonthlyFeeProduct(stripe);
 
-  const subscription = await stripe.subscriptions.create({
+  const subscriptionPayload: Stripe.SubscriptionCreateParams = {
     customer: customer.id,
     items: [
       {
@@ -152,7 +154,15 @@ export async function createStripeSubscription(
       },
     ],
     metadata: { clubSlug: input.clubSlug, memberId: input.memberId },
-  });
+  };
+
+  if (input.billingCycleAnchor) {
+    subscriptionPayload.billing_cycle_anchor = Math.floor(
+      input.billingCycleAnchor.getTime() / 1000
+    );
+  }
+
+  const subscription = await stripe.subscriptions.create(subscriptionPayload);
 
   let customerPortalUrl: string | null = null;
   try {
