@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { getPlatformSiteConfigValue } from '@/lib/site-config';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { InstitutionThemeInjector } from '@/components/admin/InstitutionThemeInjector';
 import { DarkModeInjector } from '@/components/admin/DarkModeInjector';
@@ -60,6 +61,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   // For super admins, fetch theme from site config
   const superAdminTheme = isSuperAdmin ? await getSuperAdminTheme() : null;
 
+  // SaaS billing flag gates the sidebar nav entries.
+  const saasBillingEnabled = (await getPlatformSiteConfigValue('saas_billing_enabled', 'false')) === 'true';
+
   // Determine which color to use
   const institutionColor = !isSuperAdmin && institution?.primaryColor ? institution.primaryColor : null;
   const superAdminColor = isSuperAdmin && superAdminTheme?.primaryColor ? superAdminTheme.primaryColor : null;
@@ -77,7 +81,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <AdminPageBackground bgColor={bgColor} />
       {/* No inline backgroundColor — dark mode needs CSS .dark to own the page bg. */}
       <div className="flex min-h-screen bg-background">
-        <AdminSidebar institution={institution} themeColor={themeColor} />
+        <AdminSidebar institution={institution} themeColor={themeColor} saasEnabled={saasBillingEnabled} />
         <main className="flex-1 pt-14 lg:pt-0 min-w-0">
           <div className="p-4 sm:p-6 lg:p-8">{children}</div>
         </main>

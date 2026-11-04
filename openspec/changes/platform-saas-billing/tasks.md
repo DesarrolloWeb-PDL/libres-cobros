@@ -58,9 +58,9 @@ Chain strategy: stacked-to-main
 
 ## Phase 6: Admin API+UI
 
-- [ ] 6.1 api/admin/saas per D5: plans CRUD (deactivate-only), change-request approve/reject → pendingSaasPlanId, invoices list.
-- [ ] 6.2 /admin/saas/planes + /admin/saas/suscripciones (SUPER_ADMIN); /admin/suscripcion (ADMIN); AdminSidebar flag-gated nav.
-- [ ] 6.3 InstitutionForm + institutions/[id]: CUIT/IVA fields; component tests SaasPlanForm/List+panel.
+- [x] 6.1 api/admin/saas per D5: plans CRUD (deactivate-only), change-request approve/reject → pendingSaasPlanId, invoices list.
+- [x] 6.2 /admin/saas/planes + /admin/saas/suscripciones (SUPER_ADMIN); /admin/suscripcion (ADMIN); AdminSidebar flag-gated nav.
+- [x] 6.3 InstitutionForm + institutions/[id]: CUIT/IVA fields; component tests SaasPlanForm/List+panel.
 
 ## Phase 7: Landing+Alert
 

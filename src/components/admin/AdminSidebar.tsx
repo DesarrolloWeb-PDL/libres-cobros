@@ -23,6 +23,7 @@ import {
   LogOut,
   Repeat,
   Palette,
+  Layers,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -42,6 +43,9 @@ const navItems = [
   { href: '/admin/instituciones', label: 'Instituciones', icon: Building2, roles: ['SUPER_ADMIN'] as const },
   { href: '/admin/usuarios', label: 'Usuarios', icon: UserCog, roles: ['SUPER_ADMIN'] as const },
   { href: '/admin/exportaciones', label: 'Exportaciones', icon: Download, roles: ['SUPER_ADMIN'] as const },
+  { href: '/admin/saas/planes', label: 'Planes SaaS', icon: Layers, roles: ['SUPER_ADMIN'] as const, flag: 'saas' as const },
+  { href: '/admin/saas/suscripciones', label: 'Suscripciones SaaS', icon: CreditCard, roles: ['SUPER_ADMIN'] as const, flag: 'saas' as const },
+  { href: '/admin/suscripcion', label: 'Mi suscripción', icon: Wallet, roles: ['ADMIN'] as const, flag: 'saas' as const },
   { href: '/admin/configuracion', label: 'Configuración', icon: Settings, roles: ['SUPER_ADMIN', 'ADMIN'] as const },
   { href: '/admin/apariencia', label: 'Apariencia', icon: Palette, roles: ['SUPER_ADMIN', 'ADMIN'] as const },
 ];
@@ -58,9 +62,10 @@ interface InstitutionData {
 interface AdminSidebarProps {
   institution?: InstitutionData | null;
   themeColor?: string | null;
+  saasEnabled?: boolean;
 }
 
-export function AdminSidebar({ institution, themeColor }: AdminSidebarProps) {
+export function AdminSidebar({ institution, themeColor, saasEnabled }: AdminSidebarProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -69,7 +74,11 @@ export function AdminSidebar({ institution, themeColor }: AdminSidebarProps) {
   const isSuperAdmin = userRole === 'SUPER_ADMIN';
 
   const filteredNavItems = userRole
-    ? navItems.filter((item) => item.roles.some((r) => r === userRole))
+    ? navItems.filter(
+        (item) =>
+          item.roles.some((r) => r === userRole) &&
+          (!item.flag || (item.flag === 'saas' && saasEnabled))
+      )
     : [];
 
   // Institution colors for admin - use themeColor for super admin

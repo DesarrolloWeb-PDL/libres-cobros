@@ -130,3 +130,83 @@ export type SaasPlanChangeRequestInput = z.infer<
 export type SaasPlanChangeDecisionInput = z.infer<
   typeof saasPlanChangeDecisionSchema
 >;
+
+// --- List / response types ---
+
+export interface SaasPlanListItem {
+  id: string;
+  name: string;
+  minMembers: number;
+  maxMembers: number;
+  priceArs: number;
+  highlight: boolean;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SaasPlanListResponse {
+  data: SaasPlanListItem[];
+}
+
+export interface SaasSubscriptionListItem {
+  id: string;
+  institutionId: string;
+  institution: { id: string; name: string };
+  saasPlanId: string;
+  saasPlan: { id: string; name: string; priceArs: number; maxMembers: number };
+  pendingSaasPlanId: string | null;
+  pendingSaasPlan: { id: string; name: string } | null;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SaasSubscriptionListResponse {
+  data: SaasSubscriptionListItem[];
+}
+
+export interface SaasInvoiceListItem {
+  id: string;
+  institutionId: string;
+  institution: { id: string; name: string };
+  saasPlanId: string;
+  saasPlan: { id: string; name: string };
+  month: number;
+  year: number;
+  amount: number;
+  status: string;
+  dueDate: string;
+  paidAt: string | null;
+  paymentMethod: string | null;
+  transferRef: string | null;
+  remindersSent: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SaasInvoiceListResponse {
+  data: SaasInvoiceListItem[];
+}
+
+export interface SaasPlanChangeRequestListItem {
+  id: string;
+  institutionId: string;
+  institution: { id: string; name: string };
+  requestedSaasPlanId: string;
+  requestedSaasPlan: { id: string; name: string; priceArs: number; maxMembers: number };
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SaasPlanChangeRequestListResponse {
+  data: SaasPlanChangeRequestListItem[];
+}
+
+export interface SaasSubscriptionDetailResponse {
+  subscription: SaasSubscriptionListItem | null;
+  invoices: SaasInvoiceListItem[];
+  changeRequests: SaasPlanChangeRequestListItem[];
+  availablePlans: SaasPlanListItem[];
+}
