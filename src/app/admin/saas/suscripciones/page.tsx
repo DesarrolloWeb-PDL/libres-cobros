@@ -3,11 +3,13 @@ import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
 import { adminFetch } from '@/lib/admin-fetch';
 import { SaasSubscriptionPanel } from '@/components/admin/SaasSubscriptionPanel';
+import { getOverdueInstitutions } from '@/lib/saas-subscription-alert';
 import type {
   SaasPlanChangeRequestListResponse,
   SaasSubscriptionListResponse,
   SaasInvoiceListResponse,
 } from '@/types/saas';
+import type { OverdueInstitution } from '@/lib/saas-subscription-alert';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,6 +17,7 @@ async function getInitialData(): Promise<{
   requests: SaasPlanChangeRequestListResponse;
   subscriptions: SaasSubscriptionListResponse;
   invoices: SaasInvoiceListResponse;
+  overdue: OverdueInstitution[];
 }> {
   const [requestsRes, subscriptionsRes, invoicesRes] = await Promise.all([
     adminFetch('/api/admin/saas/change-requests', 'Failed to load change requests'),
@@ -28,7 +31,9 @@ async function getInitialData(): Promise<{
     invoicesRes.json(),
   ]);
 
-  return { requests, subscriptions, invoices };
+  const overdue = await getOverdueInstitutions();
+
+  return { requests, subscriptions, invoices, overdue };
 }
 
 export default async function SaasSubscriptionsPage() {
@@ -38,7 +43,7 @@ export default async function SaasSubscriptionsPage() {
     redirect('/login');
   }
 
-  const { requests, subscriptions, invoices } = await getInitialData();
+  const { requests, subscriptions, invoices, overdue } = await getInitialData();
 
   return (
     <div className="space-y-6">
@@ -53,6 +58,7 @@ export default async function SaasSubscriptionsPage() {
         initialRequests={requests}
         initialSubscriptions={subscriptions}
         initialInvoices={invoices}
+        initialOverdue={overdue}
       />
     </div>
   );
