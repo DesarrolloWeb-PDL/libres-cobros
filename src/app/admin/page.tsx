@@ -2,9 +2,13 @@ import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
 import { adminFetch } from '@/lib/admin-fetch';
+import { getPlatformSiteConfigValue } from '@/lib/site-config';
+import { getInstitutionSubscriptionAlert } from '@/lib/saas-subscription-alert';
+import type { SubscriptionAlertState } from '@/lib/saas-subscription-alert';
 import { StatsCards } from '@/components/admin/StatsCards';
 import { DashboardPanels } from '@/components/admin/DashboardPanels';
 import { RecentActivity } from '@/components/admin/RecentActivity';
+import { SubscriptionAlertBanner } from '@/components/admin/SubscriptionAlertBanner';
 import { LayoutDashboard, Users, CreditCard, FileText, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import type { DashboardData } from '@/types/dashboard';
@@ -27,6 +31,17 @@ export default async function AdminDashboardPage() {
 
   const data = await getDashboardData();
 
+  let subscriptionAlert: SubscriptionAlertState = { status: 'ok', invoice: null };
+  if (session.user.role === 'ADMIN' && session.user.institutionId) {
+    const saasBillingEnabled =
+      (await getPlatformSiteConfigValue('saas_billing_enabled', 'false')) === 'true';
+    if (saasBillingEnabled) {
+      subscriptionAlert = await getInstitutionSubscriptionAlert(
+        session.user.institutionId
+      );
+    }
+  }
+
   const quickActions = [
     { href: '/admin/socios', label: 'Socios', description: 'Gestionar socios de la institución', icon: Users, color: 'bg-blue-500/10 text-blue-600', roles: ['ADMIN'] as const },
     { href: '/admin/pagos', label: 'Pagos', description: 'Historial de pagos recibidos', icon: CreditCard, color: 'bg-emerald-500/10 text-emerald-600', roles: ['ADMIN'] as const },
@@ -41,6 +56,10 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="space-y-8">
+      {subscriptionAlert.status !== 'ok' && (
+        <SubscriptionAlertBanner alert={subscriptionAlert} />
+      )}
+
       {/* Header */}
       <div className="flex items-center gap-5">
         <div className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-accent shadow-md shadow-primary/10">

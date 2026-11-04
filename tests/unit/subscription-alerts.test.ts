@@ -4,7 +4,6 @@ import {
   calculateDaysOverdue,
   getInstitutionSubscriptionAlert,
   getOverdueInstitutions,
-  DEFAULT_DUE_SOON_DAYS,
 } from '@/lib/saas-subscription-alert';
 
 function makeInvoice(opts: {
@@ -93,7 +92,7 @@ function createMockClient({
         }))
       ),
     },
-  } as unknown as Parameters<typeof getInstitutionSubscriptionAlert>[2];
+  } as unknown as NonNullable<Parameters<typeof getInstitutionSubscriptionAlert>[2]>;
 }
 
 describe('calculateDaysUntilDue', () => {
@@ -139,7 +138,8 @@ describe('getInstitutionSubscriptionAlert', () => {
     const now = new Date('2026-11-05T12:00:00.000Z');
     const due = new Date('2026-11-10T00:00:00.000Z');
     const client = createMockClient({
-      invoice: makeInvoice({ status: 'PENDING', dueDate: due, dueSoonDays: '5' }),
+      invoice: makeInvoice({ status: 'PENDING', dueDate: due }),
+      dueSoonDays: '5',
     });
 
     const result = await getInstitutionSubscriptionAlert('club-1', now, client);
@@ -155,7 +155,8 @@ describe('getInstitutionSubscriptionAlert', () => {
     const now = new Date('2026-11-04T12:00:00.000Z');
     const due = new Date('2026-11-10T00:00:00.000Z');
     const client = createMockClient({
-      invoice: makeInvoice({ status: 'PENDING', dueDate: due, dueSoonDays: '5' }),
+      invoice: makeInvoice({ status: 'PENDING', dueDate: due }),
+      dueSoonDays: '5',
     });
 
     const result = await getInstitutionSubscriptionAlert('club-1', now, client);
@@ -232,7 +233,8 @@ describe('getInstitutionSubscriptionAlert', () => {
     const now = new Date('2026-11-08T12:00:00.000Z');
     const due = new Date('2026-11-10T00:00:00.000Z');
     const client = createMockClient({
-      invoice: makeInvoice({ status: 'PENDING', dueDate: due, dueSoonDays: '2' }),
+      invoice: makeInvoice({ status: 'PENDING', dueDate: due }),
+      dueSoonDays: '2',
     });
 
     const result = await getInstitutionSubscriptionAlert('club-1', now, client);
