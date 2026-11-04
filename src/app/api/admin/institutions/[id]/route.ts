@@ -4,6 +4,28 @@ import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
 import { requireInstitution, AuthError } from '@/lib/access';
 
+/**
+ * Mirrors the institution CUIT to the club-scoped arca_cuit SiteConfig key so
+ * ARCA emission reads the same value the user enters in "Datos fiscales".
+ * Club.cuit remains the source of truth; the SiteConfig row is kept in sync.
+ */
+async function syncArcaCuit(clubId: string, cuit: string | null): Promise<void> {
+  const existing = await prisma.siteConfig.findUnique({
+    where: { clubId_key: { clubId, key: 'arca_cuit' } },
+  });
+
+  if (existing) {
+    await prisma.siteConfig.update({
+      where: { id: existing.id },
+      data: { value: cuit ?? '' },
+    });
+  } else {
+    await prisma.siteConfig.create({
+      data: { clubId, key: 'arca_cuit', value: cuit ?? '' },
+    });
+  }
+}
+
 const InstitutionCommissionTypeSchema = z.enum(['PERCENTAGE', 'FIXED']);
 const InstitutionStatusSchema = z.enum(['ACTIVE', 'INACTIVE', 'PENDING']);
 const IvaCondicionSchema = z.enum(['CF', 'MONO', 'RI', 'EXENTO']);
@@ -181,6 +203,10 @@ export async function PATCH(
         ...(parsed.data.bgColor && { bgColor: parsed.data.bgColor }),
       },
     });
+
+    if (parsed.data.cuit !== undefined) {
+      await syncArcaCuit(id, parsed.data.cuit);
+    }
 
     return apiSuccess(serializeInstitution(institution));
   } catch (error) {

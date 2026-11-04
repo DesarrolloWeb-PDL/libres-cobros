@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
@@ -41,6 +42,9 @@ export default async function ConfigurationPage() {
     }
   }
 
+  const cookieStore = await cookies();
+  const activeInstitutionId = cookieStore.get('active_institution_id')?.value ?? null;
+
   const { siteConfigs } = await getInitialData();
 
   return (
@@ -54,7 +58,12 @@ export default async function ConfigurationPage() {
         </p>
       </div>
 
-      <ConfigurationForm initialSiteConfigs={siteConfigs} clubSlug={club?.slug} />
+      <ConfigurationForm
+        initialSiteConfigs={siteConfigs}
+        clubSlug={club?.slug}
+        isSuperAdmin={isSuperAdmin}
+        institutionId={activeInstitutionId}
+      />
     </div>
   );
 }

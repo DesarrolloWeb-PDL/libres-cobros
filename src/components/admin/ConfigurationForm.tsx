@@ -11,10 +11,12 @@ import {
   MessageSquare,
   ReceiptText,
   Save,
+  TestTube,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Card,
   CardContent,
@@ -30,6 +32,8 @@ import type { SiteConfigListItem, SiteConfigListResponse } from '@/types/config'
 interface ConfigurationFormProps {
   initialSiteConfigs: SiteConfigListResponse;
   clubSlug?: string;
+  isSuperAdmin?: boolean;
+  institutionId?: string | null;
 }
 
 const siteConfigLabels: Record<string, string> = {
@@ -49,6 +53,14 @@ const siteConfigLabels: Record<string, string> = {
   arca_enabled: 'Emitir comprobantes electrónicos (ARCA)',
   arca_cuit: 'CUIT de la institución',
   arca_punto_vta: 'Punto de venta',
+  arca_cert: 'Certificado X.509 (PEM)',
+  arca_key: 'Clave privada X.509 (PEM)',
+  saas_arca_cuit: 'CUIT emisor de la plataforma',
+  saas_arca_pto_vta: 'Punto de venta',
+  saas_arca_regime: 'Régimen ARCA',
+  saas_arca_iva_rate: 'Tasa de IVA (%)',
+  saas_arca_cert: 'Certificado X.509 (PEM)',
+  saas_arca_key: 'Clave privada X.509 (PEM)',
   stripe_enabled: 'Ofrecer Stripe a los socios',
   mercadopago_enabled: 'Ofrecer Mercado Pago a los socios',
   bank_transfer_enabled: 'Ofrecer transferencia bancaria a los socios',
@@ -65,14 +77,20 @@ const siteConfigPlaceholders: Record<string, string> = {
   resend_from_email: 'Ej: Cuotas <cuotas@tudominio.com>',
   arca_cuit: 'Ej: 30712345678',
   arca_punto_vta: 'Ej: 1',
+  saas_arca_cuit: 'Ej: 20301112223',
+  saas_arca_pto_vta: 'Ej: 1',
+  saas_arca_iva_rate: 'Ej: 21',
 };
 
 export function ConfigurationForm({
   initialSiteConfigs,
   clubSlug,
+  isSuperAdmin = false,
+  institutionId,
 }: ConfigurationFormProps) {
   const [siteConfigs, setSiteConfigs] = useState<SiteConfigListItem[]>(initialSiteConfigs.data);
   const [isSavingSite, setIsSavingSite] = useState(false);
+  const [isTestingCredentials, setIsTestingCredentials] = useState(false);
   const origin = useSyncExternalStore(
     () => () => {},
     () => window.location.origin,
@@ -82,6 +100,10 @@ export function ConfigurationForm({
 
   const stripeWebhookUrl =
     clubSlug && origin ? `${origin}/api/webhooks/stripe?club_slug=${clubSlug}` : '';
+
+  // True when the form is editing an institution's config (ADMIN or SUPER_ADMIN
+  // with an active institution selection). Platform-only keys are hidden otherwise.
+  const editingInstitution = !isSuperAdmin || Boolean(institutionId);
 
   async function handleCopyWebhookUrl() {
     if (!stripeWebhookUrl) return;
@@ -112,16 +134,48 @@ export function ConfigurationForm({
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          configs: siteConfigs.map((config) => ({
-            key: config.key,
-            value: config.value,
-          })),
+          configs: siteConfigs
+            // Only send keys visible in the current scope.
+            .filter((config) => {
+              if (!editingInstitution) {
+                return !config.key.startsWith('arca_');
+              }
+              return !config.key.startsWith('saas_arca_');
+            })
+            .map((config) => ({
+              key: config.key,
+              value: config.value,
+            })),
         }),
       });
 
       if (!response.ok) {
         const error = await response.json().catch(() => ({}));
         throw new Error(error.error ?? 'Error al guardar la configuración');
+      }
+
+      const result = (await response.json()) as SiteConfigListResponse;
+      if (result.data) {
+        // Merge server state (masks keyConfigured/certConfigured) with local edits
+        // for fields that are still being edited.
+        setSiteConfigs((prev) =>
+          prev.map((local) => {
+            const server = result.data.find((s) => s.key === local.key);
+            if (!server) return local;
+            return {
+              ...server,
+              // Keep the textarea content if the user is still typing a new secret.
+              value:
+                (local.key === 'arca_key' ||
+                  local.key === 'arca_cert' ||
+                  local.key === 'saas_arca_key' ||
+                  local.key === 'saas_arca_cert') &&
+                local.value.trim() !== ''
+                  ? local.value
+                  : server.value,
+            };
+          })
+        );
       }
 
       toast.add({
@@ -141,8 +195,99 @@ export function ConfigurationForm({
     }
   }
 
+  async function handleTestCredentials() {
+    setIsTestingCredentials(true);
+    try {
+      const response = await fetch('/api/admin/arca/test-credentials', {
+        method: 'POST',
+      });
+      const result = await response.json().catch(() => ({
+        ok: false,
+        error: 'Respuesta inesperada del servidor',
+      }));
+
+      if (result.ok) {
+        toast.add({
+          title: 'Credenciales OK',
+          description: `Conexión exitosa con ARCA (${result.environment === 'produccion' ? 'producción' : 'homologación'}).`,
+          type: 'success',
+        });
+      } else {
+        toast.add({
+          title: 'Error de credenciales',
+          description: result.error || 'No se pudieron validar las credenciales',
+          type: 'error',
+        });
+      }
+    } catch (err) {
+      toast.add({
+        title: 'Error',
+        description: err instanceof Error ? err.message : 'Error de red',
+        type: 'error',
+      });
+    } finally {
+      setIsTestingCredentials(false);
+    }
+  }
+
   function getConfig(key: string) {
     return siteConfigs.find((c) => c.key === key);
+  }
+
+  function renderTextField(key: string, options?: { multiline?: boolean; type?: string }) {
+    const config = getConfig(key);
+    if (!config) return null;
+
+    const inputId = `site-${key}`;
+    const isKeyField = key === 'arca_key' || key === 'saas_arca_key';
+    const isCertField = key === 'arca_cert' || key === 'saas_arca_cert';
+    const isSecret = isKeyField || isCertField;
+    const configured = isKeyField ? config.keyConfigured : isCertField ? config.certConfigured : false;
+
+    const InputComponent = options?.multiline ? Textarea : Input;
+
+    return (
+      <div key={key} className="space-y-2">
+        <Label htmlFor={inputId} className="text-sm font-medium">
+          {siteConfigLabels[key] ?? key}
+        </Label>
+        <InputComponent
+          id={inputId}
+          type={options?.type ?? 'text'}
+          placeholder={siteConfigPlaceholders[key] ?? ''}
+          value={config.value}
+          onChange={(e) => updateSiteConfig(key, e.target.value)}
+          className={options?.multiline ? 'min-h-[120px] font-mono text-xs' : 'h-10'}
+        />
+        {isSecret && configured && (
+          <p className="text-xs text-muted-foreground">
+            {isKeyField
+              ? 'Clave privada configurada. Pegá un nuevo valor para reemplazarla.'
+              : 'Certificado configurado. Pegá un nuevo valor para reemplazarlo.'}
+          </p>
+        )}
+      </div>
+    );
+  }
+
+  function renderSwitch(key: string, label?: string) {
+    const config = getConfig(key);
+    if (!config) return null;
+
+    return (
+      <div key={key} className="flex items-center gap-2">
+        <input
+          id={`site-${key}`}
+          type="checkbox"
+          checked={config.value === 'true'}
+          onChange={(e) => updateSiteConfig(key, e.target.checked ? 'true' : 'false')}
+          className="size-4 rounded border-gray-300"
+        />
+        <Label htmlFor={`site-${key}`} className="text-sm font-medium">
+          {label ?? siteConfigLabels[key] ?? key}
+        </Label>
+      </div>
+    );
   }
 
   return (
@@ -185,25 +330,9 @@ export function ConfigurationForm({
                     </p>
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
-                    {['bank_alias', 'bank_cbu', 'bank_cuit', 'bank_name', 'bank_holder'].map((key) => {
-                      const config = getConfig(key);
-                      if (!config) return null;
-                      return (
-                        <div key={key} className="space-y-2">
-                          <Label htmlFor={`site-${key}`} className="text-sm font-medium">
-                            {siteConfigLabels[key] ?? key}
-                          </Label>
-                          <Input
-                            id={`site-${key}`}
-                            type="text"
-                            placeholder={siteConfigPlaceholders[key] ?? ''}
-                            value={config.value}
-                            onChange={(e) => updateSiteConfig(key, e.target.value)}
-                            className="h-10"
-                          />
-                        </div>
-                      );
-                    })}
+                    {['bank_alias', 'bank_cbu', 'bank_cuit', 'bank_name', 'bank_holder'].map((key) =>
+                      renderTextField(key)
+                    )}
                   </div>
                 </div>
               </TabsContent>
@@ -228,25 +357,9 @@ export function ConfigurationForm({
                       </p>
                     </div>
                     <div className="grid gap-4 sm:grid-cols-2">
-                      {['mercadopago_access_token', 'mercadopago_client_secret'].map((key) => {
-                        const config = getConfig(key);
-                        if (!config) return null;
-                        return (
-                          <div key={key} className="space-y-2">
-                            <Label htmlFor={`site-${key}`} className="text-sm font-medium">
-                              {siteConfigLabels[key] ?? key}
-                            </Label>
-                            <Input
-                              id={`site-${key}`}
-                              type="password"
-                              placeholder={siteConfigPlaceholders[key] ?? ''}
-                              value={config.value}
-                              onChange={(e) => updateSiteConfig(key, e.target.value)}
-                              className="h-10"
-                            />
-                          </div>
-                        );
-                      })}
+                      {['mercadopago_access_token', 'mercadopago_client_secret'].map((key) =>
+                        renderTextField(key, { type: 'password' })
+                      )}
                     </div>
                     <div className="flex items-start gap-2 rounded-xl bg-amber-100 p-3 text-sm text-amber-800 dark:bg-amber-950 dark:text-amber-300">
                       <AlertCircle className="mt-0.5 size-4 shrink-0" />
@@ -256,20 +369,7 @@ export function ConfigurationForm({
                       </span>
                     </div>
                     {getConfig('mercadopago_access_token')?.value && (
-                      <div className="flex items-center gap-2">
-                        <input
-                          id="site-mercadopago_enabled"
-                          type="checkbox"
-                          checked={getConfig('mercadopago_enabled')?.value !== 'false'}
-                          onChange={(e) =>
-                            updateSiteConfig('mercadopago_enabled', e.target.checked ? 'true' : 'false')
-                          }
-                          className="size-4 rounded border-gray-300"
-                        />
-                        <Label htmlFor="site-mercadopago_enabled" className="text-sm font-medium">
-                          {siteConfigLabels.mercadopago_enabled}
-                        </Label>
-                      </div>
+                      renderSwitch('mercadopago_enabled')
                     )}
                   </div>
 
@@ -291,25 +391,9 @@ export function ConfigurationForm({
                       </p>
                     </div>
                     <div className="grid gap-4 sm:grid-cols-2">
-                      {['stripe_secret_key', 'stripe_webhook_secret'].map((key) => {
-                        const config = getConfig(key);
-                        if (!config) return null;
-                        return (
-                          <div key={key} className="space-y-2">
-                            <Label htmlFor={`site-${key}`} className="text-sm font-medium">
-                              {siteConfigLabels[key] ?? key}
-                            </Label>
-                            <Input
-                              id={`site-${key}`}
-                              type="password"
-                              placeholder={siteConfigPlaceholders[key] ?? ''}
-                              value={config.value}
-                              onChange={(e) => updateSiteConfig(key, e.target.value)}
-                              className="h-10"
-                            />
-                          </div>
-                        );
-                      })}
+                      {['stripe_secret_key', 'stripe_webhook_secret'].map((key) =>
+                        renderTextField(key, { type: 'password' })
+                      )}
                     </div>
                     {stripeWebhookUrl && (
                       <div className="space-y-2">
@@ -344,22 +428,7 @@ export function ConfigurationForm({
                         </p>
                       </div>
                     )}
-                    {getConfig('stripe_secret_key')?.value && (
-                      <div className="flex items-center gap-2">
-                        <input
-                          id="site-stripe_enabled"
-                          type="checkbox"
-                          checked={getConfig('stripe_enabled')?.value !== 'false'}
-                          onChange={(e) =>
-                            updateSiteConfig('stripe_enabled', e.target.checked ? 'true' : 'false')
-                          }
-                          className="size-4 rounded border-gray-300"
-                        />
-                        <Label htmlFor="site-stripe_enabled" className="text-sm font-medium">
-                          {siteConfigLabels.stripe_enabled}
-                        </Label>
-                      </div>
-                    )}
+                    {getConfig('stripe_secret_key')?.value && renderSwitch('stripe_enabled')}
                   </div>
 
                   <div className="space-y-4">
@@ -370,77 +439,79 @@ export function ConfigurationForm({
                         se cargan en la pestaña Datos bancarios.
                       </p>
                     </div>
-                    {(getConfig('bank_alias')?.value || getConfig('bank_cbu')?.value) && (
-                      <div className="flex items-center gap-2">
-                        <input
-                          id="site-bank_transfer_enabled"
-                          type="checkbox"
-                          checked={getConfig('bank_transfer_enabled')?.value !== 'false'}
-                          onChange={(e) =>
-                            updateSiteConfig('bank_transfer_enabled', e.target.checked ? 'true' : 'false')
-                          }
-                          className="size-4 rounded border-gray-300"
-                        />
-                        <Label htmlFor="site-bank_transfer_enabled" className="text-sm font-medium">
-                          {siteConfigLabels.bank_transfer_enabled}
-                        </Label>
-                      </div>
-                    )}
+                    {(getConfig('bank_alias')?.value || getConfig('bank_cbu')?.value) &&
+                      renderSwitch('bank_transfer_enabled')}
                   </div>
                 </div>
               </TabsContent>
 
               <TabsContent value="arca" className="mt-5">
-                <div className="space-y-4">
-                  <div className="mb-4">
-                    <h3 className="text-sm font-medium">Facturación electrónica ARCA</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Al habilitar esta opción, cada pago confirmado genera automáticamente un
-                      Recibo C (comprobante tipo 15 para monotributo) ante ARCA (ex AFIP). La
-                      institución debe autorizar previamente a nuestra empresa en ARCA
-                      (Mis Representaciones) con su CUIT, y figurar inscripta como monotributista
-                      habilitada para comprobantes electrónicos.
+                <div className="space-y-8">
+                  {isSuperAdmin && !editingInstitution && (
+                    <div className="space-y-4 rounded-xl border border-amber-200 bg-amber-50/50 p-4 dark:bg-amber-950/20 dark:border-amber-900">
+                      <div className="mb-2">
+                        <h3 className="text-sm font-medium">ARCA de la plataforma</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Estos datos se usan para emitir los comprobantes SaaS que la plataforma
+                          le factura a cada institución. Solo visible para SUPER_ADMIN.
+                        </p>
+                      </div>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        {renderTextField('saas_arca_cuit')}
+                        {renderTextField('saas_arca_pto_vta')}
+                        {renderTextField('saas_arca_regime')}
+                        {renderTextField('saas_arca_iva_rate')}
+                      </div>
+                      {renderTextField('saas_arca_cert', { multiline: true })}
+                      {renderTextField('saas_arca_key', { multiline: true })}
+                    </div>
+                  )}
+
+                  {editingInstitution && (
+                    <div className="space-y-4">
+                      <div className="mb-2">
+                        <h3 className="text-sm font-medium">ARCA de la institución</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Al habilitar esta opción, cada pago confirmado genera automáticamente un
+                          Recibo C (comprobante tipo 15 para monotributo) ante ARCA (ex AFIP). La
+                          institución usa su propio certificado digital y clave privada; si no las
+                          carga, se usan las de la plataforma y el CUIT correspondiente.
+                        </p>
+                      </div>
+                      {renderSwitch('arca_enabled')}
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        {renderTextField('arca_cuit')}
+                        {renderTextField('arca_punto_vta')}
+                      </div>
+                      {renderTextField('arca_cert', { multiline: true })}
+                      {renderTextField('arca_key', { multiline: true })}
+                      <div className="flex items-center gap-3 pt-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleTestCredentials}
+                          disabled={isTestingCredentials}
+                          className="gap-2"
+                        >
+                          {isTestingCredentials ? (
+                            <Loader2 className="size-4 animate-spin" />
+                          ) : (
+                            <TestTube className="size-4" />
+                          )}
+                          Probar credenciales
+                        </Button>
+                        <p className="text-xs text-muted-foreground">
+                          Solicita un ticket de acceso a ARCA sin emitir ningún comprobante.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {isSuperAdmin && !editingInstitution && (
+                    <p className="text-xs text-muted-foreground">
+                      Seleccioná una institución en el sidebar para configurar sus datos ARCA.
                     </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      id="site-arca_enabled"
-                      type="checkbox"
-                      checked={getConfig('arca_enabled')?.value === 'true'}
-                      onChange={(e) => updateSiteConfig('arca_enabled', e.target.checked ? 'true' : 'false')}
-                      className="size-4 rounded border-gray-300"
-                    />
-                    <Label htmlFor="site-arca_enabled" className="text-sm font-medium">
-                      {siteConfigLabels.arca_enabled}
-                    </Label>
-                  </div>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    {['arca_cuit', 'arca_punto_vta'].map((key) => {
-                      const config = getConfig(key);
-                      if (!config) return null;
-                      return (
-                        <div key={key} className="space-y-2">
-                          <Label htmlFor={`site-${key}`} className="text-sm font-medium">
-                            {siteConfigLabels[key] ?? key}
-                          </Label>
-                          <Input
-                            id={`site-${key}`}
-                            type="text"
-                            inputMode="numeric"
-                            maxLength={key === 'arca_cuit' ? 11 : undefined}
-                            placeholder={siteConfigPlaceholders[key] ?? ''}
-                            value={config.value}
-                            onChange={(e) => updateSiteConfig(key, e.target.value)}
-                            className="h-10"
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    La emisión usa el certificado digital de nuestra empresa; la institución solo
-                    necesita autorizarnos en ARCA y completar su CUIT y punto de venta acá.
-                  </p>
+                  )}
                 </div>
               </TabsContent>
 
@@ -459,25 +530,9 @@ export function ConfigurationForm({
                       </p>
                     </div>
                     <div className="grid gap-4 sm:grid-cols-2">
-                      {['whatsapp_phone_number_id', 'whatsapp_access_token'].map((key) => {
-                        const config = getConfig(key);
-                        if (!config) return null;
-                        return (
-                          <div key={key} className="space-y-2">
-                            <Label htmlFor={`site-${key}`} className="text-sm font-medium">
-                              {siteConfigLabels[key] ?? key}
-                            </Label>
-                            <Input
-                              id={`site-${key}`}
-                              type="text"
-                              placeholder={siteConfigPlaceholders[key] ?? ''}
-                              value={config.value}
-                              onChange={(e) => updateSiteConfig(key, e.target.value)}
-                              className="h-10"
-                            />
-                          </div>
-                        );
-                      })}
+                      {['whatsapp_phone_number_id', 'whatsapp_access_token'].map((key) =>
+                        renderTextField(key)
+                      )}
                     </div>
                   </div>
 
@@ -494,25 +549,9 @@ export function ConfigurationForm({
                       </p>
                     </div>
                     <div className="grid gap-4 sm:grid-cols-2">
-                      {['resend_api_key', 'resend_from_email'].map((key) => {
-                        const config = getConfig(key);
-                        if (!config) return null;
-                        return (
-                          <div key={key} className="space-y-2">
-                            <Label htmlFor={`site-${key}`} className="text-sm font-medium">
-                              {siteConfigLabels[key] ?? key}
-                            </Label>
-                            <Input
-                              id={`site-${key}`}
-                              type="text"
-                              placeholder={siteConfigPlaceholders[key] ?? ''}
-                              value={config.value}
-                              onChange={(e) => updateSiteConfig(key, e.target.value)}
-                              className="h-10"
-                            />
-                          </div>
-                        );
-                      })}
+                      {['resend_api_key', 'resend_from_email'].map((key) =>
+                        renderTextField(key)
+                      )}
                     </div>
                   </div>
                 </div>
