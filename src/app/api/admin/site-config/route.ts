@@ -45,6 +45,13 @@ const CONFIG_KEYS = [
   'stripe_enabled',
   'mercadopago_enabled',
   'bank_transfer_enabled',
+  // Platform SaaS billing (platform-level; stored with clubId = null)
+  'saas_billing_enabled',
+  'saas_billing_day',
+  'saas_arca_regime',
+  'saas_arca_iva_rate',
+  'saas_arca_pto_vta',
+  'saas_reminder_days',
 ];
 
 function serializeConfig(config: {
@@ -282,6 +289,12 @@ function getConfigDescription(key: string): string {
     stripe_enabled: 'Permitir pagos con Stripe a los socios',
     mercadopago_enabled: 'Permitir pagos con Mercado Pago a los socios',
     bank_transfer_enabled: 'Permitir pagos por transferencia bancaria a los socios',
+    saas_billing_enabled: 'Habilita la facturacion SaaS plataforma-institucion (cron, UI, alertas)',
+    saas_billing_day: 'Dia del mes (1-28) en que corre el billing SaaS (zona horaria Buenos Aires)',
+    saas_arca_regime: 'Regimen ARCA plataforma: MONOTRIBUTO o RESPONSABLE_INSCRIPTO',
+    saas_arca_iva_rate: 'Tasa de IVA (porcentaje) para comprobantes SaaS (default 21)',
+    saas_arca_pto_vta: 'Punto de venta ARCA para comprobantes SaaS plataforma',
+    saas_reminder_days: 'Dias de recordatorio de vencimiento SaaS (CSV, ej: 1,7,15; vacio = desactivado)',
   };
   return descriptions[key] ?? '';
 }
