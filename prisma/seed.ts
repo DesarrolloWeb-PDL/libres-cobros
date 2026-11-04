@@ -76,6 +76,27 @@ async function main() {
   }
   console.log(`Default plans ensured for institution ${club.slug}.`);
 
+  // Platform SaaS plan catalog (idempotent by name).
+  const saasPlans = [
+    { name: 'Hasta 50 socios', minMembers: 0, maxMembers: 50, priceArs: 0, highlight: false },
+    { name: '51 a 200 socios', minMembers: 51, maxMembers: 200, priceArs: 35000, highlight: true },
+    { name: '201 a 800 socios', minMembers: 201, maxMembers: 800, priceArs: 85000, highlight: false },
+  ];
+
+  for (const plan of saasPlans) {
+    await prisma.saasPlan.upsert({
+      where: { name: plan.name },
+      update: {
+        minMembers: plan.minMembers,
+        maxMembers: plan.maxMembers,
+        priceArs: plan.priceArs,
+        highlight: plan.highlight,
+      },
+      create: plan,
+    });
+  }
+  console.log('Platform SaaS plan catalog ensured.');
+
   for (const key of SITE_CONFIG_KEYS) {
     await prisma.siteConfig.upsert({
       where: { clubId_key: { clubId: club.id, key } },
