@@ -3,69 +3,19 @@ import type { Metadata } from 'next';
 import { ArrowRight, Check } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import { Footer } from '@/components/Footer';
+import { getActiveLandingPlans, type LandingPlan } from '@/lib/saas-plans';
+
+export const dynamic = 'force-dynamic';
 
 /* Pricing page — the anti-"precio a consultar" page.
-   All numbers are PROPOSAL — needs founder confirmation before deploy:
-   see replica/launch/pricing.md §3. Comparative claims wording is gated by
-   replica/launch/pricing.md (LEGAL REVIEW REQUIRED). */
+   Prices render from the active SaaS plan catalog (D7). Deactivated plans are hidden.
+   Comparative claims wording is gated by replica/launch/pricing.md (LEGAL REVIEW REQUIRED). */
 
 export const metadata: Metadata = {
   title: 'Precios - Libres Cobros',
   description:
     'Precio publicado: sin porcentaje sobre lo que recaudás y gratis hasta 50 socios. Conocé el costo completo de Libres Cobros.',
 };
-
-/* PRICING PROPOSAL: confirm before deploy */
-const plans = [
-  {
-    name: 'Club de Barrio',
-    audience: 'Hasta 50 socios',
-    price: '$ 0',
-    period: 'para siempre',
-    highlight: false,
-    cta: 'Registrar mi club',
-    features: [
-      'Hasta 50 socios, sin vencimiento',
-      '0% sobre lo que recaudás',
-      'Links de pago por WhatsApp',
-      'Recordatorios por WhatsApp y email',
-      'Comprobantes con código QR',
-      'Importación y exportación desde Excel',
-    ],
-  },
-  {
-    name: 'Club en Crecimiento',
-    audience: 'De 51 a 200 socios',
-    price: '$ 35.000',
-    period: 'por mes',
-    highlight: true,
-    cta: 'Registrar mi club',
-    features: [
-      'Todo lo del plan gratis',
-      '0% sobre lo que recaudás',
-      'Débito automático con Mercado Pago y Stripe',
-      'Reportes de pagos, deudas y cierres',
-      'Multi-institución',
-      'Soporte por WhatsApp',
-    ],
-  },
-  {
-    name: 'Institución Grande',
-    audience: 'De 201 a 800 socios',
-    price: '$ 85.000',
-    period: 'por mes',
-    highlight: false,
-    cta: 'Registrar mi club',
-    features: [
-      'Todo lo del plan de crecimiento',
-      '0% sobre lo que recaudás',
-      'Tramos de socios publicados, sin saltos sorpresa',
-      'Panel multi-institución ilimitado',
-      'Alta prioridad en soporte',
-      'Para más de 800 socios: escribinos y armamos el tramo',
-    ],
-  },
-];
 
 const commitments = [
   {
@@ -119,7 +69,9 @@ const faqs = [
   },
 ];
 
-export default function PricingPage() {
+export default async function PricingPage() {
+  const landingPlans: LandingPlan[] = await getActiveLandingPlans();
+
   return (
     <div className="flex min-h-screen flex-col">
       {/* Hero */}
@@ -150,13 +102,12 @@ export default function PricingPage() {
 
       <main>
         {/* Plans */}
-        {/* PRICING PROPOSAL: confirm before deploy — replica/launch/pricing.md */}
         <section className="py-12 px-6 border-t border-border">
           <div className="max-w-5xl mx-auto">
             <div className="grid gap-6 sm:grid-cols-3">
-              {plans.map((plan) => (
+              {landingPlans.map((plan) => (
                 <div
-                  key={plan.name}
+                  key={plan.id}
                   className={`p-6 rounded-xl border bg-card flex flex-col ${
                     plan.highlight ? 'border-accent ring-1 ring-accent' : 'border-border'
                   }`}

@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
 import { requireInstitution, institutionWhere, AuthError } from '@/lib/access';
+import { checkTierAlert } from '@/lib/saas-billing';
 import { CreateMemberSchema } from '@/types/member';
 
 function serializeMember(member: {
@@ -93,6 +94,9 @@ export async function POST(request: NextRequest) {
       },
       include: { plan: { select: { name: true } } },
     });
+
+    const memberCount = await prisma.member.count({ where: { clubId: ctx.institutionId } });
+    await checkTierAlert(ctx.institutionId, memberCount, member.id);
 
     return apiSuccess(serializeMember(member));
   } catch (error) {
