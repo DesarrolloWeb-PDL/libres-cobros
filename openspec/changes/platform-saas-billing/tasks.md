@@ -64,10 +64,10 @@ Chain strategy: stacked-to-main
 
 ## Phase 7: Landing+Alert
 
-- [ ] 7.1 page.tsx + precios/page.tsx: force-dynamic, active SaasPlan only (D7); unsubscribed → free tier.
-- [ ] 7.2 checkTierAlert into members POST + members/import post-create.
+- [x] 7.1 page.tsx + precios/page.tsx: force-dynamic, active SaasPlan only (D7); unsubscribed → free tier.
+- [x] 7.2 checkTierAlert into members POST + members/import post-create.
 
 ## Phase 8: Verification
 
-- [ ] 8.1 tsc, lint, `npx vitest run` (baseline+new), build green; ship saas_billing_enabled=false, flip after homolog smoke.
+- [x] 8.1 tsc, lint, `npx vitest run` (baseline+new), build green; ship saas_billing_enabled=false, flip after homolog smoke.
 - [ ] 8.2 Manual per Success Criteria: run, collections ×3, regimes ×2 config-only, alerts, plan change E2E, overdue access, Recibo C regression-free.
