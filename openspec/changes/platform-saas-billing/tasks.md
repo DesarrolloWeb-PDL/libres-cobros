@@ -71,3 +71,13 @@ Chain strategy: stacked-to-main
 
 - [x] 8.1 tsc, lint, `npx vitest run` (baseline+new), build green; ship saas_billing_enabled=false, flip after homolog smoke.
 - [ ] 8.2 Manual per Success Criteria: run, collections ×3, regimes ×2 config-only, alerts, plan change E2E, overdue access, Recibo C regression-free.
+
+## Phase 9: ARCA multi-tenant credentials in UI
+
+- [x] 9.1 Encryption at rest: AES-256-GCM for stored private keys; `ARCA_STORAGE_SECRET` with `NEXTAUTH_SECRET` fallback.
+- [x] 9.2 Credential resolution (club → platform → env) wired into `emitirReciboC` and `emitirComprobanteSaas`; TA request uses resolved cert/key.
+- [x] 9.3 SiteConfig allowlist + descriptions for `arca_cert`/`arca_key` and `saas_arca_cuit`/`saas_arca_cert`/`saas_arca_key`; GET masks secrets; PUT enforces institution-only vs platform-only scope.
+- [x] 9.4 ConfigurationForm platform ARCA section (superadmin) and institution ARCA section with cert/key paste, configured indicators, and test-credentials button.
+- [x] 9.5 InstitutionForm fiscal CUIT mirrored to club-scoped `arca_cuit`; ticket QR page uses `resolveClubArcaEmitterCuit` for CUIT consistency.
+- [x] 9.6 POST `/api/admin/arca/test-credentials` returns `{ok, environment, error?}` without emitting documents.
+- [x] 9.7 Automated verification: `npx vitest run` 179 passed (21 files), `npx tsc --noEmit` 0 errors, `npm run lint` 0 errors + 5 warnings, `npm run build` success.
