@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import {
   AlertCircle,
   Building2,
@@ -73,13 +73,12 @@ export function ConfigurationForm({
 }: ConfigurationFormProps) {
   const [siteConfigs, setSiteConfigs] = useState<SiteConfigListItem[]>(initialSiteConfigs.data);
   const [isSavingSite, setIsSavingSite] = useState(false);
-  const [origin, setOrigin] = useState('');
+  const origin = useSyncExternalStore(
+    () => () => {},
+    () => window.location.origin,
+    () => ''
+  );
   const [webhookCopied, setWebhookCopied] = useState(false);
-
-  // window.location.origin is only available on the client.
-  useEffect(() => {
-    setOrigin(window.location.origin);
-  }, []);
 
   const stripeWebhookUrl =
     clubSlug && origin ? `${origin}/api/webhooks/stripe?club_slug=${clubSlug}` : '';

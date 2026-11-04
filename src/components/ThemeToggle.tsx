@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import { Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { updateMetaThemeColor } from '@/lib/theme-color';
@@ -32,36 +32,47 @@ export function applyTheme(mode: ThemeMode) {
  * Floating day/night toggle. Preference is persisted in localStorage;
  * default follows the system. Works on public and admin pages.
  */
+const THEME_CHANGED_EVENT = 'libres-theme-changed';
+
+function subscribe(callback: () => void) {
+  const media = window.matchMedia('(prefers-color-scheme: dark)');
+  const handler = () => callback();
+  window.addEventListener('storage', handler);          // cross-tab change
+  window.addEventListener(THEME_CHANGED_EVENT, handler); // same-tab toggle
+  media.addEventListener('change', handler);             // system preference change
+  return () => {
+    window.removeEventListener('storage', handler);
+    window.removeEventListener(THEME_CHANGED_EVENT, handler);
+    media.removeEventListener('change', handler);
+  };
+}
+
+function getSnapshot(): ThemeMode {
+  // Stored preference wins; otherwise follow the system. When a stored
+  // preference exists this ignores system changes, matching original logic.
+  const stored = getStoredTheme();
+  if (stored) return stored;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+const getServerSnapshot = (): ThemeMode => 'light';
+
 export function ThemeToggle() {
-  const [mode, setMode] = useState<ThemeMode>('light');
+  const mode = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
+  // DOM side-effect (allowed in an effect — not setState):
   useEffect(() => {
-    const stored = getStoredTheme();
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const initial: ThemeMode = stored ?? (prefersDark ? 'dark' : 'light');
-    setMode(initial);
-    applyTheme(initial);
-
-    const media = window.matchMedia('(prefers-color-scheme: dark)');
-    const onChange = (e: MediaQueryListEvent) => {
-      if (getStoredTheme()) return;
-      const next: ThemeMode = e.matches ? 'dark' : 'light';
-      setMode(next);
-      applyTheme(next);
-    };
-    media.addEventListener('change', onChange);
-    return () => media.removeEventListener('change', onChange);
-  }, []);
+    applyTheme(mode);
+  }, [mode]);
 
   function toggle() {
     const next: ThemeMode = mode === 'dark' ? 'light' : 'dark';
-    setMode(next);
-    applyTheme(next);
     try {
       window.localStorage.setItem(STORAGE_KEY, next);
     } catch {
       // private mode — still applies for this session
     }
+    window.dispatchEvent(new Event(THEME_CHANGED_EVENT));
   }
 
   return (

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Loader2, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,7 +40,11 @@ export function PlanForm({ plan, open, onOpenChange, onSuccess }: PlanFormProps)
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
+  const [prevOpen, setPrevOpen] = useState(open);
+  const [prevPlan, setPrevPlan] = useState(plan);
+  if (open !== prevOpen || plan !== prevPlan) {
+    setPrevOpen(open);
+    setPrevPlan(plan);
     if (open) {
       setFormData({
         name: plan?.name ?? '',
@@ -50,7 +54,7 @@ export function PlanForm({ plan, open, onOpenChange, onSuccess }: PlanFormProps)
       });
       setErrors({});
     }
-  }, [open, plan]);
+  }
 
   function updateField(field: keyof FormData, value: string | boolean) {
     setFormData((prev) => ({ ...prev, [field]: value }));
