@@ -20,6 +20,14 @@ async function getPlans(): Promise<PlanListResponse> {
   return response.json();
 }
 
+async function getCategories(): Promise<{ data: string[] }> {
+  const response = await adminFetch(
+    '/api/admin/members/categories',
+    'Failed to load categories'
+  );
+  return response.json();
+}
+
 export default async function MessagesPage() {
   const session = await getServerSession(authOptions);
 
@@ -27,7 +35,11 @@ export default async function MessagesPage() {
     redirect('/login');
   }
 
-  const [history, plans] = await Promise.all([getHistory(), getPlans()]);
+  const [history, plans, categories] = await Promise.all([
+    getHistory(),
+    getPlans(),
+    getCategories(),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -38,7 +50,7 @@ export default async function MessagesPage() {
         </p>
       </div>
 
-      <MassMessageForm initialPlans={plans.data} />
+      <MassMessageForm initialPlans={plans.data} initialCategories={categories.data} />
       <MessageHistory history={history} />
     </div>
   );

@@ -56,6 +56,33 @@ model Club {
   saasAutoDebits          SaasAutoDebit[]
   saasComprobantes        SaasComprobante[]
   saasPlanChangeRequests  SaasPlanChangeRequest[]
+  massMessageCampaigns    MassMessageCampaign[]
+}
+
+model MassMessageCampaign {
+  id             String    @id @default(cuid())
+  clubId         String
+  message        String
+  segment        String    @default("all")
+  category       String?
+  memberStatus   String?
+  planId         String?
+  search         String?
+  scheduledAt    DateTime?
+  status         String    @default("PENDING")
+  sentAt         DateTime?
+  error          String?
+  recipientCount Int       @default(0)
+  sentCount      Int       @default(0)
+  failedCount    Int       @default(0)
+  skippedCount   Int       @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  club           Club      @relation(fields: [clubId], references: [id])
+
+  @@index([clubId])
+  @@index([status])
+  @@index([scheduledAt])
 }
 
 model ProviderInvoice {

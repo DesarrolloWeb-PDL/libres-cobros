@@ -1,75 +1,27 @@
 import { NextRequest } from 'next/server';
-import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
 import { requireInstitution, institutionWhere, AuthError } from '@/lib/access';
-import { sendMessage, getConfiguredChannel } from '@/lib/sms';
-import { sendEmail, isEmailConfigured } from '@/lib/email';
-import { getInstitutionSiteConfigValues } from '@/lib/site-config';
-import { resolveMessageTemplate } from '@/lib/messaging';
+import { SendMassMessageSchema } from '@/types/messaging';
 import {
-  MassMessageFiltersSchema,
-  SendMassMessageSchema,
-} from '@/types/messaging';
+  countMassMessageRecipients,
+  deriveCampaignStatus,
+  parseScheduledAt,
+  sendMassMessage,
+} from '@/lib/mass-message';
 import type {
   MassMessageHistoryItem,
   MassMessageHistoryResponse,
   SendMassMessageResponse,
 } from '@/types/messaging';
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function logAttempt(
-  clubId: string,
-  memberId: string,
-  status: 'SENT' | 'FAILED' | 'SKIPPED',
-  message: string,
-  externalId?: string | null,
-  error?: string
-) {
-  await prisma.smsLog.create({
-    data: {
-      clubId,
-      memberId,
-      type: 'mass_message',
-      status,
-      message,
-      externalId: externalId ?? null,
-      error: error ?? null,
-    },
-  });
-}
-
-function buildMemberWhere(
-  institutionId: string | null,
-  filters: z.infer<typeof MassMessageFiltersSchema>
-) {
-  const { status, planId, search } = filters;
-  const trimmedSearch = search?.trim();
-
-  const where: Record<string, unknown> = {
-    ...institutionWhere(institutionId),
-  };
-
-  if (status) {
-    where.status = status;
+function toHistoryStatus(status: string): MassMessageHistoryItem['status'] {
+  if (status === 'PENDING') return 'SCHEDULED';
+  if (status === 'PROCESSING') return 'PROCESSING';
+  if (status === 'SENT' || status === 'PARTIAL' || status === 'FAILED') {
+    return status as MassMessageHistoryItem['status'];
   }
-
-  if (planId) {
-    where.planId = planId;
-  }
-
-  if (trimmedSearch) {
-    where.OR = [
-      { dni: { contains: trimmedSearch, mode: 'insensitive' } },
-      { firstName: { contains: trimmedSearch, mode: 'insensitive' } },
-      { lastName: { contains: trimmedSearch, mode: 'insensitive' } },
-    ];
-  }
-
-  return where;
+  return 'FAILED';
 }
 
 export async function GET(request: NextRequest) {
@@ -81,72 +33,31 @@ export async function GET(request: NextRequest) {
       Math.max(1, parseInt(request.nextUrl.searchParams.get('limit') ?? '50', 10))
     );
 
-    const logs = await prisma.smsLog.findMany({
-      where: {
-        ...institutionWhere(ctx.institutionId),
-        type: { startsWith: 'mass_message' },
-      },
-      orderBy: { sentAt: 'desc' },
-      take: 200,
-      select: {
-        message: true,
-        status: true,
-        sentAt: true,
-      },
+    const campaigns = await prisma.massMessageCampaign.findMany({
+      where: institutionWhere(ctx.institutionId),
+      orderBy: { createdAt: 'desc' },
+      take: limit,
     });
 
-    const campaigns = new Map<
-      string,
-      {
-        message: string;
-        sentAt: Date;
-        sent: number;
-        failed: number;
-        skipped: number;
-      }
-    >();
+    const items: MassMessageHistoryItem[] = campaigns.map((campaign) => {
+      const status = toHistoryStatus(campaign.status);
+      const sentAt =
+        campaign.sentAt ?? campaign.scheduledAt ?? campaign.createdAt;
 
-    for (const log of logs) {
-      // Group by message body + minute so repeated identical messages are
-      // still distinguishable when sent at different times.
-      const key = `${log.message}::${log.sentAt.toISOString().slice(0, 16)}`;
-      const current = campaigns.get(key) ?? {
-        message: log.message,
-        sentAt: log.sentAt,
-        sent: 0,
-        failed: 0,
-        skipped: 0,
+      return {
+        id: campaign.id,
+        message: campaign.message,
+        recipientCount: campaign.recipientCount,
+        sentCount: campaign.sentCount,
+        failedCount: campaign.failedCount,
+        skippedCount: campaign.skippedCount,
+        sentAt: sentAt.toISOString(),
+        status,
+        segment: campaign.segment,
+        category: campaign.category,
+        scheduledAt: campaign.scheduledAt?.toISOString() ?? null,
       };
-
-      if (log.status === 'SENT') current.sent += 1;
-      else if (log.status === 'FAILED') current.failed += 1;
-      else if (log.status === 'SKIPPED') current.skipped += 1;
-
-      campaigns.set(key, current);
-    }
-
-    const items: MassMessageHistoryItem[] = Array.from(campaigns.values())
-      .sort((a, b) => b.sentAt.getTime() - a.sentAt.getTime())
-      .slice(0, limit)
-      .map((campaign) => {
-        const status =
-          campaign.failed === 0 && campaign.skipped === 0
-            ? 'SENT'
-            : campaign.sent === 0
-              ? 'FAILED'
-              : 'PARTIAL';
-
-        return {
-          id: `${campaign.message}::${campaign.sentAt.toISOString().slice(0, 16)}`,
-          message: campaign.message,
-          recipientCount: campaign.sent + campaign.failed + campaign.skipped,
-          sentCount: campaign.sent,
-          failedCount: campaign.failed,
-          skippedCount: campaign.skipped,
-          sentAt: campaign.sentAt.toISOString(),
-          status,
-        };
-      });
+    });
 
     const response: MassMessageHistoryResponse = { data: items };
     return apiSuccess(response);
@@ -185,160 +96,159 @@ export async function POST(request: NextRequest) {
 
     const { message } = parsed.data;
 
-    let where: Record<string, unknown>;
-
     if ('memberIds' in parsed.data) {
-      where = {
-        ...institutionWhere(ctx.institutionId),
-        id: { in: parsed.data.memberIds },
-      };
-    } else {
-      where = buildMemberWhere(ctx.institutionId, parsed.data.filters);
-    }
-
-    const members = await prisma.member.findMany({
-      where,
-      include: {
-        fees: {
-          where: {
-            status: { in: ['PENDING', 'OVERDUE'] },
-          },
-          orderBy: { dueDate: 'asc' },
+      const members = await prisma.member.findMany({
+        where: {
+          ...institutionWhere(ctx.institutionId),
+          id: { in: parsed.data.memberIds },
         },
-      },
-    });
+        include: {
+          fees: {
+            where: {
+              status: { in: ['PENDING', 'OVERDUE'] },
+            },
+            orderBy: { dueDate: 'asc' },
+          },
+        },
+      });
 
-    let sent = 0;
-    let failed = 0;
-    const batchSize = 10;
-
-    // Detect the messaging channel once for the whole batch
-    const channel = await getConfiguredChannel(ctx.institutionId);
-
-    // Fetch Resend config once (not per-member) when the channel is email
-    let resendConfig: { apiKey: string; fromEmail: string } | null = null;
-    if (channel === 'email') {
-      if (!(await isEmailConfigured(ctx.institutionId))) {
+      if (members.length === 0) {
         return apiError(
-          'Email no configurado',
+          'Sin destinatarios',
           400,
-          'Verificá la API Key de Resend en Configuración de la institución',
-          'EMAIL_NOT_CONFIGURED'
+          'No hay socios seleccionados para enviar el mensaje',
+          'EMPTY_SEGMENT'
         );
       }
 
-      const resendValues = await getInstitutionSiteConfigValues(ctx.institutionId, [
-        'resend_api_key',
-        'resend_from_email',
-      ]);
-
-      resendConfig = {
-        apiKey: resendValues.resend_api_key ?? '',
-        fromEmail: resendValues.resend_from_email ?? '',
-      };
-    }
-
-    for (let i = 0; i < members.length; i += batchSize) {
-      const batch = members.slice(i, i + batchSize);
-
-      await Promise.all(
-        batch.map(async (member) => {
-          const personalizedMessage = resolveMessageTemplate(message, member);
-
-          if (channel === 'email') {
-            if (!member.email || member.email.trim() === '') {
-              await logAttempt(
-                member.clubId,
-                member.id,
-                'SKIPPED',
-                message,
-                null,
-                'Socio sin email'
-              );
-              return;
-            }
-
-            try {
-              const htmlBody = `<p>${personalizedMessage.replace(/\n/g, '<br />')}</p>`;
-              const { externalId } = await sendEmail(
-                resendConfig!.apiKey,
-                resendConfig!.fromEmail,
-                member.email,
-                'Mensaje de tu institución',
-                htmlBody
-              );
-              await logAttempt(
-                member.clubId,
-                member.id,
-                'SENT',
-                personalizedMessage,
-                externalId
-              );
-              sent += 1;
-            } catch (error) {
-              const errorMessage = error instanceof Error ? error.message : String(error);
-              await logAttempt(
-                member.clubId,
-                member.id,
-                'FAILED',
-                personalizedMessage,
-                null,
-                errorMessage
-              );
-              failed += 1;
-            }
-
-            return;
-          }
-
-          // WhatsApp
-          if (!member.phone || member.phone.trim() === '') {
-            await logAttempt(
-              member.clubId,
-              member.id,
-              'SKIPPED',
-              message,
-              null,
-              'Socio sin teléfono'
-            );
-            return;
-          }
-
-          try {
-            const { externalId } = await sendMessage(
-              member.clubId,
-              member.phone,
-              personalizedMessage
-            );
-            await logAttempt(
-              member.clubId,
-              member.id,
-              'SENT',
-              personalizedMessage,
-              externalId
-            );
-            sent += 1;
-          } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            await logAttempt(
-              member.clubId,
-              member.id,
-              'FAILED',
-              personalizedMessage,
-              null,
-              errorMessage
-            );
-            failed += 1;
-          }
-        })
+      const result = await sendMassMessage(
+        ctx.institutionId,
+        message,
+        {
+          status: undefined,
+          planId: undefined,
+          search: undefined,
+          segment: 'all',
+          memberIds: parsed.data.memberIds,
+        },
+        'mass_message'
       );
 
-      if (i + batchSize < members.length) {
-        await sleep(1000);
-      }
+      const status = deriveCampaignStatus(result);
+      await prisma.massMessageCampaign.create({
+        data: {
+          clubId: ctx.institutionId,
+          message,
+          segment: 'all',
+          status,
+          recipientCount: result.recipientCount,
+          sentCount: result.sent,
+          failedCount: result.failed,
+          skippedCount: result.skipped,
+        },
+      });
+
+      const response: SendMassMessageResponse = {
+        sent: result.sent,
+        failed: result.failed,
+      };
+      return apiSuccess(response);
     }
 
-    const response: SendMassMessageResponse = { sent, failed };
+    const filters = parsed.data.filters;
+    const scheduledAtRaw = parsed.data.scheduledAt;
+
+    if (scheduledAtRaw) {
+      const scheduledAt = parseScheduledAt(scheduledAtRaw);
+      if (!scheduledAt) {
+        return apiError(
+          'Fecha inválida',
+          400,
+          'El formato de la fecha de envío no es válido',
+          'INVALID_SCHEDULED_AT'
+        );
+      }
+
+      const now = new Date();
+      if (scheduledAt.getTime() <= now.getTime()) {
+        return apiError(
+          'Fecha inválida',
+          400,
+          'La fecha de envío debe ser en el futuro',
+          'PAST_SCHEDULED_AT'
+        );
+      }
+
+      const recipientCount = await countMassMessageRecipients(ctx.institutionId, filters);
+      if (recipientCount === 0) {
+        return apiError(
+          'Sin destinatarios',
+          400,
+          'No hay socios que coincidan con el segmento seleccionado',
+          'EMPTY_SEGMENT'
+        );
+      }
+
+      const campaign = await prisma.massMessageCampaign.create({
+        data: {
+          clubId: ctx.institutionId,
+          message,
+          segment: filters.segment ?? 'all',
+          category: filters.category ?? null,
+          memberStatus: filters.status ?? null,
+          planId: filters.planId ?? null,
+          search: filters.search ?? null,
+          scheduledAt,
+          status: 'PENDING',
+          recipientCount,
+        },
+      });
+
+      const response: SendMassMessageResponse = {
+        sent: 0,
+        failed: 0,
+        scheduled: true,
+        campaignId: campaign.id,
+        scheduledAt: campaign.scheduledAt?.toISOString(),
+      };
+      return apiSuccess(response);
+    }
+
+    const recipientCount = await countMassMessageRecipients(ctx.institutionId, filters);
+    if (recipientCount === 0) {
+      return apiError(
+        'Sin destinatarios',
+        400,
+        'No hay socios que coincidan con el segmento seleccionado',
+        'EMPTY_SEGMENT'
+      );
+    }
+
+    const result = await sendMassMessage(ctx.institutionId, message, filters, 'mass_message');
+    const status = deriveCampaignStatus(result);
+
+    await prisma.massMessageCampaign.create({
+      data: {
+        clubId: ctx.institutionId,
+        message,
+        segment: filters.segment ?? 'all',
+        category: filters.category ?? null,
+        memberStatus: filters.status ?? null,
+        planId: filters.planId ?? null,
+        search: filters.search ?? null,
+        status,
+        sentAt: new Date(),
+        recipientCount: result.recipientCount,
+        sentCount: result.sent,
+        failedCount: result.failed,
+        skippedCount: result.skipped,
+      },
+    });
+
+    const response: SendMassMessageResponse = {
+      sent: result.sent,
+      failed: result.failed,
+    };
     return apiSuccess(response);
   } catch (error) {
     if (error instanceof AuthError) {

@@ -11,6 +11,8 @@ import {
   CreditCard,
   Calendar,
   Hash,
+  Clock,
+  ListFilter,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,17 +29,27 @@ import {
 import { toast } from '@/components/ui/toast';
 import { cn } from '@/lib/utils';
 import type { PlanListItem } from '@/types/fee';
-import type { MassMessageFilters } from '@/types/messaging';
+import type { MassMessageFilters, MassMessageSegment } from '@/types/messaging';
 
 interface MassMessageFormProps {
   initialPlans: PlanListItem[];
+  initialCategories: string[];
 }
 
 interface Filters {
   status: string;
   planId: string;
   search: string;
+  segment: MassMessageSegment | '';
+  category: string;
 }
+
+const segmentOptions: { value: MassMessageSegment | ''; label: string }[] = [
+  { value: '', label: 'Todos' },
+  { value: 'up_to_date', label: 'Al día' },
+  { value: 'debt', label: 'Con deuda' },
+  { value: 'overdue', label: 'En mora' },
+];
 
 const templateVariables = [
   { key: '{nombre}', label: 'Nombre', icon: User },
@@ -47,7 +59,7 @@ const templateVariables = [
   { key: '{vencimiento}', label: 'Vencimiento', icon: Calendar },
 ];
 
-export function MassMessageForm({ initialPlans }: MassMessageFormProps) {
+export function MassMessageForm({ initialPlans, initialCategories }: MassMessageFormProps) {
   const router = useRouter();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -55,8 +67,11 @@ export function MassMessageForm({ initialPlans }: MassMessageFormProps) {
     status: '',
     planId: '',
     search: '',
+    segment: '',
+    category: '',
   });
   const [message, setMessage] = useState('');
+  const [scheduledAt, setScheduledAt] = useState('');
   const [recipientCount, setRecipientCount] = useState(0);
   const [isCounting, setIsCounting] = useState(false);
   const [isSending, setIsSending] = useState(false);
@@ -65,12 +80,14 @@ export function MassMessageForm({ initialPlans }: MassMessageFormProps) {
   const fetchRecipientCount = useCallback(async () => {
     setIsCounting(true);
     try {
-      const params = new URLSearchParams({ limit: '1' });
+      const params = new URLSearchParams();
       if (filters.status) params.set('status', filters.status);
       if (filters.planId) params.set('planId', filters.planId);
       if (filters.search.trim()) params.set('search', filters.search.trim());
+      if (filters.segment) params.set('segment', filters.segment);
+      if (filters.category) params.set('category', filters.category);
 
-      const response = await fetch(`/api/admin/members?${params.toString()}`, {
+      const response = await fetch(`/api/admin/messaging/count?${params.toString()}`, {
         cache: 'no-store',
       });
 
@@ -135,6 +152,18 @@ export function MassMessageForm({ initialPlans }: MassMessageFormProps) {
       return false;
     }
 
+    if (scheduledAt) {
+      const selected = new Date(scheduledAt);
+      if (Number.isNaN(selected.getTime()) || selected.getTime() <= Date.now()) {
+        toast.add({
+          title: 'Fecha inválida',
+          description: 'La fecha de envío programado debe ser futura',
+          type: 'error',
+        });
+        return false;
+      }
+    }
+
     return true;
   }
 
@@ -147,10 +176,13 @@ export function MassMessageForm({ initialPlans }: MassMessageFormProps) {
     setIsSending(true);
     setConfirmOpen(false);
 
-    const payloadFilters: MassMessageFilters = {};
+    const payloadFilters: MassMessageFilters = {
+      segment: filters.segment || 'all',
+    };
     if (filters.status) payloadFilters.status = filters.status as 'ACTIVE' | 'INACTIVE';
     if (filters.planId) payloadFilters.planId = filters.planId;
     if (filters.search.trim()) payloadFilters.search = filters.search.trim();
+    if (filters.category) payloadFilters.category = filters.category;
 
     try {
       const response = await fetch('/api/admin/messaging', {
@@ -159,6 +191,7 @@ export function MassMessageForm({ initialPlans }: MassMessageFormProps) {
         body: JSON.stringify({
           filters: payloadFilters,
           message,
+          ...(scheduledAt && { scheduledAt }),
         }),
       });
 
@@ -168,13 +201,22 @@ export function MassMessageForm({ initialPlans }: MassMessageFormProps) {
         throw new Error(result.error || 'Error al enviar los mensajes');
       }
 
-      toast.add({
-        title: 'Mensajes enviados',
-        description: `${result.sent} enviados · ${result.failed} fallidos`,
-        type: 'success',
-      });
+      if (result.scheduled) {
+        toast.add({
+          title: 'Envío programado',
+          description: `El mensaje se enviará a ${recipientCount} socios en la fecha indicada`,
+          type: 'success',
+        });
+      } else {
+        toast.add({
+          title: 'Mensajes enviados',
+          description: `${result.sent} enviados · ${result.failed} fallidos`,
+          type: 'success',
+        });
+      }
 
       setMessage('');
+      setScheduledAt('');
       router.refresh();
     } catch (error) {
       toast.add({
@@ -186,6 +228,8 @@ export function MassMessageForm({ initialPlans }: MassMessageFormProps) {
       setIsSending(false);
     }
   }
+
+  const isScheduled = Boolean(scheduledAt);
 
   return (
     <div className="space-y-6 rounded-2xl border bg-card p-5 shadow-sm">
@@ -235,6 +279,54 @@ export function MassMessageForm({ initialPlans }: MassMessageFormProps) {
               ]}
               placeholder="Todos los planes"
             />
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-4 sm:flex-row">
+          <div className="w-full space-y-2 sm:w-56">
+            <Label htmlFor="message-segment" className="flex items-center gap-1.5">
+              <ListFilter className="size-3.5" />
+              Segmento
+            </Label>
+            <StyledSelect
+              id="message-segment"
+              value={filters.segment}
+              onChange={(value) => updateFilter('segment', value as Filters['segment'])}
+              options={segmentOptions}
+              placeholder="Todos"
+            />
+          </div>
+
+          <div className="w-full space-y-2 sm:w-56">
+            <Label htmlFor="message-category">Categoría</Label>
+            <StyledSelect
+              id="message-category"
+              value={filters.category}
+              onChange={(value) => updateFilter('category', value as Filters['category'])}
+              options={[
+                { value: '', label: 'Todas las categorías' },
+                ...initialCategories.map((category) => ({
+                  value: category,
+                  label: category,
+                })),
+              ]}
+              placeholder="Todas las categorías"
+            />
+          </div>
+
+          <div className="flex-1 space-y-2">
+            <Label htmlFor="message-scheduled" className="flex items-center gap-1.5">
+              <Clock className="size-3.5" />
+              Programar envío (opcional)
+            </Label>
+            <Input
+              id="message-scheduled"
+              type="datetime-local"
+              value={scheduledAt}
+              onChange={(e) => setScheduledAt(e.target.value)}
+              placeholder="Ahora"
+            />
+            <p className="text-xs text-muted-foreground">Horario de Argentina (UTC-3).</p>
           </div>
         </div>
 
@@ -303,17 +395,32 @@ export function MassMessageForm({ initialPlans }: MassMessageFormProps) {
           className="gap-2"
         >
           {isSending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
-          {isSending ? 'Enviando...' : 'Enviar mensajes'}
+          {isScheduled ? 'Programar envío' : 'Enviar mensajes'}
         </Button>
       </div>
 
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Confirmar envío</DialogTitle>
+            <DialogTitle>{isScheduled ? 'Confirmar programación' : 'Confirmar envío'}</DialogTitle>
             <DialogDescription>
-              Vas a enviar un mensaje masivo a{' '}
-              <strong>{recipientCount} socios</strong>. Esta acción no se puede deshacer.
+              {isScheduled ? (
+                <>
+                  Vas a programar un mensaje masivo a{' '}
+                  <strong>{recipientCount} socios</strong> para el{' '}
+                  <strong>
+                    {scheduledAt
+                      ? new Date(scheduledAt).toLocaleString('es-AR')
+                      : 'fecha seleccionada'}
+                  </strong>
+                  .
+                </>
+              ) : (
+                <>
+                  Vas a enviar un mensaje masivo a{' '}
+                  <strong>{recipientCount} socios</strong>. Esta acción no se puede deshacer.
+                </>
+              )}
             </DialogDescription>
           </DialogHeader>
 
@@ -327,7 +434,7 @@ export function MassMessageForm({ initialPlans }: MassMessageFormProps) {
             </Button>
             <Button onClick={handleSend} disabled={isSending} className="gap-2">
               {isSending && <Loader2 className="size-4 animate-spin" />}
-              Confirmar envío
+              {isScheduled ? 'Confirmar programación' : 'Confirmar envío'}
             </Button>
           </DialogFooter>
         </DialogContent>

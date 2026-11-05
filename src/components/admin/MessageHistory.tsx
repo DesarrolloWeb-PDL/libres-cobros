@@ -19,12 +19,16 @@ const statusLabels: Record<string, string> = {
   SENT: 'Enviado',
   PARTIAL: 'Parcial',
   FAILED: 'Fallido',
+  SCHEDULED: 'Programado',
+  PROCESSING: 'Enviando',
 };
 
 const statusVariants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
   SENT: 'default',
   PARTIAL: 'secondary',
   FAILED: 'destructive',
+  SCHEDULED: 'outline',
+  PROCESSING: 'secondary',
 };
 
 function formatDate(value: string): string {
@@ -79,6 +83,9 @@ export function MessageHistory({ history }: MessageHistoryProps) {
                   <TableRow key={item.id}>
                     <TableCell className="whitespace-nowrap text-muted-foreground">
                       {formatDate(item.sentAt)}
+                      {item.scheduledAt && item.status === 'SCHEDULED' && (
+                        <p className="text-xs">Programado: {formatDate(item.scheduledAt)}</p>
+                      )}
                     </TableCell>
                     <TableCell>
                       <p className="max-w-xs truncate text-sm" title={item.message}>

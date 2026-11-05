@@ -1,9 +1,19 @@
 import { z } from 'zod';
 
+export const MassMessageSegmentSchema = z.enum([
+  'all',
+  'up_to_date',
+  'debt',
+  'overdue',
+]);
+
 export const MassMessageFiltersSchema = z.object({
   status: z.enum(['ACTIVE', 'INACTIVE']).optional(),
   planId: z.string().cuid().optional(),
   search: z.string().optional(),
+  segment: MassMessageSegmentSchema.optional().default('all'),
+  category: z.string().optional(),
+  memberIds: z.array(z.string()).optional(),
 });
 
 export const SendMassMessageByIdsSchema = z.object({
@@ -14,6 +24,7 @@ export const SendMassMessageByIdsSchema = z.object({
 export const SendMassMessageByFiltersSchema = z.object({
   filters: MassMessageFiltersSchema,
   message: z.string().min(1, 'El mensaje es obligatorio'),
+  scheduledAt: z.string().optional(),
 });
 
 export const SendMassMessageSchema = z.union([
@@ -21,6 +32,7 @@ export const SendMassMessageSchema = z.union([
   SendMassMessageByFiltersSchema,
 ]);
 
+export type MassMessageSegment = z.infer<typeof MassMessageSegmentSchema>;
 export type MassMessageFilters = z.infer<typeof MassMessageFiltersSchema>;
 export type SendMassMessageInput = z.infer<typeof SendMassMessageSchema>;
 
@@ -32,7 +44,10 @@ export interface MassMessageHistoryItem {
   failedCount: number;
   skippedCount: number;
   sentAt: string;
-  status: 'SENT' | 'PARTIAL' | 'FAILED';
+  status: 'SENT' | 'PARTIAL' | 'FAILED' | 'SCHEDULED' | 'PROCESSING';
+  segment?: string;
+  category?: string | null;
+  scheduledAt?: string | null;
 }
 
 export interface MassMessageHistoryResponse {
@@ -42,4 +57,7 @@ export interface MassMessageHistoryResponse {
 export interface SendMassMessageResponse {
   sent: number;
   failed: number;
+  scheduled?: boolean;
+  campaignId?: string;
+  scheduledAt?: string;
 }
