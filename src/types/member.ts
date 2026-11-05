@@ -1,7 +1,9 @@
 import { z } from 'zod';
 
 export const MemberCategorySchema = z.enum(['ADULT', 'FAMILY', 'MINOR']);
-export const MemberStatusSchema = z.enum(['ACTIVE', 'INACTIVE']);
+// 'PENDING' is used for members created via self-registration that await admin
+// approval. Kept as a string (not a DB enum) — see Member.status in schema.prisma.
+export const MemberStatusSchema = z.enum(['ACTIVE', 'INACTIVE', 'PENDING']);
 export const MemberIvaCondicionSchema = z.enum(['CF', 'MONO', 'RI', 'EXENTO']);
 
 export const MemberFormSchema = z.object({

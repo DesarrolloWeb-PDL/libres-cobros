@@ -128,7 +128,7 @@ export async function GET(request: NextRequest) {
       where.category = category;
     }
 
-    if (status && ['ACTIVE', 'INACTIVE'].includes(status)) {
+    if (status && ['ACTIVE', 'INACTIVE', 'PENDING'].includes(status)) {
       where.status = status;
     }
 
