@@ -6,6 +6,7 @@ import { getPlatformSiteConfigValue } from '@/lib/site-config';
 import { getInstitutionSubscriptionAlert } from '@/lib/saas-subscription-alert';
 import type { SubscriptionAlertState } from '@/lib/saas-subscription-alert';
 import { StatsCards } from '@/components/admin/StatsCards';
+import { KpiStrip } from '@/components/admin/KpiStrip';
 import { DashboardPanels } from '@/components/admin/DashboardPanels';
 import { RecentActivity } from '@/components/admin/RecentActivity';
 import { SubscriptionAlertBanner } from '@/components/admin/SubscriptionAlertBanner';
@@ -72,6 +73,9 @@ export default async function AdminDashboardPage() {
           </p>
         </div>
       </div>
+
+      {/* Real-time KPI strip */}
+      <KpiStrip />
 
       {/* Stats */}
       <StatsCards data={data} />
