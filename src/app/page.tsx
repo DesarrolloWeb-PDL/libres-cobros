@@ -1,6 +1,9 @@
 import Link from 'next/link';
-import { Logo } from '@/components/Logo';
 import { Footer } from '@/components/Footer';
+import { Header } from '@/components/landing/Header';
+import { HeroPanel } from '@/components/landing/HeroPanel';
+import { SocialProofBar } from '@/components/landing/SocialProofBar';
+import { commitments } from '@/lib/pricing-commitments';
 import { getActiveLandingPlans, type LandingPlan } from '@/lib/saas-plans';
 import {
   ArrowRight,
@@ -135,11 +138,11 @@ export default async function LandingPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
+      <Header />
+
       {/* Hero */}
-      <header className="relative flex flex-col items-center justify-center min-h-[72vh] px-6 pt-[calc(env(safe-area-inset-top)_+_4rem)] text-center">
-        {/* TODO(launch): replace logo-only hero visual with a real product screenshot (admin panel with cuotas) */}
-        <Logo size={110} showScroll={false} />
-        <h1 className="text-5xl sm:text-6xl md:text-7xl font-heading font-extrabold tracking-tight mb-4 mt-5">
+      <header className="relative flex flex-col items-center justify-center min-h-[72vh] px-6 pt-[calc(env(safe-area-inset-top)_+_6rem)] pb-16 text-center">
+        <h1 className="text-5xl sm:text-6xl md:text-7xl font-heading font-extrabold tracking-tight mb-4">
           Libres Cobros
         </h1>
         <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-5">
@@ -152,7 +155,7 @@ export default async function LandingPage() {
           Débito automático incluido. Un precio publicado, sin porcentaje sobre lo que recaudás.
           Gratis hasta 50 socios.
         </p>
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-4 mb-12">
           <Link
             href="/registro"
             className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-lg bg-accent text-white font-medium hover:bg-accent/90 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
@@ -167,12 +170,15 @@ export default async function LandingPage() {
             Ingresar
           </Link>
         </div>
+        <HeroPanel />
       </header>
+
+      <SocialProofBar />
 
       <main>
         {/* Problem */}
         {/* LEGAL REVIEW: comparative market claims — approved wording lives in replica/launch/pricing.md (LEGAL REVIEW REQUIRED) */}
-        <section id="problema" className="py-16 px-6 border-t border-border">
+        <section id="problema" className="py-16 px-6 border-t border-border scroll-mt-24">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
               <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-3">
@@ -194,7 +200,7 @@ export default async function LandingPage() {
         </section>
 
         {/* How it works */}
-        <section id="como-funciona" className="py-16 px-6 border-t border-border bg-muted/30">
+        <section id="como-funciona" className="py-16 px-6 border-t border-border bg-muted/30 scroll-mt-24">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
               <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-3">
@@ -225,7 +231,7 @@ export default async function LandingPage() {
         </section>
 
         {/* Features */}
-        <section id="funciones" className="py-16 px-6 border-t border-border">
+        <section id="funciones" className="py-16 px-6 border-t border-border scroll-mt-24">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
               <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-3">
@@ -252,7 +258,7 @@ export default async function LandingPage() {
 
         {/* Pricing */}
         {/* Prices are rendered from the active SaaS plan catalog (D7). Deactivated plans are hidden. */}
-        <section id="precios" className="py-16 px-6 border-t border-border bg-muted/30 scroll-mt-16">
+        <section id="precios" className="py-16 px-6 border-t border-border bg-muted/30 scroll-mt-24">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
               <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-3">
@@ -295,8 +301,28 @@ export default async function LandingPage() {
           </div>
         </section>
 
+        {/* Trust commitments */}
+        <section id="compromisos" className="py-16 px-6 border-t border-border bg-muted/30 scroll-mt-24">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-12">
+              <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-3">
+                Compromisos
+              </p>
+              <h2 className="text-3xl sm:text-4xl font-heading font-extrabold tracking-tight">Cómo cobramos, en claro</h2>
+            </div>
+            <div className="grid gap-6 sm:grid-cols-2">
+              {commitments.map((item) => (
+                <div key={item.title} className="p-6 rounded-xl border border-border bg-card">
+                  <h3 className="text-lg font-heading font-bold mb-2">{item.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* FAQ */}
-        <section id="faq" className="py-16 px-6 border-t border-border">
+        <section id="faq" className="py-16 px-6 border-t border-border scroll-mt-24">
           <div className="max-w-3xl mx-auto">
             <div className="text-center mb-12">
               <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-3">FAQ</p>

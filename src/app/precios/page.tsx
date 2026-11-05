@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { ArrowRight, Check } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import { Footer } from '@/components/Footer';
+import { commitments } from '@/lib/pricing-commitments';
 import { getActiveLandingPlans, type LandingPlan } from '@/lib/saas-plans';
 
 export const dynamic = 'force-dynamic';
@@ -16,25 +17,6 @@ export const metadata: Metadata = {
   description:
     'Precio publicado: sin porcentaje sobre lo que recaudás y gratis hasta 50 socios. Conocé el costo completo de Libres Cobros.',
 };
-
-const commitments = [
-  {
-    title: 'Cancelás cuando quieras',
-    description: 'Desde el panel, en un clic. Sin llamados ni meses de preaviso.',
-  },
-  {
-    title: 'Te avisamos antes de cada cobro',
-    description: 'Email de renovación 7 días antes, con el monto exacto y el tramo en el que estás.',
-  },
-  {
-    title: 'Sin saltos sorpresa',
-    description: 'Los tramos están publicados: si tu club pasa de tramo, lo sabés de antemano, no en la factura.',
-  },
-  {
-    title: 'Cero porcentaje sobre lo que recaudás',
-    description: 'Ni de los pagos online, ni del efectivo que cargás a mano. El precio no depende de cuánto cobres.',
-  },
-];
 
 const faqs = [
   {
