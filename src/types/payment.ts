@@ -10,6 +10,8 @@ export const PaymentStatusSchema = z.enum([
   'PAID',
   'FAILED',
   'REFUNDED',
+  'UNIDENTIFIED',
+  'PARTIAL',
 ]);
 
 export const CreatePaymentSchema = z.object({

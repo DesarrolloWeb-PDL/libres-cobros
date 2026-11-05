@@ -59,6 +59,8 @@ export async function GET(request: NextRequest) {
 
     const where: Record<string, unknown> = {
       ...institutionWhere(ctx.institutionId),
+      feeId: { not: null },
+      memberId: { not: null },
     };
 
     if (memberId) {
@@ -108,7 +110,7 @@ export async function GET(request: NextRequest) {
     ]);
 
     const response: PaymentListResponse = {
-      data: payments.map(serializePayment),
+      data: payments.map((p) => serializePayment(p as never)),
       total,
       page,
       limit,

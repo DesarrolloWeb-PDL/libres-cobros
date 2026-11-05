@@ -58,7 +58,7 @@ export default async function ClubPaymentConfirmationPage({ params, searchParams
     },
   });
 
-  if (!payment || payment.fee.clubId !== club.id) {
+  if (!payment || !payment.fee || payment.fee.clubId !== club.id) {
     notFound();
   }
 

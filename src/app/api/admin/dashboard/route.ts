@@ -173,7 +173,7 @@ export async function GET(request: NextRequest) {
       history: historyMonths,
       recentPayments: recentPayments.map((payment) => ({
         id: payment.id,
-        memberName: `${payment.member.firstName} ${payment.member.lastName}`,
+        memberName: payment.member ? `${payment.member.firstName} ${payment.member.lastName}` : 'Desconocido',
         amount: payment.amount,
         method: payment.method,
         confirmedAt: payment.confirmedAt?.toISOString() ?? null,

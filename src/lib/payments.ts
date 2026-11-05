@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db';
 import { createCommission } from '@/lib/commissions';
+export * from '@/lib/reconciliation';
 
 export type ConfirmPaymentResult =
   | { status: 'already-paid' }
@@ -29,6 +30,9 @@ export async function confirmPayment(
       throw new Error(`Payment ${paymentId} not found`);
     }
 
+    if (!payment.fee || !payment.feeId || !payment.memberId) {
+      throw new Error(`Payment ${paymentId} has no fee/member to confirm`);
+    }
     if (payment.status === 'PAID' || payment.fee.status === 'PAID') {
       return { status: 'already-paid' as const };
     }
@@ -54,11 +58,15 @@ export async function confirmPayment(
     });
 
     await tx.fee.update({
-      where: { id: payment.feeId },
+      where: { id: payment.feeId! },
       data: { status: 'PAID' },
     });
 
-    const commission = await createCommission(tx, updatedPayment, club);
+    const commission = await createCommission(
+      tx,
+      { id: updatedPayment.id, feeId: updatedPayment.feeId!, clubId: updatedPayment.clubId, amount: updatedPayment.amount },
+      club
+    );
 
     return {
       status: 'paid' as const,

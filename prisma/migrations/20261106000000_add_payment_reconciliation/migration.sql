@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "Payment" ALTER COLUMN "feeId" DROP NOT NULL;
+ALTER TABLE "Payment" ALTER COLUMN "memberId" DROP NOT NULL;
+

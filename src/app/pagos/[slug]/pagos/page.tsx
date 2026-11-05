@@ -91,13 +91,13 @@ export default async function MemberPaymentsPage({
 
     if (foundMember) {
       member = foundMember;
-      payments = await prisma.payment.findMany({
-        where: { memberId: foundMember.id },
+      payments = (await prisma.payment.findMany({
+        where: { memberId: foundMember.id, feeId: { not: null } },
         include: {
           fee: { select: { month: true, year: true } },
         },
         orderBy: [{ createdAt: 'desc' }],
-      });
+      })) as never;
     }
   }
 

@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
     }
 
     const payments = await prisma.payment.findMany({
-      where: { memberId: member.id },
+      where: { memberId: member.id, feeId: { not: null } },
       include: {
         fee: { select: { month: true, year: true } },
       },
@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
         firstName: member.firstName,
         lastName: member.lastName,
       },
-      payments: payments.map(serializePayment),
+      payments: payments.map((p) => serializePayment(p as never)),
     };
 
     return apiSuccess(response);

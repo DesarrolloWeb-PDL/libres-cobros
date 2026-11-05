@@ -131,10 +131,12 @@ export async function POST(request: NextRequest) {
           data: { status: 'FAILED' },
         });
 
-        await prisma.fee.update({
-          where: { id: payment.feeId },
-          data: { status: 'PENDING' },
-        });
+        if (payment.feeId) {
+          await prisma.fee.update({
+            where: { id: payment.feeId },
+            data: { status: 'PENDING' },
+          });
+        }
       }
 
       return apiSuccess({ received: true, type: event.type, action: 'marked_failed' });

@@ -1025,6 +1025,9 @@ export async function emitirReciboC(paymentId: string): Promise<EmitirReciboResu
     if (!payment) {
       return { estado: 'ERROR', error: `Payment ${paymentId} not found` };
     }
+    if (!payment.member || !payment.memberId || !payment.feeId) {
+      return { estado: 'OMITIDO', reason: 'Payment has no member/fee; skipping ARCA emission' };
+    }
 
     // Idempotency: the unique Comprobante.paymentId row is the emission lock.
     const existing = await prisma.comprobante.findUnique({
@@ -1072,14 +1075,14 @@ export async function emitirReciboC(paymentId: string): Promise<EmitirReciboResu
       return { estado: 'OMITIDO', reason: 'ARCA credentials not configured' };
     }
 
-    const doc = resolveDocIdentificador(payment.member);
+    const doc = resolveDocIdentificador(payment.member!);
     if (!doc) {
       // Lock the payment with an ERROR row so the gap is visible/auditable.
       await prisma.comprobante.create({
         data: {
           clubId: payment.clubId,
           paymentId: payment.id,
-          memberId: payment.memberId,
+          memberId: payment.memberId!,
           tipo: 15,
           ptoVta: puntoVta,
           nro: 0,
@@ -1098,7 +1101,7 @@ export async function emitirReciboC(paymentId: string): Promise<EmitirReciboResu
       };
     }
 
-    const condicionIvaReceptor = getIvaReceptorCode(payment.member.ivaCondicion || 'CF');
+    const condicionIvaReceptor = getIvaReceptorCode(payment.member!.ivaCondicion || 'CF');
     const lockKey = `${clubCuit}:${puntoVta}:15`;
 
     return await withEmissionLock(lockKey, async () => {
@@ -1126,7 +1129,7 @@ export async function emitirReciboC(paymentId: string): Promise<EmitirReciboResu
         data: {
           clubId: payment.clubId,
           paymentId: payment.id,
-          memberId: payment.memberId,
+          memberId: payment.memberId!,
           tipo: 15,
           ptoVta: puntoVta,
           nro: 0,

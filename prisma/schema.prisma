@@ -180,11 +180,14 @@ model Fee {
 model Payment {
   id                      String   @id @default(cuid())
   clubId                  String
-  feeId                   String
-  memberId                String
+  // Nullable to allow "unidentified" payments imported from a bank feed that
+  // could not be matched to a member/fee. Reconciliation sets these when a
+  // match is found; unmatched rows stay null with status 'UNIDENTIFIED'.
+  feeId                   String?
+  memberId                String?
   amount                  Float
   method                  String
-  status                  String   @default("PENDING")
+  status                  String   @default("PENDING") // PENDING | PAID | FAILED | REFUNDED | UNIDENTIFIED | PARTIAL
   stripeSessionId         String?
   stripePaymentId         String?
   mercadopagoPaymentId    String?
@@ -194,8 +197,8 @@ model Payment {
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
   club                    Club     @relation(fields: [clubId], references: [id])
-  fee                     Fee      @relation(fields: [feeId], references: [id])
-  member                  Member   @relation(fields: [memberId], references: [id])
+  fee                     Fee?     @relation(fields: [feeId], references: [id])
+  member                  Member?  @relation(fields: [memberId], references: [id])
   commissions             Commission[]
   comprobante             Comprobante?
 

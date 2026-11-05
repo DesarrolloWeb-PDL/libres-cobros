@@ -156,6 +156,8 @@ export async function generatePaymentReport(
   const where: Record<string, unknown> = {
     ...clubWhere(filters.clubId),
     status: 'PAID',
+    feeId: { not: null },
+    memberId: { not: null },
   };
 
   if (filters.memberId) {
@@ -201,9 +203,9 @@ export async function generatePaymentReport(
 
   const data: PaymentReportItem[] = payments.map((payment) => ({
     id: payment.id,
-    memberId: payment.memberId,
-    member: payment.member,
-    fee: payment.fee,
+    memberId: payment.memberId as string,
+    member: payment.member as { dni: string; firstName: string; lastName: string },
+    fee: payment.fee as { month: number; year: number },
     amount: payment.amount,
     method: payment.method,
     confirmedAt: payment.confirmedAt?.toISOString() ?? payment.createdAt.toISOString(),
@@ -284,7 +286,7 @@ export async function generateCommissionReport(
       rate: commission.rate,
       periodId: commission.periodId,
       createdAt: commission.createdAt.toISOString(),
-      member: commission.payment.member,
+      member: (commission.payment.member ?? { dni: '', firstName: '', lastName: '' }),
       fee: commission.fee,
       payment: {
         method: commission.payment.method,

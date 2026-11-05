@@ -76,7 +76,7 @@ export default async function TicketPage({ params }: TicketPageProps) {
     },
   });
 
-  if (!payment || payment.clubId !== club.id) {
+  if (!payment || !payment.member || !payment.fee || payment.clubId !== club.id) {
     notFound();
   }
 
