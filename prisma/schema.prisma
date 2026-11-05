@@ -222,7 +222,7 @@ model MonthlyClosing {
 model SmsLog {
   id         String   @id @default(cuid())
   clubId     String
-  memberId   String
+  memberId   String?  // Nullable: platform SaaS invoice reminders have no member
   type       String
   message    String
   status     String
@@ -230,7 +230,7 @@ model SmsLog {
   error      String?
   sentAt     DateTime @default(now())
   club       Club     @relation(fields: [clubId], references: [id])
-  member     Member   @relation(fields: [memberId], references: [id])
+  member     Member?  @relation(fields: [memberId], references: [id])
 
   @@index([memberId])
   @@index([sentAt])

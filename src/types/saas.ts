@@ -118,6 +118,8 @@ export const SAAS_SITE_CONFIG_KEYS = [
   'saas_arca_key',
   'saas_reminder_days',
   'saas_due_soon_days',
+  'saas_whatsapp_phone_number_id',
+  'saas_whatsapp_access_token',
 ] as const;
 
 export type SaasSiteConfigKey = (typeof SAAS_SITE_CONFIG_KEYS)[number];

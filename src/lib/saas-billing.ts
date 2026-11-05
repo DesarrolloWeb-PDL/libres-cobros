@@ -1,6 +1,7 @@
 import { DateTime } from 'luxon';
 import { prisma } from '@/lib/db';
 import { sendEmail } from '@/lib/email';
+import { sendWhatsAppMessage } from '@/lib/whatsapp';
 import type { PrismaClient, Prisma, AdminRole, SaasPlan } from '@prisma/client';
 
 export interface SaasBillingResult {
@@ -14,6 +15,8 @@ export interface SaasBillingResult {
   overdue: number;
   remindersSent: number;
   reminderErrors: number;
+  whatsappRemindersSent: number;
+  whatsappReminderErrors: number;
 }
 
 export interface TierAlertResult {
@@ -30,9 +33,19 @@ export interface TierAlertResult {
 type SaasBillingClient = PrismaClient | Prisma.TransactionClient;
 
 type SaasInvoiceWithDetails = Prisma.SaasInvoiceGetPayload<{
-  include: {
+  select: {
+    id: true;
+    institutionId: true;
+    amount: true;
+    dueDate: true;
+    lastReminderAt: true;
+    remindersSent: true;
+    status: true;
     institution: {
-      include: {
+      select: {
+        id: true;
+        name: true;
+        phone: true;
         adminUsers: { select: { email: true; name: true } };
       };
     };
@@ -74,6 +87,22 @@ function buildReminderHtml(invoice: SaasInvoiceWithDetails, daysOverdue: number)
   `;
 }
 
+function buildWhatsAppReminderBody(invoice: SaasInvoiceWithDetails, daysOverdue: number): string {
+  const amount = invoice.amount.toLocaleString('es-AR', {
+    style: 'currency',
+    currency: 'ARS',
+  });
+  const dueDate = invoice.dueDate.toLocaleDateString('es-AR');
+
+  return [
+    'Hola, recordatorio de factura SaaS vencida.',
+    `Institución: ${invoice.institution.name}`,
+    `Plan: ${invoice.saasPlan.name}`,
+    `Monto: ${amount} — Vencimiento: ${dueDate}`,
+    `${daysOverdue} día(s) de atraso.`,
+  ].join('\n');
+}
+
 function buildTierAlertHtml(
   institutionName: string,
   planName: string,
@@ -107,10 +136,10 @@ function escapeHtml(value: string): string {
 async function sendDedupedReminders(
   client: SaasBillingClient,
   runDate: Date
-): Promise<{ sent: number; errors: number }> {
+): Promise<{ sent: number; errors: number; whatsappSent: number; whatsappErrors: number }> {
   const daysRaw = (await getPlatformConfig(client, 'saas_reminder_days', '1,7,15')).trim();
   if (!daysRaw) {
-    return { sent: 0, errors: 0 };
+    return { sent: 0, errors: 0, whatsappSent: 0, whatsappErrors: 0 };
   }
 
   const reminderDays = Array.from(
@@ -123,15 +152,25 @@ async function sendDedupedReminders(
   ).sort((a, b) => a - b);
 
   if (reminderDays.length === 0) {
-    return { sent: 0, errors: 0 };
+    return { sent: 0, errors: 0, whatsappSent: 0, whatsappErrors: 0 };
   }
 
   const runStart = DateTime.fromJSDate(runDate, { zone: 'utc' }).startOf('day');
   const overdueInvoices = (await client.saasInvoice.findMany({
     where: { status: 'OVERDUE' },
-    include: {
+    select: {
+      id: true,
+      institutionId: true,
+      amount: true,
+      dueDate: true,
+      lastReminderAt: true,
+      remindersSent: true,
+      status: true,
       institution: {
-        include: {
+        select: {
+          id: true,
+          name: true,
+          phone: true,
           adminUsers: { select: { email: true, name: true } },
         },
       },
@@ -139,13 +178,18 @@ async function sendDedupedReminders(
     },
   })) as SaasInvoiceWithDetails[];
 
-  const [apiKey, fromEmail] = await Promise.all([
+  const [apiKey, fromEmail, whatsappPhoneId, whatsappToken] = await Promise.all([
     getPlatformConfig(client, 'resend_api_key', ''),
     getPlatformConfig(client, 'resend_from_email', ''),
+    getPlatformConfig(client, 'saas_whatsapp_phone_number_id', ''),
+    getPlatformConfig(client, 'saas_whatsapp_access_token', ''),
   ]);
 
-  if (!apiKey || !fromEmail) {
-    return { sent: 0, errors: 0 };
+  const emailConfigured = !!(apiKey && fromEmail);
+  const whatsappConfigured = !!(whatsappPhoneId && whatsappToken);
+
+  if (!emailConfigured && !whatsappConfigured) {
+    return { sent: 0, errors: 0, whatsappSent: 0, whatsappErrors: 0 };
   }
 
   const superAdmins = await client.adminUser.findMany({
@@ -155,6 +199,8 @@ async function sendDedupedReminders(
 
   let sent = 0;
   let errors = 0;
+  let whatsappSent = 0;
+  let whatsappErrors = 0;
 
   for (const invoice of overdueInvoices) {
     const dueStart = DateTime.fromJSDate(invoice.dueDate, { zone: 'utc' }).startOf('day');
@@ -171,34 +217,83 @@ async function sendDedupedReminders(
       continue;
     }
 
-    const recipients = new Set<string>();
-    for (const user of invoice.institution.adminUsers) {
-      if (user.email) recipients.add(user.email);
-    }
-    for (const user of superAdmins) {
-      if (user.email) recipients.add(user.email);
-    }
-    if (recipients.size === 0) {
-      continue;
-    }
+    let anyReminderSent = false;
 
-    const html = buildReminderHtml(invoice, daysOverdue);
-    for (const to of recipients) {
-      try {
-        await sendEmail(apiKey, fromEmail, to, 'SaaS invoice reminder', html);
-        sent++;
-      } catch {
-        errors++;
+    if (emailConfigured) {
+      const recipients = new Set<string>();
+      for (const user of invoice.institution.adminUsers) {
+        if (user.email) recipients.add(user.email);
+      }
+      for (const user of superAdmins) {
+        if (user.email) recipients.add(user.email);
+      }
+
+      if (recipients.size > 0) {
+        const html = buildReminderHtml(invoice, daysOverdue);
+        for (const to of recipients) {
+          try {
+            await sendEmail(apiKey, fromEmail, to, 'SaaS invoice reminder', html);
+            sent++;
+            anyReminderSent = true;
+          } catch {
+            errors++;
+          }
+        }
       }
     }
 
-    await client.saasInvoice.update({
-      where: { id: invoice.id },
-      data: { lastReminderAt: runDate, remindersSent: { increment: 1 } },
-    });
+    if (whatsappConfigured && invoice.institution.phone) {
+      try {
+        const body = buildWhatsAppReminderBody(invoice, daysOverdue);
+        const { externalId } = await sendWhatsAppMessage(
+          whatsappPhoneId,
+          whatsappToken,
+          invoice.institution.phone,
+          body
+        );
+        await client.smsLog.create({
+          data: {
+            clubId: invoice.institutionId,
+            memberId: null,
+            type: 'saas_invoice_reminder_whatsapp',
+            message: body,
+            status: 'SENT',
+            externalId,
+            error: null,
+          },
+        });
+        whatsappSent++;
+        anyReminderSent = true;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        await client.smsLog
+          .create({
+            data: {
+              clubId: invoice.institutionId,
+              memberId: null,
+              type: 'saas_invoice_reminder_whatsapp',
+              message: '',
+              status: 'FAILED',
+              externalId: null,
+              error: message,
+            },
+          })
+          .catch(() => {
+            // Deliberately swallowed: logging failure must never break the cron.
+          });
+        whatsappErrors++;
+      }
+    }
+
+    if (anyReminderSent) {
+      await client.saasInvoice.update({
+        where: { id: invoice.id },
+        data: { lastReminderAt: runDate, remindersSent: { increment: 1 } },
+      });
+    }
   }
 
-  return { sent, errors };
+  return { sent, errors, whatsappSent, whatsappErrors };
 }
 
 async function sendTierAlertEmails(
@@ -285,6 +380,8 @@ export async function runSaasBilling(
     overdue: 0,
     remindersSent: 0,
     reminderErrors: 0,
+    whatsappRemindersSent: 0,
+    whatsappReminderErrors: 0,
   };
 
   const enabledRaw = await getPlatformConfig(client, 'saas_billing_enabled', 'false');
@@ -315,6 +412,8 @@ export async function runSaasBilling(
   const reminderResult = await sendDedupedReminders(client, runDate);
   result.remindersSent = reminderResult.sent;
   result.reminderErrors = reminderResult.errors;
+  result.whatsappRemindersSent = reminderResult.whatsappSent;
+  result.whatsappReminderErrors = reminderResult.whatsappErrors;
 
   if (!isBillingDay) {
     return result;

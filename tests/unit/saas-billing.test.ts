@@ -1,8 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { runSaasBilling, checkTierAlert } from '@/lib/saas-billing';
+import { sendWhatsAppMessage } from '@/lib/whatsapp';
 
 vi.mock('@/lib/email', () => ({
   sendEmail: vi.fn().mockResolvedValue({ externalId: 'msg-test' }),
+}));
+
+vi.mock('@/lib/whatsapp', () => ({
+  sendWhatsAppMessage: vi.fn().mockResolvedValue({ externalId: 'wa-test' }),
 }));
 
 const planFree = {
@@ -79,6 +84,7 @@ function createMockClient(
     name: 'Test Club',
     slug: 'test-club',
     status: 'ACTIVE',
+    phone: '541112345678',
     saasSubscriptions: subscriptions,
     adminUsers: [{ email: 'admin@club.com', name: 'Admin' }],
   };
@@ -89,6 +95,8 @@ function createMockClient(
     saas_reminder_days: reminderDays,
     resend_api_key: 're_test',
     resend_from_email: 'billing@example.com',
+    saas_whatsapp_phone_number_id: 'wa-phone-id',
+    saas_whatsapp_access_token: 'wa-token',
     next_public_url: 'https://example.com',
   };
 
@@ -270,13 +278,16 @@ describe('runSaasBilling', () => {
   it('sends reminders on configured cadence days and dedupes same-day runs', async () => {
     const invoice = {
       id: 'inv-1',
+      institutionId: 'club-1',
       amount: 35000,
       dueDate: new Date('2026-10-21T00:00:00.000Z'),
       lastReminderAt: null,
       remindersSent: 0,
+      status: 'OVERDUE',
       institution: {
         id: 'club-1',
         name: 'Test Club',
+        phone: '541112345678',
         adminUsers: [{ email: 'admin@club.com', name: 'Admin' }],
       },
       saasPlan: plan200,
@@ -301,6 +312,166 @@ describe('runSaasBilling', () => {
 
     const result2 = await runSaasBilling(client, new Date('2026-10-22T15:00:00.000Z'));
     expect(result2.remindersSent).toBe(0);
+  });
+
+  it('sends WhatsApp reminders when platform credentials are configured and institution has a phone', async () => {
+    const invoice = {
+      id: 'inv-1',
+      institutionId: 'club-1',
+      amount: 35000,
+      dueDate: new Date('2026-10-21T00:00:00.000Z'),
+      lastReminderAt: null,
+      remindersSent: 0,
+      status: 'OVERDUE',
+      institution: {
+        id: 'club-1',
+        name: 'Test Club',
+        phone: '541112345678',
+        adminUsers: [{ email: 'admin@club.com', name: 'Admin' }],
+      },
+      saasPlan: plan200,
+    };
+    const client = createMockClient({
+      subscriptions: [makeSubscription({ currentPlan: plan200 })],
+      overdueInvoices: [invoice],
+      reminderDays: '1,7,15',
+    });
+
+    const result = await runSaasBilling(client, new Date('2026-10-22T00:00:00.000Z'));
+    expect(result.whatsappRemindersSent).toBe(1);
+    expect(result.whatsappReminderErrors).toBe(0);
+    expect(sendWhatsAppMessage).toHaveBeenCalledWith(
+      'wa-phone-id',
+      'wa-token',
+      '541112345678',
+      expect.stringContaining('Test Club')
+    );
+    expect(client.smsLog.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          clubId: 'club-1',
+          memberId: null,
+          type: 'saas_invoice_reminder_whatsapp',
+          status: 'SENT',
+          externalId: 'wa-test',
+        }),
+      })
+    );
+  });
+
+  it('skips WhatsApp when the institution has no phone', async () => {
+    const invoice = {
+      id: 'inv-1',
+      institutionId: 'club-1',
+      amount: 35000,
+      dueDate: new Date('2026-10-21T00:00:00.000Z'),
+      lastReminderAt: null,
+      remindersSent: 0,
+      status: 'OVERDUE',
+      institution: {
+        id: 'club-1',
+        name: 'Test Club',
+        phone: null,
+        adminUsers: [{ email: 'admin@club.com', name: 'Admin' }],
+      },
+      saasPlan: plan200,
+    };
+    const client = createMockClient({
+      subscriptions: [makeSubscription({ currentPlan: plan200 })],
+      overdueInvoices: [invoice],
+      reminderDays: '1,7,15',
+    });
+
+    const result = await runSaasBilling(client, new Date('2026-10-22T00:00:00.000Z'));
+    expect(result.remindersSent).toBe(1);
+    expect(result.whatsappRemindersSent).toBe(0);
+    expect(sendWhatsAppMessage).not.toHaveBeenCalled();
+  });
+
+  it('logs WhatsApp failures without breaking email reminders or the cron', async () => {
+    vi.mocked(sendWhatsAppMessage).mockRejectedValueOnce(new Error('WhatsApp down'));
+
+    const invoice = {
+      id: 'inv-1',
+      institutionId: 'club-1',
+      amount: 35000,
+      dueDate: new Date('2026-10-21T00:00:00.000Z'),
+      lastReminderAt: null,
+      remindersSent: 0,
+      status: 'OVERDUE',
+      institution: {
+        id: 'club-1',
+        name: 'Test Club',
+        phone: '541112345678',
+        adminUsers: [{ email: 'admin@club.com', name: 'Admin' }],
+      },
+      saasPlan: plan200,
+    };
+    const client = createMockClient({
+      subscriptions: [makeSubscription({ currentPlan: plan200 })],
+      overdueInvoices: [invoice],
+      reminderDays: '1,7,15',
+    });
+
+    const result = await runSaasBilling(client, new Date('2026-10-22T00:00:00.000Z'));
+    expect(result.remindersSent).toBe(1);
+    expect(result.whatsappRemindersSent).toBe(0);
+    expect(result.whatsappReminderErrors).toBe(1);
+    expect(client.smsLog.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          clubId: 'club-1',
+          type: 'saas_invoice_reminder_whatsapp',
+          status: 'FAILED',
+          error: 'WhatsApp down',
+        }),
+      })
+    );
+    expect(client.saasInvoice.update).toHaveBeenCalled();
+  });
+
+  it('does not send WhatsApp reminders when platform credentials are missing', async () => {
+    const invoice = {
+      id: 'inv-1',
+      institutionId: 'club-1',
+      amount: 35000,
+      dueDate: new Date('2026-10-21T00:00:00.000Z'),
+      lastReminderAt: null,
+      remindersSent: 0,
+      status: 'OVERDUE',
+      institution: {
+        id: 'club-1',
+        name: 'Test Club',
+        phone: '541112345678',
+        adminUsers: [{ email: 'admin@club.com', name: 'Admin' }],
+      },
+      saasPlan: plan200,
+    };
+    const client = createMockClient({
+      subscriptions: [makeSubscription({ currentPlan: plan200 })],
+      overdueInvoices: [invoice],
+      reminderDays: '1,7,15',
+    });
+    const config = client.siteConfig.findFirst as ReturnType<typeof vi.fn>;
+    config.mockImplementation(async ({ where: { key } }: { where: { key: string } }) => {
+      const values: Record<string, string | undefined> = {
+        saas_billing_enabled: 'true',
+        saas_billing_day: '1',
+        saas_reminder_days: '1,7,15',
+        resend_api_key: 're_test',
+        resend_from_email: 'billing@example.com',
+        saas_whatsapp_phone_number_id: '',
+        saas_whatsapp_access_token: '',
+        next_public_url: 'https://example.com',
+      };
+      const value = values[key];
+      return value !== undefined ? { id: `cfg-${key}`, clubId: null, key, value } : null;
+    });
+
+    const result = await runSaasBilling(client, new Date('2026-10-22T00:00:00.000Z'));
+    expect(result.remindersSent).toBe(1);
+    expect(result.whatsappRemindersSent).toBe(0);
+    expect(sendWhatsAppMessage).not.toHaveBeenCalled();
   });
 });
 
