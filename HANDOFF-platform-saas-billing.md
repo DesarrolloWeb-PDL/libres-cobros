@@ -3,7 +3,7 @@
 Date: 2026-11-02
 Project: libres-cobros
 Change: platform-saas-billing (Platform → Institution SaaS Subscription Billing)
-Status: In progress — Phases 1–7 complete and committed. Phase 8 (Verification) automated checks complete; 8.2 manual smoke pending.
+Status: MERGED — all 10 stacked PRs (#17–#21, #24–#28) squash-merged into master (linear, tree = phase 10, verified 199/199 tests, tsc 0, lint 0 errors + 5 warnings, build OK). Remaining: 8.2 manual ARCA homolog smoke (testable from the UI "Test credentials" button), then flip `saas_billing_enabled`.
 
 ## Where we are
 
