@@ -3,6 +3,7 @@ import { Footer } from '@/components/Footer';
 import { Header } from '@/components/landing/Header';
 import { HeroPanel } from '@/components/landing/HeroPanel';
 import { SocialProofBar } from '@/components/landing/SocialProofBar';
+import { AppScreenshot } from '@/components/landing/AppScreenshot';
 import { commitments } from '@/lib/pricing-commitments';
 import { getActiveLandingPlans, type LandingPlan } from '@/lib/saas-plans';
 import {
@@ -252,6 +253,35 @@ export default async function LandingPage() {
                   </div>
                 );
               })}
+            </div>
+          </div>
+        </section>
+
+        {/* Vista del panel */}
+        <section id="vista-panel" className="py-16 px-6 border-t border-border bg-muted/30 scroll-mt-24">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-12">
+              <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-3">
+                Vista del panel
+              </p>
+              <h2 className="text-3xl sm:text-4xl font-heading font-extrabold tracking-tight">
+                Así se ve tu club en Libres Cobros
+              </h2>
+              <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
+                Capturas reales del panel de administración y del portal del socio.
+              </p>
+            </div>
+            <div className="grid gap-6 sm:grid-cols-2">
+              <AppScreenshot
+                src="/screenshots/panel-admin.png"
+                alt="Panel de administración: cuotas, pagos y reportes"
+                caption="Panel admin — cuotas, pagos y reportes"
+              />
+              <AppScreenshot
+                src="/screenshots/portal-socio.png"
+                alt="Portal del socio: carnet digital, saldo y pago"
+                caption="Portal del socio — carnet, saldo y pago"
+              />
             </div>
           </div>
         </section>

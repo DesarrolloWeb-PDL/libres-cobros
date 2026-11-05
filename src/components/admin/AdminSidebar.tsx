@@ -43,7 +43,7 @@ const navItems = [
   { href: '/admin/instituciones', label: 'Instituciones', icon: Building2, roles: ['SUPER_ADMIN'] as const },
   { href: '/admin/usuarios', label: 'Usuarios', icon: UserCog, roles: ['SUPER_ADMIN'] as const },
   { href: '/admin/exportaciones', label: 'Exportaciones', icon: Download, roles: ['SUPER_ADMIN'] as const },
-  { href: '/admin/saas/planes', label: 'Planes SaaS', icon: Layers, roles: ['SUPER_ADMIN'] as const, flag: 'saas' as const },
+  { href: '/admin/saas/planes', label: 'Planes SaaS', icon: Layers, roles: ['SUPER_ADMIN'] as const },
   { href: '/admin/saas/suscripciones', label: 'Suscripciones SaaS', icon: CreditCard, roles: ['SUPER_ADMIN'] as const, flag: 'saas' as const },
   { href: '/admin/suscripcion', label: 'Mi suscripción', icon: Wallet, roles: ['ADMIN'] as const, flag: 'saas' as const },
   { href: '/admin/configuracion', label: 'Configuración', icon: Settings, roles: ['SUPER_ADMIN', 'ADMIN'] as const },
