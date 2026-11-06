@@ -48,6 +48,7 @@ const categoryLabels: Record<string, string> = {
 const statusVariants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
   ACTIVE: 'default',
   INACTIVE: 'secondary',
+  PENDING: 'outline',
 };
 
 interface FetchParams {
@@ -72,6 +73,7 @@ export function MemberList({ initialData }: MemberListProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [sendingBulk, setSendingBulk] = useState(false);
+  const [processingId, setProcessingId] = useState<string | null>(null);
 
   const fetchMembers = useCallback(async (params: FetchParams) => {
     setIsLoading(true);
@@ -264,6 +266,61 @@ export function MemberList({ initialData }: MemberListProps) {
     }
   }
 
+  async function approveMember(member: MemberListItem) {
+    setProcessingId(member.id);
+    try {
+      const response = await fetch(`/api/admin/members/${member.id}/approve`, {
+        method: 'POST',
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Error al aprobar el socio');
+      }
+      toast.add({
+        title: 'Socio aprobado',
+        description: `${member.firstName} ${member.lastName} fue aprobado correctamente`,
+        type: 'success',
+      });
+      fetchMembers(buildParams());
+    } catch (error) {
+      toast.add({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'No se pudo aprobar el socio',
+        type: 'error',
+      });
+    } finally {
+      setProcessingId(null);
+    }
+  }
+
+  async function rejectMember(member: MemberListItem) {
+    if (!confirm(`¿Rechazar a ${member.firstName} ${member.lastName}?`)) return;
+    setProcessingId(member.id);
+    try {
+      const response = await fetch(`/api/admin/members/${member.id}/reject`, {
+        method: 'POST',
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Error al rechazar el socio');
+      }
+      toast.add({
+        title: 'Socio rechazado',
+        description: `${member.firstName} ${member.lastName} fue rechazado`,
+        type: 'success',
+      });
+      fetchMembers(buildParams());
+    } catch (error) {
+      toast.add({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'No se pudo rechazar el socio',
+        type: 'error',
+      });
+    } finally {
+      setProcessingId(null);
+    }
+  }
+
   async function toggleStatus(member: MemberListItem) {
     const newStatus = member.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
     const actionLabel = newStatus === 'ACTIVE' ? 'activado' : 'desactivado';
@@ -374,6 +431,7 @@ export function MemberList({ initialData }: MemberListProps) {
               { value: '', label: 'Todos' },
               { value: 'ACTIVE', label: 'Activo' },
               { value: 'INACTIVE', label: 'Inactivo' },
+              { value: 'PENDING', label: 'Pendiente' },
             ]}
             placeholder="Todos los estados"
             className="w-full sm:w-40"
@@ -460,10 +518,33 @@ export function MemberList({ initialData }: MemberListProps) {
                   <TableCell>{member.planName ?? '-'}</TableCell>
                   <TableCell>
                     <Badge variant={statusVariants[member.status] ?? 'default'}>
-                      {member.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}
+                      {member.status === 'ACTIVE'
+                        ? 'Activo'
+                        : member.status === 'PENDING'
+                          ? 'Pendiente'
+                          : 'Inactivo'}
                     </Badge>
                   </TableCell>
                   <TableCell>
+                    {member.status === 'PENDING' && (
+                      <div className="flex gap-1 mb-2">
+                        <Button
+                          size="sm"
+                          onClick={() => approveMember(member)}
+                          disabled={processingId === member.id}
+                        >
+                          Aprobar
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => rejectMember(member)}
+                          disabled={processingId === member.id}
+                        >
+                          Rechazar
+                        </Button>
+                      </div>
+                    )}
                     <DropdownMenu>
                       <DropdownMenuTrigger
                         render={(props) => (

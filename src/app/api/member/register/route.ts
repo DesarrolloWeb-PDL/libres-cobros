@@ -5,6 +5,7 @@ import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
 import { getEffectiveClub } from '@/lib/access';
 import { rateLimit } from '@/lib/rate-limit';
+import { notifyPendingMemberRegistration } from '@/lib/member-registration-notify';
 import { MemberCategorySchema } from '@/types/member';
 
 // Member self-registration for the PWA/portal. Scoped to a single institution by
@@ -141,9 +142,16 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // TODO: notify the institution admin of the new pending registration.
-    // Reuse src/lib/email.ts or src/lib/whatsapp.ts once an admin-contact
-    // convention is established; no clear pattern exists today.
+    // Notify the institution's admin users of the new pending registration.
+    // Best-effort: never blocks the registration response.
+    await notifyPendingMemberRegistration(club.id, {
+      id: member.id,
+      firstName: member.firstName,
+      lastName: member.lastName,
+      dni: member.dni,
+      email: member.email,
+      phone: member.phone,
+    }).catch(() => undefined);
 
     return apiSuccess({
       id: member.id,
