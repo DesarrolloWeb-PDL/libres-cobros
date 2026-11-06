@@ -52,7 +52,7 @@ export async function getInstitutionKpis(
       where: {
         status: 'ACTIVE',
         ...scope,
-        fees: { none: { status: { in: ['PENDING', 'OVERDUE'] } } },
+        fees: { none: { status: 'OVERDUE' } },
       },
     }),
     prisma.payment.aggregate({
