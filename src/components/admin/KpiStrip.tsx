@@ -198,6 +198,25 @@ export function KpiStrip() {
         </div>
       )}
 
+      {institution && institution.overdueAging && institution.overdueAging.length > 0 && (
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            Morosidad por antigüedad
+          </h3>
+          <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+            {institution.overdueAging.map((bucket) => (
+              <div key={bucket.key} className="rounded-xl bg-muted/40 p-3">
+                <p className="text-xs font-medium text-muted-foreground">{bucket.label}</p>
+                <p className="text-lg font-bold tabular-nums">{bucket.count}</p>
+                <p className="text-xs text-muted-foreground tabular-nums">
+                  {currencyFormatter.format(bucket.amount)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {isLoading && !data && (
         <p className="text-sm text-muted-foreground">Cargando KPIs…</p>
       )}

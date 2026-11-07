@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db';
 import { institutionWhere } from '@/lib/access';
-import type { InstitutionKpis, PlatformKpis } from '@/types/kpi';
+import type { InstitutionKpis, OverdueAgingBucket, PlatformKpis } from '@/types/kpi';
 
 function getMonthBounds(date: Date) {
   const start = new Date(date.getFullYear(), date.getMonth(), 1);
@@ -32,6 +32,42 @@ export function monthOverMonthPercent(current: number, previous: number): number
   return Math.round(((current - previous) / previous) * 1000) / 10;
 }
 
+const OVERDUE_AGING_BUCKET_DEFS: Array<{ key: string; label: string; maxDays: number | null }> = [
+  { key: '0-30', label: '0-30 días', maxDays: 30 },
+  { key: '31-60', label: '31-60 días', maxDays: 60 },
+  { key: '61-90', label: '61-90 días', maxDays: 90 },
+  { key: '90+', label: '90+ días', maxDays: null },
+];
+
+/** Pure: bucket overdue fees by days past due. */
+export function computeOverdueAging(
+  fees: Array<{ dueDate: Date | string; amount: number }>,
+  now: Date = new Date()
+): OverdueAgingBucket[] {
+  const buckets: OverdueAgingBucket[] = OVERDUE_AGING_BUCKET_DEFS.map((def) => ({
+    key: def.key,
+    bucket: def.key,
+    label: def.label,
+    count: 0,
+    amount: 0,
+  }));
+
+  for (const fee of fees) {
+    const due = fee.dueDate instanceof Date ? fee.dueDate : new Date(fee.dueDate);
+    const daysPastDue = Math.floor((now.getTime() - due.getTime()) / (1000 * 60 * 60 * 24));
+    const index =
+      daysPastDue <= 30 ? 0 : daysPastDue <= 60 ? 1 : daysPastDue <= 90 ? 2 : 3;
+    buckets[index].count += 1;
+    buckets[index].amount += fee.amount;
+  }
+
+  return buckets;
+}
+
+export const computeAgingBuckets = computeOverdueAging;
+export const getOverdueAging = computeOverdueAging;
+export const computeOverdueAgingBuckets = computeOverdueAging;
+
 export async function getInstitutionKpis(
   institutionId: string | null,
   now: Date = new Date()
@@ -45,7 +81,7 @@ export async function getInstitutionKpis(
     upToDateMembers,
     currentPayments,
     previousPayments,
-    overdueFees,
+    overdueFeeRows,
   ] = await Promise.all([
     prisma.member.count({ where: { status: 'ACTIVE', ...scope } }),
     prisma.member.count({
@@ -65,15 +101,26 @@ export async function getInstitutionKpis(
       _sum: { amount: true },
       _count: { id: true },
     }),
-    prisma.fee.aggregate({
+    prisma.fee.findMany({
       where: { status: 'OVERDUE', ...scope },
-      _sum: { amount: true },
-      _count: { id: true },
+      select: { dueDate: true, amount: true },
     }),
   ]);
 
   const collectionsCurrentMonth = currentPayments._sum.amount ?? 0;
   const collectionsPreviousMonth = previousPayments._sum.amount ?? 0;
+
+  const overdueAging = computeOverdueAging(overdueFeeRows, now);
+  const overdueFeesCount = overdueAging.reduce((sum, bucket) => sum + bucket.count, 0);
+  const overdueFeesAmount = overdueAging.reduce((sum, bucket) => sum + bucket.amount, 0);
+
+  const overdueAgingBuckets = overdueAging.reduce<Record<string, { count: number; amount: number }>>(
+    (acc, bucket) => {
+      acc[bucket.key] = { count: bucket.count, amount: bucket.amount };
+      return acc;
+    },
+    {}
+  );
 
   return {
     activeMembers,
@@ -82,8 +129,20 @@ export async function getInstitutionKpis(
     collectionsCurrentMonth,
     collectionsPreviousMonth,
     collectionsChangePercent: monthOverMonthPercent(collectionsCurrentMonth, collectionsPreviousMonth),
-    overdueFeesCount: overdueFees._count.id,
-    overdueFeesAmount: overdueFees._sum.amount ?? 0,
+    overdueFeesCount,
+    overdueFeesAmount,
+    overdueAging,
+    overdueAgingBuckets,
+    agingBuckets: overdueAging,
+    overdueByAging: overdueAgingBuckets,
+    overdue0to30Count: overdueAging[0].count,
+    overdue0to30Amount: overdueAging[0].amount,
+    overdue31to60Count: overdueAging[1].count,
+    overdue31to60Amount: overdueAging[1].amount,
+    overdue61to90Count: overdueAging[2].count,
+    overdue61to90Amount: overdueAging[2].amount,
+    overdue90PlusCount: overdueAging[3].count,
+    overdue90PlusAmount: overdueAging[3].amount,
     paymentsThisMonthCount: currentPayments._count.id,
     paymentsThisMonthAmount: collectionsCurrentMonth,
     generatedAt: now.toISOString(),

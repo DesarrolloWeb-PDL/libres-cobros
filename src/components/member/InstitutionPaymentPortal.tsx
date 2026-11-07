@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Search, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import { PaymentPortal } from './PaymentPortal';
 import { toast } from '@/components/ui/toast';
 import type { MemberFeesResponse } from '@/types/fee';
@@ -23,12 +24,33 @@ export function InstitutionPaymentPortal({
   prefilledDni,
   primaryColor,
 }: InstitutionPaymentPortalProps) {
+  const storageKey = `libres-cobros:member-dni:${slug}`;
   const [dni, setDni] = useState(prefilledDni ?? '');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<MemberFeesResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const accentStyle = primaryColor ? { color: primaryColor } : undefined;
+
+  useEffect(() => {
+    if (prefilledDni) {
+      try {
+        window.sessionStorage.setItem(storageKey, prefilledDni);
+      } catch {
+        // ignore storage failures
+      }
+      return;
+    }
+    try {
+      const stored = window.sessionStorage.getItem(storageKey);
+      if (stored) {
+        const handle = window.setTimeout(() => setDni(stored), 0);
+        return () => window.clearTimeout(handle);
+      }
+    } catch {
+      // ignore storage failures
+    }
+  }, [prefilledDni, storageKey]);
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -56,6 +78,11 @@ export function InstitutionPaymentPortal({
       }
 
       setResult(data as MemberFeesResponse);
+      try {
+        window.sessionStorage.setItem(storageKey, cleanDni);
+      } catch {
+        // ignore storage failures
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al buscar el socio';
       setError(message);
@@ -141,13 +168,44 @@ export function InstitutionPaymentPortal({
         </div>
       </section>
 
+      {loading && (
+        <section className="py-6 px-6">
+          <div className="max-w-lg mx-auto space-y-3">
+            <Skeleton className="h-24 w-full rounded-xl" />
+            <Skeleton className="h-24 w-full rounded-xl" />
+            <Skeleton className="h-24 w-full rounded-xl" />
+          </div>
+        </section>
+      )}
+
       {result && (
-        <PaymentPortal
-          member={result.member}
-          fees={result.fees}
-          institutionSlug={slug}
-          memberEmail={result.member.email}
-        />
+        <>
+          <PaymentPortal
+            member={result.member}
+            fees={result.fees}
+            institutionSlug={slug}
+            memberEmail={result.member.email}
+          />
+          <div className="pb-8 text-center">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setResult(null);
+                setError(null);
+                setDni('');
+                try {
+                  window.sessionStorage.removeItem(storageKey);
+                } catch {
+                  // ignore
+                }
+              }}
+            >
+              Cambiar socio
+            </Button>
+          </div>
+        </>
       )}
     </>
   );

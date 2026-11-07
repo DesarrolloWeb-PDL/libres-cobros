@@ -1,6 +1,8 @@
 'use client';
 
-import { User, Receipt, AlertCircle } from 'lucide-react';
+import { User, Receipt, AlertCircle, History } from 'lucide-react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 import { FeeCard } from './FeeCard';
 import { AutoDebitSection } from './AutoDebitSection';
 import type { MemberFeeItem } from '@/types/fee';
@@ -88,6 +90,17 @@ export function PaymentPortal({ member, fees, institutionSlug, memberEmail }: Pa
           )}
         </div>
       </section>
+
+           {institutionSlug && (
+             <div className="mt-5 text-center">
+               <Link href={`/pagos/${institutionSlug}/pagos?dni=${encodeURIComponent(member.dni)}`}>
+                 <Button variant="outline" size="sm" className="gap-2">
+                   <History className="size-4" />
+                   Ver historial de pagos
+                 </Button>
+               </Link>
+             </div>
+           )}
 
       {/* Auto-Debit Section */}
       {institutionSlug && (

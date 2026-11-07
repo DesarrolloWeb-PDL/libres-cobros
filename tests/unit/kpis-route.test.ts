@@ -6,7 +6,7 @@ const { mockRequireInstitution, mockPrisma } = vi.hoisted(() => ({
   mockPrisma: {
     member: { count: vi.fn() },
     payment: { aggregate: vi.fn() },
-    fee: { aggregate: vi.fn() },
+    fee: { aggregate: vi.fn(), findMany: vi.fn() },
     club: { count: vi.fn() },
   },
 }));
@@ -40,7 +40,10 @@ describe('GET /api/admin/kpis', () => {
     mockPrisma.payment.aggregate
       .mockResolvedValueOnce({ _sum: { amount: 1000 }, _count: { id: 5 } }) // current
       .mockResolvedValueOnce({ _sum: { amount: 800 }, _count: { id: 4 } }); // previous
-    mockPrisma.fee.aggregate.mockResolvedValue({ _sum: { amount: 200 }, _count: { id: 2 } });
+    mockPrisma.fee.findMany.mockResolvedValue([
+      { dueDate: new Date('2020-01-01'), amount: 100 },
+      { dueDate: new Date('2020-01-01'), amount: 100 },
+    ]);
 
     const res = await GET(new NextRequest('http://localhost/api/admin/kpis'));
     const body = await res.json();
@@ -58,7 +61,7 @@ describe('GET /api/admin/kpis', () => {
         where: expect.objectContaining({ clubId: 'club-1' }),
       })
     );
-    expect(mockPrisma.fee.aggregate).toHaveBeenCalledWith(
+    expect(mockPrisma.fee.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({ clubId: 'club-1', status: 'OVERDUE' }),
       })
