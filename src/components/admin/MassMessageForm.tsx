@@ -44,6 +44,11 @@ interface Filters {
   category: string;
 }
 
+interface Channels {
+  whatsapp: boolean;
+  email: boolean;
+}
+
 const segmentOptions: { value: MassMessageSegment | ''; label: string }[] = [
   { value: '', label: 'Todos' },
   { value: 'up_to_date', label: 'Al día' },
@@ -70,6 +75,7 @@ export function MassMessageForm({ initialPlans, initialCategories }: MassMessage
     segment: '',
     category: '',
   });
+  const [channels, setChannels] = useState<Channels>({ whatsapp: true, email: true });
   const [message, setMessage] = useState('');
   const [scheduledAt, setScheduledAt] = useState('');
   const [recipientCount, setRecipientCount] = useState(0);
@@ -143,6 +149,15 @@ export function MassMessageForm({ initialPlans, initialCategories }: MassMessage
       return false;
     }
 
+    if (!channels.whatsapp && !channels.email) {
+      toast.add({
+        title: 'Canal requerido',
+        description: 'Seleccioná al menos un canal de envío',
+        type: 'error',
+      });
+      return false;
+    }
+
     if (recipientCount === 0) {
       toast.add({
         title: 'Sin destinatarios',
@@ -191,6 +206,10 @@ export function MassMessageForm({ initialPlans, initialCategories }: MassMessage
         body: JSON.stringify({
           filters: payloadFilters,
           message,
+          channels: [
+            ...(channels.whatsapp ? ['whatsapp'] : []),
+            ...(channels.email ? ['email'] : []),
+          ],
           ...(scheduledAt && { scheduledAt }),
         }),
       });
@@ -327,6 +346,32 @@ export function MassMessageForm({ initialPlans, initialCategories }: MassMessage
               placeholder="Ahora"
             />
             <p className="text-xs text-muted-foreground">Horario de Argentina (UTC-3).</p>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Canales de envío</Label>
+          <div className="flex flex-wrap gap-4">
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={channels.whatsapp}
+                onChange={(e) =>
+                  setChannels((prev) => ({ ...prev, whatsapp: e.target.checked }))
+                }
+              />
+              WhatsApp
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={channels.email}
+                onChange={(e) =>
+                  setChannels((prev) => ({ ...prev, email: e.target.checked }))
+                }
+              />
+              Email
+            </label>
           </div>
         </div>
 

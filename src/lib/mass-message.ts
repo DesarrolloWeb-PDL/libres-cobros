@@ -2,8 +2,9 @@ import { DateTime } from 'luxon';
 import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
 import { institutionWhere } from '@/lib/access';
-import { getConfiguredChannel, sendMessage } from '@/lib/sms';
+// (sms.sendMessage no longer used; channel sending is direct)
 import { sendEmail, isEmailConfigured } from '@/lib/email';
+import { sendWhatsAppMessage } from '@/lib/whatsapp';
 import { getInstitutionSiteConfigValues } from '@/lib/site-config';
 import { resolveMessageTemplate } from '@/lib/messaging';
 import type { MassMessageFilters, MassMessageSegment } from '@/types/messaging';
@@ -114,12 +115,116 @@ export function parseScheduledAt(value: string): Date | null {
   return dt.isValid ? dt.toUTC().toJSDate() : null;
 }
 
+type MassMessageChannel = 'whatsapp' | 'email';
+
+function normalizeChannelValue(value: unknown): MassMessageChannel[] | null {
+  if (value == null) return null;
+  if (Array.isArray(value)) {
+    const out: MassMessageChannel[] = [];
+    for (const item of value) {
+      const normalized = normalizeChannelValue(item);
+      if (normalized) out.push(...normalized);
+    }
+    return out.length ? Array.from(new Set(out)) : null;
+  }
+  if (typeof value === 'string') {
+    const v = value.trim().toLowerCase();
+    if (v === 'both' || v === 'all') return ['whatsapp', 'email'];
+    if (v === 'whatsapp' || v === 'wa') return ['whatsapp'];
+    if (v === 'email') return ['email'];
+    if (v.includes(',')) {
+      const parts = v.split(',').map((p) => p.trim());
+      const out: MassMessageChannel[] = [];
+      for (const p of parts) {
+        if (p === 'whatsapp' || p === 'wa') out.push('whatsapp');
+        if (p === 'email') out.push('email');
+      }
+      return out.length ? Array.from(new Set(out)) : null;
+    }
+    return null;
+  }
+  if (typeof value === 'object') {
+    const obj = value as Record<string, unknown>;
+    if ('channels' in obj) {
+      const normalized = normalizeChannelValue(obj.channels);
+      if (normalized) return normalized;
+    }
+    if ('channel' in obj) {
+      const normalized = normalizeChannelValue(obj.channel);
+      if (normalized) return normalized;
+    }
+    if ('logType' in obj && typeof obj.logType === 'string') {
+      // ignore, handled by caller
+    }
+    const out: MassMessageChannel[] = [];
+    if (obj.whatsapp === true) out.push('whatsapp');
+    if (obj.email === true) out.push('email');
+    return out.length ? Array.from(new Set(out)) : null;
+  }
+  return null;
+}
+
+function resolveLogTypeAndChannels(
+  fourth: unknown,
+  fifth: unknown,
+  filters: Partial<MassMessageFilters>
+): { logType: string; channels: MassMessageChannel[] } {
+  let logType = 'mass_message';
+  let channels: MassMessageChannel[] | null = null;
+
+  const consume = (value: unknown) => {
+    if (value == null) return;
+    if (typeof value === 'string') {
+      const channelCandidate = normalizeChannelValue(value);
+      if (channelCandidate) {
+        channels = channelCandidate;
+        return;
+      }
+      // Treat unknown strings as logType (e.g. mass_message_scheduled).
+      logType = value;
+      return;
+    }
+    if (Array.isArray(value)) {
+      const channelCandidate = normalizeChannelValue(value);
+      if (channelCandidate) {
+        channels = channelCandidate;
+        return;
+      }
+      return;
+    }
+    if (typeof value === 'object') {
+      const obj = value as Record<string, unknown>;
+      if (typeof obj.logType === 'string') logType = obj.logType;
+      const channelCandidate = normalizeChannelValue(obj);
+      if (channelCandidate) channels = channelCandidate;
+      return;
+    }
+  };
+
+  consume(fourth);
+  if (fifth !== undefined) consume(fifth);
+
+  if (!channels) {
+    const fromFilters = normalizeChannelValue(filters as unknown);
+    if (fromFilters) channels = fromFilters;
+  }
+
+  if (!channels) {
+    channels = ['whatsapp', 'email'];
+  }
+
+  return { logType, channels };
+}
+
 export async function sendMassMessage(
   institutionId: string,
   message: string,
   filters: Partial<MassMessageFilters>,
-  logType = 'mass_message'
+  fourth?: unknown,
+  fifth?: unknown
 ): Promise<MassMessageResult> {
+  const { logType, channels } = resolveLogTypeAndChannels(fourth, fifth, filters);
+
   const where = buildMassMessageWhere(institutionId, filters);
 
   const members = await prisma.member.findMany({
@@ -139,10 +244,10 @@ export async function sendMassMessage(
   let skipped = 0;
   const batchSize = 10;
 
-  const channel = await getConfiguredChannel(institutionId);
+  const selectedChannels = Array.from(new Set(channels));
 
   let resendConfig: { apiKey: string; fromEmail: string } | null = null;
-  if (channel === 'email') {
+  if (selectedChannels.includes('email')) {
     if (!(await isEmailConfigured(institutionId))) {
       throw new Error(
         'Email no configurado. Verificá la API Key de Resend en Configuración de la institución.'
@@ -160,6 +265,22 @@ export async function sendMassMessage(
     };
   }
 
+  let whatsAppConfig: { phoneNumberId: string; accessToken: string } | null = null;
+  if (selectedChannels.includes('whatsapp')) {
+    const values = await getInstitutionSiteConfigValues(institutionId, [
+      'whatsapp_phone_number_id',
+      'whatsapp_access_token',
+    ]);
+    const phoneNumberId = values.whatsapp_phone_number_id ?? '';
+    const accessToken = values.whatsapp_access_token ?? '';
+    if (!phoneNumberId || !accessToken) {
+      throw new Error(
+        'WhatsApp no configurado. Verificá Phone Number ID y Access Token en Configuración de la institución.'
+      );
+    }
+    whatsAppConfig = { phoneNumberId, accessToken };
+  }
+
   for (let i = 0; i < members.length; i += batchSize) {
     const batch = members.slice(i, i + batchSize);
 
@@ -167,8 +288,57 @@ export async function sendMassMessage(
       batch.map(async (member) => {
         const personalizedMessage = resolveMessageTemplate(message, member);
 
-        if (channel === 'email') {
-          if (!member.email || member.email.trim() === '') {
+        for (const channel of selectedChannels) {
+          if (channel === 'email') {
+            if (!member.email || member.email.trim() === '') {
+              await logAttempt(
+                member.clubId,
+                member.id,
+                logType,
+                'SKIPPED',
+                message,
+                null,
+                'Socio sin email'
+              );
+              skipped += 1;
+              continue;
+            }
+
+            try {
+              const htmlBody = `<p>${personalizedMessage.replace(/\n/g, '<br />')}</p>`;
+              const { externalId } = await sendEmail(
+                resendConfig!.apiKey,
+                resendConfig!.fromEmail,
+                member.email,
+                'Mensaje de tu institución',
+                htmlBody
+              );
+              await logAttempt(
+                member.clubId,
+                member.id,
+                logType,
+                'SENT',
+                personalizedMessage,
+                externalId
+              );
+              sent += 1;
+            } catch (error) {
+              const errorMessage = error instanceof Error ? error.message : String(error);
+              await logAttempt(
+                member.clubId,
+                member.id,
+                logType,
+                'FAILED',
+                personalizedMessage,
+                null,
+                errorMessage
+              );
+              failed += 1;
+            }
+            continue;
+          }
+
+          if (!member.phone || member.phone.trim() === '') {
             await logAttempt(
               member.clubId,
               member.id,
@@ -176,20 +346,18 @@ export async function sendMassMessage(
               'SKIPPED',
               message,
               null,
-              'Socio sin email'
+              'Socio sin teléfono'
             );
             skipped += 1;
-            return;
+            continue;
           }
 
           try {
-            const htmlBody = `<p>${personalizedMessage.replace(/\n/g, '<br />')}</p>`;
-            const { externalId } = await sendEmail(
-              resendConfig!.apiKey,
-              resendConfig!.fromEmail,
-              member.email,
-              'Mensaje de tu institución',
-              htmlBody
+            const { externalId } = await sendWhatsAppMessage(
+              whatsAppConfig!.phoneNumberId,
+              whatsAppConfig!.accessToken,
+              member.phone,
+              personalizedMessage
             );
             await logAttempt(
               member.clubId,
@@ -213,51 +381,6 @@ export async function sendMassMessage(
             );
             failed += 1;
           }
-
-          return;
-        }
-
-        if (!member.phone || member.phone.trim() === '') {
-          await logAttempt(
-            member.clubId,
-            member.id,
-            logType,
-            'SKIPPED',
-            message,
-            null,
-            'Socio sin teléfono'
-          );
-          skipped += 1;
-          return;
-        }
-
-        try {
-          const { externalId } = await sendMessage(
-            member.clubId,
-            member.phone,
-            personalizedMessage
-          );
-          await logAttempt(
-            member.clubId,
-            member.id,
-            logType,
-            'SENT',
-            personalizedMessage,
-            externalId
-          );
-          sent += 1;
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : String(error);
-          await logAttempt(
-            member.clubId,
-            member.id,
-            logType,
-            'FAILED',
-            personalizedMessage,
-            null,
-            errorMessage
-          );
-          failed += 1;
         }
       })
     );
@@ -302,6 +425,7 @@ type ScheduledCampaignRow = {
   memberStatus: string | null;
   planId: string | null;
   search: string | null;
+  channels: string | null;
   scheduledAt: Date | null;
 };
 
@@ -350,11 +474,16 @@ export async function processScheduledMassMessages(
         category: campaign.category ?? undefined,
       };
 
+      const channels = campaign.channels
+        ? campaign.channels.split(',').map((c) => c.trim()).filter(Boolean)
+        : undefined;
+
       const result = await sendMassMessage(
         campaign.clubId,
         campaign.message,
         filters,
-        'mass_message_scheduled'
+        'mass_message_scheduled',
+        channels
       );
 
       const status = deriveCampaignStatus(result);

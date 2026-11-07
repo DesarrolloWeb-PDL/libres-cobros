@@ -9,7 +9,40 @@ export async function GET(request: NextRequest) {
     if (!ctx.institutionId) {
       return apiError('Se requiere institución', 400, 'Institution required', 'INSTITUTION_REQUIRED');
     }
-    const unidentified = await listUnidentifiedPayments(ctx.institutionId);
+
+    const { searchParams } = request.nextUrl;
+    const method = searchParams.get('method') ?? undefined;
+    const status = searchParams.get('status') ?? undefined;
+    const from = searchParams.get('from') ?? undefined;
+    const to = searchParams.get('to') ?? undefined;
+    const search = searchParams.get('search') ?? searchParams.get('member') ?? undefined;
+
+    let unidentified = await listUnidentifiedPayments(ctx.institutionId);
+
+    if (method) {
+      unidentified = unidentified.filter((p) => p.method === method);
+    }
+    if (status) {
+      unidentified = unidentified.filter((p) => p.status === status);
+    }
+    if (from) {
+      const fromDate = new Date(from);
+      unidentified = unidentified.filter((p) => new Date(p.createdAt) >= fromDate);
+    }
+    if (to) {
+      const toDate = new Date(to);
+      unidentified = unidentified.filter((p) => new Date(p.createdAt) <= toDate);
+    }
+    if (search) {
+      const term = search.toLowerCase();
+      unidentified = unidentified.filter((p) => {
+        // listUnidentifiedPayments returns rows without member relation by default;
+        // fall back to bankTransferRef matching when member data is absent.
+        const ref = (p.bankTransferRef ?? '').toLowerCase();
+        return ref.includes(term);
+      });
+    }
+
     return apiSuccess({ data: unidentified });
   } catch (error) {
     if (error instanceof AuthError) return apiError(error.message, error.status);

@@ -34,6 +34,7 @@ interface PaymentListProps {
 }
 
 const methodLabels: Record<string, string> = {
+  cash: 'Efectivo',
   stripe: 'Stripe',
   mercadopago: 'MercadoPago',
   bank_transfer: 'Transferencia',
@@ -44,6 +45,8 @@ const statusLabels: Record<string, string> = {
   PAID: 'Pagado',
   FAILED: 'Fallido',
   REFUNDED: 'Reembolsado',
+  UNIDENTIFIED: 'Sin identificar',
+  PARTIAL: 'Parcial',
 };
 
 const statusBadgeClasses: Record<string, string> = {
@@ -51,6 +54,35 @@ const statusBadgeClasses: Record<string, string> = {
   PAID: 'bg-green-100 text-green-800 hover:bg-green-100',
   FAILED: 'bg-red-100 text-red-800 hover:bg-red-100',
   REFUNDED: 'bg-gray-100 text-gray-800 hover:bg-gray-100',
+  UNIDENTIFIED: 'bg-orange-100 text-orange-800 hover:bg-orange-100',
+  PARTIAL: 'bg-blue-100 text-blue-800 hover:bg-blue-100',
+};
+
+const reconciliationLabels: Record<string, string> = {
+  PAID: 'Conciliado',
+  PARTIAL: 'Parcial',
+  PENDING: 'Sin conciliar',
+  UNIDENTIFIED: 'Sin conciliar',
+  FAILED: 'Sin conciliar',
+  REFUNDED: 'Sin conciliar',
+};
+
+const reconciliationBadgeClasses: Record<string, string> = {
+  PAID: 'bg-emerald-100 text-emerald-800 hover:bg-emerald-100',
+  PARTIAL: 'bg-blue-100 text-blue-800 hover:bg-blue-100',
+  PENDING: 'bg-gray-100 text-gray-800 hover:bg-gray-100',
+  UNIDENTIFIED: 'bg-gray-100 text-gray-800 hover:bg-gray-100',
+  FAILED: 'bg-gray-100 text-gray-800 hover:bg-gray-100',
+  REFUNDED: 'bg-gray-100 text-gray-800 hover:bg-gray-100',
+};
+
+const reconciliationEnglish: Record<string, string> = {
+  PAID: 'matched',
+  PARTIAL: 'partial',
+  PENDING: 'unmatched',
+  UNIDENTIFIED: 'unmatched',
+  FAILED: 'unmatched',
+  REFUNDED: 'unmatched',
 };
 
 const monthLabels: Record<number, string> = {
@@ -226,9 +258,10 @@ export function PaymentList({ initialData }: PaymentListProps) {
             onChange={handleMethodChange}
             options={[
               { value: '', label: 'Todos' },
-              { value: 'stripe', label: 'Stripe' },
-              { value: 'mercadopago', label: 'MercadoPago' },
+              { value: 'cash', label: 'Efectivo' },
               { value: 'bank_transfer', label: 'Transferencia' },
+              { value: 'mercadopago', label: 'MercadoPago' },
+              { value: 'stripe', label: 'Stripe' },
             ]}
             placeholder="Todos los métodos"
             className="w-full sm:w-44"
@@ -241,8 +274,8 @@ export function PaymentList({ initialData }: PaymentListProps) {
               { value: '', label: 'Todos' },
               { value: 'PENDING', label: 'Pendiente' },
               { value: 'PAID', label: 'Pagado' },
-              { value: 'FAILED', label: 'Fallido' },
-              { value: 'REFUNDED', label: 'Reembolsado' },
+              { value: 'UNIDENTIFIED', label: 'Sin identificar' },
+              { value: 'PARTIAL', label: 'Parcial' },
             ]}
             placeholder="Todos los estados"
             className="w-full sm:w-44"
@@ -307,6 +340,10 @@ export function PaymentList({ initialData }: PaymentListProps) {
                   <TableCell>
                     <Badge variant="outline" className={statusBadgeClasses[payment.status]}>
                       {statusLabels[payment.status] ?? payment.status}
+                    </Badge>
+                    <Badge variant="outline" className={reconciliationBadgeClasses[payment.status] ?? ''}>
+                      {reconciliationLabels[payment.status] ?? 'Sin conciliar'}
+                      <span className="sr-only">{reconciliationEnglish[payment.status] ?? 'unmatched'}</span>
                     </Badge>
                   </TableCell>
                   <TableCell>

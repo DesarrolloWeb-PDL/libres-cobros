@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 export const PaymentMethodSchema = z.enum([
+  'cash',
   'stripe',
   'mercadopago',
   'bank_transfer',

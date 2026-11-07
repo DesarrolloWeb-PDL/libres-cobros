@@ -7,6 +7,8 @@ export const MassMessageSegmentSchema = z.enum([
   'overdue',
 ]);
 
+export const MassMessageChannelSchema = z.enum(['whatsapp', 'email']);
+
 export const MassMessageFiltersSchema = z.object({
   status: z.enum(['ACTIVE', 'INACTIVE']).optional(),
   planId: z.string().cuid().optional(),
@@ -14,17 +16,23 @@ export const MassMessageFiltersSchema = z.object({
   segment: MassMessageSegmentSchema.optional().default('all'),
   category: z.string().optional(),
   memberIds: z.array(z.string()).optional(),
+  channels: z.array(MassMessageChannelSchema).optional(),
+  channel: MassMessageChannelSchema.optional(),
 });
 
 export const SendMassMessageByIdsSchema = z.object({
   memberIds: z.array(z.string().cuid()).min(1, 'Seleccioná al menos un socio'),
   message: z.string().min(1, 'El mensaje es obligatorio'),
+  channels: z.array(MassMessageChannelSchema).optional(),
+  channel: MassMessageChannelSchema.optional(),
 });
 
 export const SendMassMessageByFiltersSchema = z.object({
   filters: MassMessageFiltersSchema,
   message: z.string().min(1, 'El mensaje es obligatorio'),
   scheduledAt: z.string().optional(),
+  channels: z.array(MassMessageChannelSchema).optional(),
+  channel: MassMessageChannelSchema.optional(),
 });
 
 export const SendMassMessageSchema = z.union([

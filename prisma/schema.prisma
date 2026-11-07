@@ -68,6 +68,7 @@ model MassMessageCampaign {
   memberStatus   String?
   planId         String?
   search         String?
+  channels       String?
   scheduledAt    DateTime?
   status         String    @default("PENDING")
   sentAt         DateTime?

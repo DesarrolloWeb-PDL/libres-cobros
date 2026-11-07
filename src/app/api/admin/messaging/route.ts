@@ -121,6 +121,10 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      const requestedChannels =
+        parsed.data.channels ??
+        (parsed.data.channel ? [parsed.data.channel] : undefined);
+
       const result = await sendMassMessage(
         ctx.institutionId,
         message,
@@ -131,7 +135,8 @@ export async function POST(request: NextRequest) {
           segment: 'all',
           memberIds: parsed.data.memberIds,
         },
-        'mass_message'
+        'mass_message',
+        requestedChannels
       );
 
       const status = deriveCampaignStatus(result);
@@ -141,6 +146,7 @@ export async function POST(request: NextRequest) {
           message,
           segment: 'all',
           status,
+          channels: requestedChannels?.join(',') ?? null,
           recipientCount: result.recipientCount,
           sentCount: result.sent,
           failedCount: result.failed,
@@ -157,6 +163,11 @@ export async function POST(request: NextRequest) {
 
     const filters = parsed.data.filters;
     const scheduledAtRaw = parsed.data.scheduledAt;
+    const requestedChannels =
+      parsed.data.channels ??
+      (parsed.data.channel ? [parsed.data.channel] : undefined) ??
+      filters.channels ??
+      (filters.channel ? [filters.channel] : undefined);
 
     if (scheduledAtRaw) {
       const scheduledAt = parseScheduledAt(scheduledAtRaw);
@@ -198,6 +209,7 @@ export async function POST(request: NextRequest) {
           memberStatus: filters.status ?? null,
           planId: filters.planId ?? null,
           search: filters.search ?? null,
+          channels: requestedChannels?.join(',') ?? null,
           scheduledAt,
           status: 'PENDING',
           recipientCount,
@@ -224,7 +236,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await sendMassMessage(ctx.institutionId, message, filters, 'mass_message');
+    const result = await sendMassMessage(ctx.institutionId, message, filters, 'mass_message', requestedChannels);
     const status = deriveCampaignStatus(result);
 
     await prisma.massMessageCampaign.create({
@@ -236,6 +248,7 @@ export async function POST(request: NextRequest) {
         memberStatus: filters.status ?? null,
         planId: filters.planId ?? null,
         search: filters.search ?? null,
+        channels: requestedChannels?.join(',') ?? null,
         status,
         sentAt: new Date(),
         recipientCount: result.recipientCount,
