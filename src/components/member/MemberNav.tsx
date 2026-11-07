@@ -30,9 +30,9 @@ function getLuminance(hexColor: string): number {
 }
 
 const navItems = [
-  { href: '/', label: 'Inicio', icon: Home },
-  { href: '/pagos', label: 'Pagos', icon: CreditCard },
-  { href: '/ayuda', label: 'Ayuda', icon: HelpCircle },
+  { href: '/', label: 'Inicio', icon: Home, absolute: false },
+  { href: '/pagos', label: 'Pagos', icon: CreditCard, absolute: false },
+  { href: '/soporte', label: 'Ayuda', icon: HelpCircle, absolute: true },
 ];
 
 export function MemberNav({ institutionName, institutionSlug, institutionLogo, primaryColor }: MemberNavProps) {
@@ -125,14 +125,18 @@ export function MemberNav({ institutionName, institutionSlug, institutionLogo, p
         <nav className="hidden md:flex items-center gap-1">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive =
-              pathname === `/pagos/${institutionSlug}` ||
-              pathname.startsWith(`/pagos/${institutionSlug}${item.href}`);
+            const href = item.absolute
+              ? item.href
+              : `/pagos/${institutionSlug}${item.href}`;
+            const isActive = item.absolute
+              ? pathname === item.href
+              : pathname === `/pagos/${institutionSlug}` ||
+                pathname.startsWith(`/pagos/${institutionSlug}${item.href}`);
 
             return (
               <Link
                 key={item.href}
-                href={`/pagos/${institutionSlug}${item.href}`}
+                href={href}
                 className={cn(
                   'flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all',
                   isActive ? activeDesktopClass : inactiveDesktopClass
@@ -172,14 +176,18 @@ export function MemberNav({ institutionName, institutionSlug, institutionLogo, p
           <nav className="container mx-auto px-4 py-3 space-y-1">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive =
-                pathname === `/pagos/${institutionSlug}` ||
-                pathname.startsWith(`/pagos/${institutionSlug}${item.href}`);
+              const href = item.absolute
+                ? item.href
+                : `/pagos/${institutionSlug}${item.href}`;
+              const isActive = item.absolute
+                ? pathname === item.href
+                : pathname === `/pagos/${institutionSlug}` ||
+                  pathname.startsWith(`/pagos/${institutionSlug}${item.href}`);
 
               return (
                 <Link
                   key={item.href}
-                  href={`/pagos/${institutionSlug}${item.href}`}
+                  href={href}
                   onClick={() => setMobileOpen(false)}
                   className={cn(
                     'flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all',
