@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowLeft, Calendar, Loader2 } from 'lucide-react';
+import { ArrowLeft, Calendar, Loader2, Eye } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,12 +26,63 @@ const monthLabels: Record<number, string> = {
   12: 'Diciembre',
 };
 
+const currencyFormatter = new Intl.NumberFormat('es-AR', {
+  style: 'currency',
+  currency: 'ARS',
+});
+
 export default function GenerateFeesPage() {
   const now = new Date();
   const [month, setMonth] = useState(String(now.getMonth() + 1));
   const [year, setYear] = useState(String(now.getFullYear()));
+  const [imputationDate, setImputationDate] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isPreviewing, setIsPreviewing] = useState(false);
   const [result, setResult] = useState<GenerateFeesResult | null>(null);
+  const [preview, setPreview] = useState<GenerateFeesResult | null>(null);
+
+  async function callGenerate(dryRun: boolean) {
+    const body: Record<string, unknown> = {
+      month: parseInt(month, 10),
+      year: parseInt(year, 10),
+      dryRun,
+    };
+    if (imputationDate) {
+      body.imputationDate = imputationDate;
+    }
+
+    const response = await fetch('/api/admin/fees/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Error al procesar las cuotas');
+    }
+
+    return data as GenerateFeesResult;
+  }
+
+  async function handlePreview() {
+    setIsPreviewing(true);
+    setPreview(null);
+
+    try {
+      const data = await callGenerate(true);
+      setPreview(data);
+    } catch (error) {
+      toast.add({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'No se pudo obtener la vista previa',
+        type: 'error',
+      });
+    } finally {
+      setIsPreviewing(false);
+    }
+  }
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -39,19 +90,9 @@ export default function GenerateFeesPage() {
     setResult(null);
 
     try {
-      const response = await fetch('/api/admin/fees/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ month: parseInt(month, 10), year: parseInt(year, 10) }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al generar las cuotas');
-      }
-
-      setResult(data as GenerateFeesResult);
+      const data = await callGenerate(false);
+      setResult(data);
+      setPreview(null);
       toast.add({
         title: 'Cuotas generadas',
         description: `Se crearon ${data.created} cuotas y se omitieron ${data.skipped}.`,
@@ -91,7 +132,7 @@ export default function GenerateFeesPage() {
             Seleccionar periodo
           </CardTitle>
           <CardDescription>
-            Las cuotas se generan con el monto actual de cada categoria y vencimiento el dia 10.
+            Las cuotas se generan con el monto actual de cada categoria y vencimiento segun la fecha de imputacion.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -125,11 +166,62 @@ export default function GenerateFeesPage() {
               </div>
             </div>
 
-            <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
-              {isLoading && <Loader2 className="mr-2 size-4 animate-spin" />}
-              Generar cuotas
-            </Button>
+            <div className="space-y-2">
+              <Label htmlFor="imputationDate">Fecha de imputacion (opcional)</Label>
+              <Input
+                id="imputationDate"
+                type="date"
+                value={imputationDate}
+                onChange={(e) => setImputationDate(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Si no se indica, el vencimiento sera el dia 10 del mes seleccionado.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isPreviewing || isLoading}
+                onClick={() => handlePreview()}
+              >
+                {isPreviewing && <Loader2 className="mr-2 size-4 animate-spin" />}
+                <Eye className="mr-2 size-4" />
+                Vista previa
+              </Button>
+              <Button type="submit" disabled={isLoading || isPreviewing} className="w-full sm:w-auto">
+                {isLoading && <Loader2 className="mr-2 size-4 animate-spin" />}
+                Generar cuotas
+              </Button>
+            </div>
           </form>
+
+          {preview && (
+            <div className="mt-6 rounded-lg border bg-muted/50 p-4">
+              <h3 className="mb-2 font-medium">Vista previa (borrador)</h3>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Periodo</span>
+                  <p className="font-medium">
+                    {monthLabels[preview.month]} {preview.year}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Cuotas a generar</span>
+                  <p className="font-medium text-blue-600">{preview.toCreate ?? 0}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Total a imputar</span>
+                  <p className="font-medium">{currencyFormatter.format(preview.totalAmount ?? 0)}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Omitidas (ya existen)</span>
+                  <p className="font-medium text-yellow-600">{preview.skipped}</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {result && (
             <div className="mt-6 rounded-lg border bg-muted/50 p-4">
@@ -153,6 +245,12 @@ export default function GenerateFeesPage() {
                   <span className="text-muted-foreground">Total de socios procesados</span>
                   <p className="font-medium">{result.created + result.skipped}</p>
                 </div>
+                {result.totalAmount !== undefined && (
+                  <div>
+                    <span className="text-muted-foreground">Total imputado</span>
+                    <p className="font-medium">{currencyFormatter.format(result.totalAmount)}</p>
+                  </div>
+                )}
               </div>
             </div>
           )}

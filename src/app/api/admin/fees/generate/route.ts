@@ -24,8 +24,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { month, year } = parsed.data;
-    const result = await generateMonthlyFees(institutionId, month, year);
+    const { month, year, dryRun, imputationDate } = parsed.data;
+    const result = await generateMonthlyFees(institutionId, month, year, {
+      dryRun,
+      imputationDate,
+    });
 
     return apiSuccess(result);
   } catch (error) {

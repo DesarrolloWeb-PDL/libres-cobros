@@ -277,3 +277,71 @@ a, button, input, select, textarea {
   transition-duration: 150ms;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* ------------------------------------------------------------------ */
+/* Typography scale (documentation + optional utility classes)          */
+/* ------------------------------------------------------------------ */
+/* Tokens: size / weight / line-height for each semantic level.        */
+/* Usage: apply the utility class (e.g. .text-display) or reference    */
+/* the custom properties directly. Existing pages are NOT refactored.  */
+:root {
+  --text-display-size: 2.25rem; /* 36px */
+  --text-display-weight: 800;
+  --text-display-line-height: 1.1;
+
+  --text-heading-size: 1.5rem; /* 24px (h2) */
+  --text-heading-weight: 700;
+  --text-heading-line-height: 1.2;
+
+  --text-subheading-size: 1.25rem; /* 20px (h3) */
+  --text-subheading-weight: 600;
+  --text-subheading-line-height: 1.25;
+
+  --text-body-size: 1rem; /* 16px */
+  --text-body-weight: 400;
+  --text-body-line-height: 1.5;
+
+  --text-small-size: 0.875rem; /* 14px */
+  --text-small-weight: 400;
+  --text-small-line-height: 1.4;
+
+  --text-caption-size: 0.75rem; /* 12px */
+  --text-caption-weight: 500;
+  --text-caption-line-height: 1.3;
+}
+
+.text-display {
+  font-size: var(--text-display-size);
+  font-weight: var(--text-display-weight);
+  line-height: var(--text-display-line-height);
+}
+
+.text-heading {
+  font-size: var(--text-heading-size);
+  font-weight: var(--text-heading-weight);
+  line-height: var(--text-heading-line-height);
+}
+
+.text-subheading {
+  font-size: var(--text-subheading-size);
+  font-weight: var(--text-subheading-weight);
+  line-height: var(--text-subheading-line-height);
+}
+
+.text-body {
+  font-size: var(--text-body-size);
+  font-weight: var(--text-body-weight);
+  line-height: var(--text-body-line-height);
+}
+
+.text-small {
+  font-size: var(--text-small-size);
+  font-weight: var(--text-small-weight);
+  line-height: var(--text-small-line-height);
+}
+
+.text-caption {
+  font-size: var(--text-caption-size);
+  font-weight: var(--text-caption-weight);
+  line-height: var(--text-caption-line-height);
+}

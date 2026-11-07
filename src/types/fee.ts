@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const FeeStatusSchema = z.enum(['PENDING', 'PAID', 'OVERDUE']);
+export const FeeStatusSchema = z.enum(['PENDING', 'PAID', 'OVERDUE', 'PARTIAL']);
 
 export const CreateFeeSchema = z.object({
   memberId: z.string().cuid(),
@@ -15,6 +15,8 @@ export const CreateFeeSchema = z.object({
 export const GenerateFeesSchema = z.object({
   month: z.number().int().min(1).max(12),
   year: z.number().int().min(2000).max(2100),
+  dryRun: z.boolean().optional().default(false),
+  imputationDate: z.coerce.date().optional(),
 });
 
 export const PlanSchema = z.object({
@@ -93,6 +95,10 @@ export interface GenerateFeesResult {
   skipped: number;
   month: number;
   year: number;
+  toCreate?: number;
+  totalAmount?: number;
+  dueDate?: string;
+  dryRun?: boolean;
 }
 
 export interface MemberFeeItem {

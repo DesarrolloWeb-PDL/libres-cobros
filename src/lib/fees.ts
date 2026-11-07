@@ -18,7 +18,8 @@ export function buildDueDate(year: number, month: number): Date {
 export async function generateMonthlyFees(
   clubId: string,
   month: number,
-  year: number
+  year: number,
+  options?: { dryRun?: boolean; imputationDate?: Date }
 ): Promise<GenerateFeesResult> {
   const [members, plans, existingFees] = await Promise.all([
     prisma.member.findMany({
@@ -42,8 +43,26 @@ export async function generateMonthlyFees(
     (member) => !!member.planId && planById.has(member.planId) && !existingMemberIds.has(member.id)
   );
 
+  const dueDate = options?.imputationDate ?? buildDueDate(year, month);
+  const totalAmount = membersToCreate.reduce((sum, member) => {
+    const plan = member.planId ? planById.get(member.planId) : undefined;
+    return sum + (plan?.amount ?? 0);
+  }, 0);
+
+  if (options?.dryRun) {
+    return {
+      created: 0,
+      skipped: members.length - membersToCreate.length,
+      month,
+      year,
+      toCreate: membersToCreate.length,
+      totalAmount,
+      dueDate: dueDate.toISOString(),
+      dryRun: true,
+    };
+  }
+
   if (membersToCreate.length > 0) {
-    const dueDate = buildDueDate(year, month);
     await prisma.fee.createMany({
       data: membersToCreate.map((member) => {
         const plan = planById.get(member.planId!)!;
@@ -67,6 +86,10 @@ export async function generateMonthlyFees(
     skipped: members.length - membersToCreate.length,
     month,
     year,
+    toCreate: membersToCreate.length,
+    totalAmount,
+    dueDate: dueDate.toISOString(),
+    dryRun: false,
   };
 }
 

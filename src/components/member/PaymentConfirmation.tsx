@@ -55,7 +55,9 @@ const currencyFormatter = new Intl.NumberFormat('es-AR', {
   currency: 'ARS',
 });
 
-function getStatusConfig(status: string) {
+function getStatusConfig(status: string, method?: string) {
+  const isBankTransfer = method === 'bank_transfer';
+
   switch (status) {
     case 'success':
       return {
@@ -63,14 +65,26 @@ function getStatusConfig(status: string) {
         title: '¡Pago acreditado!',
         message: 'Tu pago fue procesado correctamente. Ya podés cerrar esta ventana.',
         variant: 'success' as const,
+        isBankTransfer,
       };
     case 'pending':
+      if (isBankTransfer) {
+        return {
+          icon: <Clock className="size-12 text-amber-600" />,
+          title: 'Pago pendiente de confirmación',
+          message:
+            'Tu transferencia bancaria fue registrada y está pendiente de confirmación por el club. Tiempo estimado: 1 a 2 días hábiles.',
+          variant: 'pending' as const,
+          isBankTransfer: true,
+        };
+      }
       return {
         icon: <Clock className="size-12 text-yellow-600" />,
         title: 'Pago pendiente',
         message:
-          'Tu pago está siendo procesado. En breve recibirás la confirmación. Si elegiste transferencia, recordá enviar el comprobante.',
+          'Tu pago está siendo procesado. En breve recibirás la confirmación.',
         variant: 'pending' as const,
+        isBankTransfer: false,
       };
     case 'cancelled':
       return {
@@ -78,6 +92,7 @@ function getStatusConfig(status: string) {
         title: 'Pago cancelado',
         message: 'Cancelaste el proceso de pago. Podés intentarlo nuevamente cuando quieras.',
         variant: 'neutral' as const,
+        isBankTransfer: false,
       };
     case 'failure':
       return {
@@ -86,6 +101,7 @@ function getStatusConfig(status: string) {
         message:
           'Hubo un problema al procesar tu pago. Verificá los datos e intentá de nuevo.',
         variant: 'error' as const,
+        isBankTransfer: false,
       };
     default:
       return {
@@ -93,6 +109,7 @@ function getStatusConfig(status: string) {
         title: 'Estado desconocido',
         message: 'No pudimos determinar el estado de tu pago.',
         variant: 'neutral' as const,
+        isBankTransfer: false,
       };
   }
 }
@@ -104,7 +121,7 @@ function MethodIcon({ method }: { method: string }) {
 }
 
 export function PaymentConfirmation({ status, provider, payment }: PaymentConfirmationProps) {
-  const config = getStatusConfig(status);
+  const config = getStatusConfig(status, payment?.method);
 
   return (
     <div className="container mx-auto max-w-xl px-4 py-12">
@@ -115,6 +132,17 @@ export function PaymentConfirmation({ status, provider, payment }: PaymentConfir
         </CardHeader>
         <CardContent className="space-y-6">
           <p className="text-center text-muted-foreground">{config.message}</p>
+
+          {config.isBankTransfer && status === 'pending' && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-200">
+              <p className="mb-2 font-medium">Qué hacer ahora</p>
+              <ul className="list-disc space-y-1 pl-5">
+                <li>Enviá el comprobante de la transferencia al club por el canal indicado.</li>
+                <li>Esperá la confirmación del pago (tiempo estimado: 1 a 2 días hábiles).</li>
+                <li>Una vez confirmado, vas a poder descargar tu comprobante.</li>
+              </ul>
+            </div>
+          )}
 
           {payment && (
             <div className="space-y-3 rounded-lg bg-muted/50 p-4 text-sm">

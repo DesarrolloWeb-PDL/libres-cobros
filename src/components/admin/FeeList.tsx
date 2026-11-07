@@ -7,6 +7,7 @@ import {
   Search,
   Eye,
   MoreHorizontal,
+  HelpCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,12 +45,21 @@ const statusLabels: Record<string, string> = {
   PENDING: 'Pendiente',
   PAID: 'Pagada',
   OVERDUE: 'Vencida',
+  PARTIAL: 'Parcial',
 };
 
 const statusBadgeClasses: Record<string, string> = {
   PENDING: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100',
   PAID: 'bg-green-100 text-green-800 hover:bg-green-100',
   OVERDUE: 'bg-red-100 text-red-800 hover:bg-red-100',
+  PARTIAL: 'bg-blue-100 text-blue-800 hover:bg-blue-100',
+};
+
+const statusHelp: Record<string, string> = {
+  PENDING: 'Cuota generada, aun no pagada.',
+  PAID: 'Cuota pagada en su totalidad.',
+  OVERDUE: 'Cuota vencida sin pago completo.',
+  PARTIAL: 'Pago parcial aplicado; saldo pendiente.',
 };
 
 const monthLabels: Record<number, string> = {
@@ -192,6 +202,7 @@ export function FeeList({ initialData }: FeeListProps) {
               { value: 'PENDING', label: 'Pendiente' },
               { value: 'PAID', label: 'Pagada' },
               { value: 'OVERDUE', label: 'Vencida' },
+              { value: 'PARTIAL', label: 'Parcial' },
             ]}
             placeholder="Todos los estados"
             className="w-full sm:w-44"
@@ -221,6 +232,21 @@ export function FeeList({ initialData }: FeeListProps) {
             max={2100}
           />
         </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3 rounded-lg border bg-muted/30 px-3 py-2 text-xs">
+        <span className="flex items-center gap-1 font-medium text-muted-foreground">
+          <HelpCircle className="size-3.5" aria-hidden="true" />
+          Leyenda de estados
+        </span>
+        {Object.entries(statusLabels).map(([status, label]) => (
+          <span key={status} className="flex items-center gap-1.5" title={statusHelp[status]}>
+            <Badge variant="outline" className={statusBadgeClasses[status]}>
+              {label}
+            </Badge>
+            <span className="text-muted-foreground">{statusHelp[status]}</span>
+          </span>
+        ))}
       </div>
 
       <div className="rounded-lg border">
