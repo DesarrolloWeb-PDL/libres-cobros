@@ -279,8 +279,8 @@ export default async function LandingPage() {
               />
               <AppScreenshot
                 src="/screenshots/portal-socio.png"
-                alt="Portal del socio: carnet digital, saldo y pago"
-                caption="Portal del socio — carnet, saldo y pago"
+                alt="Portal del socio: saldo, pago y comprobante"
+                caption="Portal del socio - saldo, pago y comprobante"
               />
             </div>
           </div>
