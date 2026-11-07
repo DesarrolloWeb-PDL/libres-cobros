@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Home, CreditCard, HelpCircle, Menu, X } from 'lucide-react';
+import { Home, CreditCard, Mail, HelpCircle, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -32,6 +32,7 @@ function getLuminance(hexColor: string): number {
 const navItems = [
   { href: '/', label: 'Inicio', icon: Home, absolute: false },
   { href: '/pagos', label: 'Pagos', icon: CreditCard, absolute: false },
+  { href: '/mensajes', label: 'Mensajes', icon: Mail, absolute: false },
   { href: '/soporte', label: 'Ayuda', icon: HelpCircle, absolute: true },
 ];
 

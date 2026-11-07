@@ -9,6 +9,7 @@ import { StatsCards } from '@/components/admin/StatsCards';
 import { KpiStrip } from '@/components/admin/KpiStrip';
 import { DashboardPanels } from '@/components/admin/DashboardPanels';
 import { RecentActivity } from '@/components/admin/RecentActivity';
+import { OnboardingChecklist } from '@/components/admin/OnboardingChecklist';
 import { SubscriptionAlertBanner } from '@/components/admin/SubscriptionAlertBanner';
 import { LayoutDashboard, Users, CreditCard, FileText, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
@@ -77,6 +78,8 @@ export default async function AdminDashboardPage() {
       {/* Real-time KPI strip */}
       <KpiStrip />
 
+      {/* Onboarding checklist for new institutions */}
+      <OnboardingChecklist />
       {/* Stats */}
       <StatsCards data={data} />
 
