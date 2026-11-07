@@ -4,6 +4,14 @@ import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
 import { requireInstitution, institutionWhere, AuthError } from '@/lib/access';
 import { checkTierAlert } from '@/lib/saas-billing';
 import { CreateMemberSchema } from '@/types/member';
+import { z } from 'zod';
+
+const BulkMemberStatusSchema = z.object({
+  memberIds: z.array(z.string().cuid()).min(1).optional(),
+  ids: z.array(z.string().cuid()).min(1).optional(),
+  action: z.enum(['activate', 'deactivate']).optional(),
+  status: z.enum(['ACTIVE', 'INACTIVE']).optional(),
+}).refine((d) => (d.memberIds || d.ids) && (d.action || d.status), { message: 'memberIds/ids and action/status required' });
 
 function serializeMember(member: {
   id: string;
@@ -168,5 +176,35 @@ export async function GET(request: NextRequest) {
       return apiError(error.message, error.status);
     }
     return apiDbError(error, 'Error al listar socios');
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const ctx = await requireInstitution(request);
+    const body = await request.json();
+    const parsed = BulkMemberStatusSchema.safeParse(body);
+    if (!parsed.success) {
+      return apiError('Datos inválidos', 400, parsed.error.issues.map((e) => `${e.path.join('.')}: ${e.message}`).join('; '), 'VALIDATION_ERROR');
+    }
+    const ids = parsed.data.memberIds ?? parsed.data.ids ?? [];
+    let status: 'ACTIVE' | 'INACTIVE';
+    if (parsed.data.status) {
+      status = parsed.data.status;
+    } else {
+      status = parsed.data.action === 'activate' ? 'ACTIVE' : 'INACTIVE';
+    }
+
+    const result = await prisma.member.updateMany({
+      where: { id: { in: ids }, ...institutionWhere(ctx.institutionId) },
+      data: { status },
+    });
+
+    return apiSuccess({ updated: result.count, status });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return apiError(error.message, error.status);
+    }
+    return apiDbError(error, 'Error al actualizar los socios');
   }
 }

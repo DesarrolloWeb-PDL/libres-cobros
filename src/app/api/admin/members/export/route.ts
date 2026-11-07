@@ -24,10 +24,16 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search')?.trim();
     const category = searchParams.get('category');
     const status = searchParams.get('status');
+    const idsParam = searchParams.get('ids');
+    const ids = idsParam ? idsParam.split(',').map((s) => s.trim()).filter(Boolean) : null;
 
     const where: Record<string, unknown> = {
       ...institutionWhere(ctx.institutionId),
     };
+
+    if (ids && ids.length > 0) {
+      where.id = { in: ids };
+    }
 
     if (category && ['ADULT', 'FAMILY', 'MINOR'].includes(category)) {
       where.category = category;

@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { apiError, apiDbError } from '@/lib/api-response';
 import { requireInstitution, AuthError } from '@/lib/access';
-import { generateDebtReport, generatePaymentReport, generateCommissionReport } from '@/lib/reports';
+import { generateDebtReport, generatePaymentReport, generateCommissionReport, generateMorosidadReport, generateByConceptReport } from '@/lib/reports';
 import { generateExcel } from '@/lib/excel';
 import { ExportReportQuerySchema } from '@/types/report';
 import type { ExcelColumn } from '@/lib/excel';
@@ -163,6 +163,92 @@ async function generateCommissionsExcel(filters: {
   return generateExcel(columns, rows, 'Reporte de comisiones');
 }
 
+async function generateMorosidadExcel(filters: {
+  clubId: string | null;
+  month?: number;
+  year?: number;
+  category?: string;
+}) {
+  const report = await generateMorosidadReport({ ...filters, page: 1, limit: 10000 });
+
+  const columns: ExcelColumn[] = [
+    { key: 'dni', header: 'DNI', width: 14 },
+    { key: 'lastName', header: 'Apellido', width: 20 },
+    { key: 'firstName', header: 'Nombre', width: 20 },
+    { key: 'category', header: 'Categoría', width: 14 },
+    { key: 'bucket', header: 'Antigüedad', width: 12 },
+    { key: 'daysPastDue', header: 'Días vencido', width: 14 },
+    { key: 'overdueFees', header: 'Cuotas vencidas', width: 16 },
+    { key: 'totalDebt', header: 'Deuda total', width: 16 },
+  ];
+
+  const rows = report.data.map((item) => ({
+    dni: item.dni,
+    lastName: item.lastName,
+    firstName: item.firstName,
+    category: item.category,
+    bucket: item.bucket,
+    daysPastDue: item.daysPastDue,
+    overdueFees: item.overdueFees,
+    totalDebt: item.totalDebt,
+  }));
+
+  rows.push({
+    dni: '',
+    lastName: '',
+    firstName: 'TOTAL',
+    category: '',
+    bucket: '',
+    daysPastDue: 0,
+    overdueFees: report.totals.overdueFees,
+    totalDebt: report.totals.totalDebt,
+  });
+
+  return generateExcel(columns, rows, 'Reporte de morosidad');
+}
+
+async function generateByConceptExcel(filters: {
+  clubId: string | null;
+  month?: number;
+  year?: number;
+  category?: string;
+  status?: string;
+}) {
+  const report = await generateByConceptReport({ ...filters, page: 1, limit: 10000 });
+
+  const columns: ExcelColumn[] = [
+    { key: 'concept', header: 'Concepto', width: 28 },
+    { key: 'category', header: 'Categoría', width: 14 },
+    { key: 'feeCount', header: 'Cantidad', width: 12 },
+    { key: 'totalAmount', header: 'Total', width: 16 },
+    { key: 'pendingAmount', header: 'Pendiente', width: 16 },
+    { key: 'overdueAmount', header: 'Vencido', width: 16 },
+    { key: 'paidAmount', header: 'Pagado', width: 16 },
+  ];
+
+  const rows = report.data.map((item) => ({
+    concept: item.concept,
+    category: item.category ?? '',
+    feeCount: item.feeCount,
+    totalAmount: item.totalAmount,
+    pendingAmount: item.pendingAmount,
+    overdueAmount: item.overdueAmount,
+    paidAmount: item.paidAmount,
+  }));
+
+  rows.push({
+    concept: 'TOTAL',
+    category: '',
+    feeCount: report.totals.feeCount,
+    totalAmount: report.totals.totalAmount,
+    pendingAmount: report.totals.pendingAmount,
+    overdueAmount: report.totals.overdueAmount,
+    paidAmount: report.totals.paidAmount,
+  });
+
+  return generateExcel(columns, rows, 'Reporte por concepto');
+}
+
 export async function GET(request: NextRequest) {
   try {
     const ctx = await requireInstitution(request);
@@ -204,6 +290,15 @@ export async function GET(request: NextRequest) {
         break;
       case 'commissions':
         result = await generateCommissionsExcel({ clubId: ctx.institutionId, month, year, periodId });
+        break;
+      case 'morosidad':
+      case 'aging':
+        result = await generateMorosidadExcel({ clubId: ctx.institutionId, month, year, category });
+        break;
+      case 'by-concept':
+      case 'conceptos':
+      case 'por-concepto':
+        result = await generateByConceptExcel({ clubId: ctx.institutionId, month, year, category, status: undefined });
         break;
       default:
         return apiError('Tipo de reporte no soportado', 400);

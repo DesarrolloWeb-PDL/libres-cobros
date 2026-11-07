@@ -29,7 +29,7 @@ export const CommissionReportQuerySchema = z.object({
 });
 
 export const ExportReportQuerySchema = z.object({
-  type: z.enum(['debts', 'payments', 'commissions']),
+  type: z.enum(['debts', 'payments', 'commissions', 'morosidad', 'aging', 'by-concept', 'conceptos', 'por-concepto']),
   month: z.coerce.number().int().min(1).max(12).optional(),
   year: z.coerce.number().int().min(2000).max(2100).optional(),
   category: MemberCategorySchema.optional(),
@@ -120,4 +120,72 @@ export interface ReportFilterValues {
 
 export interface ExcelRow {
   [key: string]: string | number | null;
+}
+
+export interface MorosidadReportBucket {
+  key: string;
+  label: string;
+  count: number;
+  amount: number;
+  membersCount?: number;
+}
+
+export interface MorosidadReportItem {
+  memberId: string;
+  dni: string;
+  firstName: string;
+  lastName: string;
+  category: string;
+  planName: string | null;
+  totalDebt: number;
+  overdueFees: number;
+  daysPastDue: number;
+  bucket: string;
+  fees: {
+    id: string;
+    month: number;
+    year: number;
+    amount: number;
+    dueDate: string;
+    status: string;
+  }[];
+}
+
+export interface MorosidadReportResponse {
+  data: MorosidadReportItem[];
+  total: number;
+  page: number;
+  limit: number;
+  totals: {
+    totalDebt: number;
+    overdueFees: number;
+    membersCount: number;
+  };
+  buckets: MorosidadReportBucket[];
+}
+
+export interface ByConceptReportItem {
+  concept: string;
+  category: string | null;
+  planId: string | null;
+  planName: string | null;
+  feeCount: number;
+  totalAmount: number;
+  pendingAmount: number;
+  overdueAmount: number;
+  paidAmount: number;
+}
+
+export interface ByConceptReportResponse {
+  data: ByConceptReportItem[];
+  total: number;
+  page: number;
+  limit: number;
+  totals: {
+    feeCount: number;
+    totalAmount: number;
+    pendingAmount: number;
+    overdueAmount: number;
+    paidAmount: number;
+  };
 }

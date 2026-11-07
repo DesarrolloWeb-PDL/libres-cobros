@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/toast';
 
 export interface ExportFilters {
-  type: 'debts' | 'payments' | 'commissions';
+  type: 'debts' | 'payments' | 'commissions' | 'morosidad' | 'aging' | 'by-concept' | 'conceptos' | 'por-concepto';
   month?: string;
   year?: string;
   category?: string;
@@ -100,6 +100,11 @@ function getDefaultFilename(filters: ExportFilters): string {
     debts: 'deudas',
     payments: 'pagos',
     commissions: 'comisiones',
+    morosidad: 'morosidad',
+    aging: 'morosidad',
+    'by-concept': 'conceptos',
+    conceptos: 'conceptos',
+    'por-concepto': 'conceptos',
   };
   return `${names[filters.type]}-${date}.xlsx`;
 }

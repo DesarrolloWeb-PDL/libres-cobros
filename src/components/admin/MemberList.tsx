@@ -195,6 +195,45 @@ export function MemberList({ initialData }: MemberListProps) {
     }
   }
 
+  async function exportSelected() {
+    if (selectedIds.size === 0) return;
+    const params = new URLSearchParams();
+    params.set('ids', Array.from(selectedIds).join(','));
+    window.open(`/api/admin/members/export?${params.toString()}`, '_blank');
+  }
+
+  async function bulkStatus(action: 'activate' | 'deactivate') {
+    if (selectedIds.size === 0) return;
+    setSendingBulk(true);
+    try {
+      const response = await fetch('/api/admin/members/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberIds: Array.from(selectedIds), action }),
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Error al actualizar los socios');
+      }
+      const result = await response.json();
+      toast.add({
+        title: 'Estado actualizado',
+        description: `${result.data?.updated ?? result.updated ?? selectedIds.size} socios ${action === 'activate' ? 'activados' : 'desactivados'}`,
+        type: 'success',
+      });
+      setSelectedIds(new Set());
+      fetchMembers(buildParams());
+    } catch (error) {
+      toast.add({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'No se pudieron actualizar los socios',
+        type: 'error',
+      });
+    } finally {
+      setSendingBulk(false);
+    }
+  }
+
   async function sendReminderBulk() {
     if (selectedIds.size === 0) return;
 
@@ -440,10 +479,22 @@ export function MemberList({ initialData }: MemberListProps) {
 
         <div className="flex flex-wrap gap-2">
           {selectedIds.size > 0 && (
-            <Button variant="outline" onClick={sendReminderBulk} disabled={sendingBulk}>
-              <Send className="mr-2 size-4" />
-              {sendingBulk ? 'Enviando...' : `Enviar a ${selectedIds.size} seleccionados`}
-            </Button>
+            <>
+              <Button variant="outline" onClick={sendReminderBulk} disabled={sendingBulk}>
+                <Send className="mr-2 size-4" />
+                {sendingBulk ? 'Enviando...' : `Enviar a ${selectedIds.size} seleccionados`}
+              </Button>
+              <Button variant="outline" onClick={exportSelected} disabled={sendingBulk}>
+                <Download className="mr-2 size-4" />
+                Exportar seleccionados
+              </Button>
+              <Button variant="outline" onClick={() => bulkStatus('activate')} disabled={sendingBulk}>
+                Activar seleccionados
+              </Button>
+              <Button variant="outline" onClick={() => bulkStatus('deactivate')} disabled={sendingBulk}>
+                Desactivar seleccionados
+              </Button>
+            </>
           )}
           <Button variant="outline" onClick={sendReminderAll} disabled={sendingBulk}>
             <MessageSquare className="mr-2 size-4" />
@@ -612,6 +663,27 @@ export function MemberList({ initialData }: MemberListProps) {
           </Button>
         </div>
       </div>
+
+      {selectedIds.size > 0 && (
+        <div className="fixed bottom-4 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-lg border bg-background p-3 shadow-lg">
+          <span className="text-sm font-medium">{selectedIds.size} seleccionados</span>
+          <Button size="sm" variant="outline" onClick={sendReminderBulk} disabled={sendingBulk}>
+            <Send className="mr-1 size-4" /> Notificar
+          </Button>
+          <Button size="sm" variant="outline" onClick={exportSelected} disabled={sendingBulk}>
+            <Download className="mr-1 size-4" /> Exportar
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => bulkStatus('activate')} disabled={sendingBulk}>
+            Activar
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => bulkStatus('deactivate')} disabled={sendingBulk}>
+            Desactivar
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>
+            Limpiar
+          </Button>
+        </div>
+      )}
 
       <BulkImportForm
         open={importOpen}
