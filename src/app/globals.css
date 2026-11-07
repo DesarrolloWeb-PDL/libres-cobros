@@ -143,7 +143,27 @@
   --sidebar-ring: #7c3aed;
 }
 
-/* Institution admin theme overrides - simplified, JS handles the variables */
+/* Institution theme overrides: re-tokenize the full primary/accent ramp,
+   chart colors and gradient endpoints so every UI element follows the
+   institution's primary color (not just accent utility classes). */
+[data-institution-theme] {
+  --accent: var(--institution-primary, #7c3aed);
+  --accent-hover: color-mix(in srgb, var(--institution-primary, #7c3aed) 88%, #000000);
+  --primary: var(--institution-primary, #7c3aed);
+  --primary-foreground: #ffffff;
+  --ring: var(--institution-primary, #7c3aed);
+  --chart-1: var(--institution-primary, #7c3aed);
+  --chart-2: color-mix(in srgb, var(--institution-primary, #7c3aed) 72%, #ffffff);
+  --chart-3: color-mix(in srgb, var(--institution-primary, #7c3aed) 48%, #ffffff);
+  --chart-4: color-mix(in srgb, var(--institution-primary, #7c3aed) 86%, #000000);
+  --chart-5: color-mix(in srgb, var(--institution-primary, #7c3aed) 64%, #000000);
+  --sidebar-primary: var(--institution-primary, #7c3aed);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-ring: var(--institution-primary, #7c3aed);
+  --institution-primary: var(--institution-primary, #7c3aed);
+}
+
+/* Keep accent utility classes aligned with the re-tokenized ramp. */
 [data-institution-theme] .bg-accent,
 [data-institution-theme] .bg-accent\/10 {
   background-color: var(--institution-primary, #7c3aed) !important;
@@ -152,7 +172,7 @@
   color: var(--institution-primary, #7c3aed) !important;
 }
 [data-institution-theme] .hover\:bg-accent:hover {
-  background-color: var(--institution-primary, #6d28d9) !important;
+  background-color: color-mix(in srgb, var(--institution-primary, #7c3aed) 88%, #000000) !important;
 }
 [data-institution-theme] .border-accent {
   border-color: var(--institution-primary, #7c3aed) !important;

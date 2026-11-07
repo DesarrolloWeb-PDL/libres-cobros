@@ -57,7 +57,7 @@ const sections = [
 export function Footer() {
   return (
     <footer className="relative mt-auto bg-gray-900 pt-8 pb-6 text-gray-300">
-      <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-violet-600 via-[#764ba2] to-violet-600" />
+      <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-primary via-accent to-primary" />
       <div className="mx-auto max-w-6xl px-4">
         <div className="mb-8 grid gap-8 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]">
           {/* Brand */}

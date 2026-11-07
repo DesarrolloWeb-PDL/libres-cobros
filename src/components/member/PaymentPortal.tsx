@@ -1,6 +1,6 @@
 'use client';
 
-import { User, Receipt, AlertCircle, History } from 'lucide-react';
+import { User, Receipt, AlertCircle, History, Wallet } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { FeeCard } from './FeeCard';
@@ -92,7 +92,13 @@ export function PaymentPortal({ member, fees, institutionSlug, memberEmail }: Pa
       </section>
 
            {institutionSlug && (
-             <div className="mt-5 text-center">
+             <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+               <Link href={`/pagos/${institutionSlug}/cuenta?dni=${encodeURIComponent(member.dni)}`}>
+                 <Button variant="outline" size="sm" className="gap-2">
+                   <Wallet className="size-4" />
+                   Ver mi cuenta
+                 </Button>
+               </Link>
                <Link href={`/pagos/${institutionSlug}/pagos?dni=${encodeURIComponent(member.dni)}`}>
                  <Button variant="outline" size="sm" className="gap-2">
                    <History className="size-4" />

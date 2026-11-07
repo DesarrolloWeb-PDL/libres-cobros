@@ -11,17 +11,28 @@ interface PublicTheme {
 }
 
 function applyPublicTheme(theme: PublicTheme | null) {
-  if (!theme?.primaryColor) return;
-
   const root = document.documentElement;
+
+  if (!theme?.primaryColor) {
+    root.removeAttribute('data-institution-theme');
+    return;
+  }
+
   const primary = theme.primaryColor;
+  const accent = theme.accentColor || primary;
+
+  root.setAttribute('data-institution-theme', '');
 
   root.style.setProperty('--accent', primary);
-  root.style.setProperty('--accent-hover', theme.accentColor || primary);
+  root.style.setProperty('--accent-hover', accent);
   root.style.setProperty('--primary', primary);
   root.style.setProperty('--primary-foreground', '#ffffff');
   root.style.setProperty('--ring', primary);
   root.style.setProperty('--chart-1', primary);
+  root.style.setProperty('--chart-2', `color-mix(in srgb, ${primary} 72%, #ffffff)`);
+  root.style.setProperty('--chart-3', `color-mix(in srgb, ${primary} 48%, #ffffff)`);
+  root.style.setProperty('--chart-4', `color-mix(in srgb, ${primary} 86%, #000000)`);
+  root.style.setProperty('--chart-5', `color-mix(in srgb, ${primary} 64%, #000000)`);
   root.style.setProperty('--sidebar-primary', primary);
   root.style.setProperty('--sidebar-primary-foreground', '#ffffff');
   root.style.setProperty('--sidebar-ring', primary);

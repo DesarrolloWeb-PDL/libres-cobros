@@ -4,6 +4,7 @@ import { ArrowLeft, Download, Receipt, User } from 'lucide-react';
 import { prisma } from '@/lib/db';
 import { Button } from '@/components/ui/button';
 import { MemberNav } from '@/components/member/MemberNav';
+import { InstitutionThemeInjector } from '@/components/admin/InstitutionThemeInjector';
 
 interface MemberPaymentsPageProps {
   params: Promise<{ slug: string }>;
@@ -110,6 +111,7 @@ export default async function MemberPaymentsPage({
         '--club-accent': club.accentColor,
       } as React.CSSProperties}
     >
+      <InstitutionThemeInjector primaryColor={club.primaryColor} />
       <MemberNav
         institutionName={club.name}
         institutionSlug={club.slug}

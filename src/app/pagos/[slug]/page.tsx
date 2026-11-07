@@ -46,6 +46,7 @@ export default async function ClubPaymentPage({ params, searchParams }: SlugPage
         '--club-accent': club.accentColor,
       } as React.CSSProperties}
     >
+      <InstitutionThemeInjector primaryColor={club.primaryColor} />
       <MemberNav
         institutionName={club.name}
         institutionSlug={club.slug}
