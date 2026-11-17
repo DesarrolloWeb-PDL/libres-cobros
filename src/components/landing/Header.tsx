@@ -6,7 +6,7 @@ import { Menu, X } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 
 const navItems = [
-  { label: 'Problema', href: '#problema' },
+  { label: 'Por qué', href: '#problema' },
   { label: 'Cómo funciona', href: '#como-funciona' },
   { label: 'Funciones', href: '#funciones' },
   { label: 'Precios', href: '#precios' },

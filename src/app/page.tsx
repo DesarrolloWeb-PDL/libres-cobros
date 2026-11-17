@@ -183,7 +183,7 @@ export default async function LandingPage() {
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
               <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-3">
-                El problema
+                Por qué
               </p>
               <h2 className="text-3xl sm:text-4xl font-heading font-extrabold tracking-tight">
                 Cobrar la cuota no debería costar un porcentaje de lo que el club recauda.
