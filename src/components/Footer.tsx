@@ -96,7 +96,7 @@ export function Footer() {
         <div className="flex flex-col items-center justify-between gap-3 border-t border-gray-800 pt-6 text-center text-sm text-gray-500 md:flex-row">
           <p>© 2026 Libres Cobros. Todos los derechos reservados.</p>
           <a
-            href="https://desarrolloweb-pdl.vercel.app"
+            href="https://desarrolloweb-pdl.dev"
             target="_blank"
             rel="noopener noreferrer"
             className="group flex items-center gap-2 text-xs text-gray-500 no-underline transition-colors hover:text-violet-400"
