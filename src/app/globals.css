@@ -164,9 +164,14 @@
 }
 
 /* Keep accent utility classes aligned with the re-tokenized ramp. */
-[data-institution-theme] .bg-accent,
-[data-institution-theme] .bg-accent\/10 {
+[data-institution-theme] .bg-accent {
   background-color: var(--institution-primary, #7c3aed) !important;
+}
+/* The /10 utility must keep its 10% alpha: sharing the solid rule with .bg-accent
+   painted the icon tile fully opaque, so the text-accent icon rendered in the
+   exact same color as its background and disappeared. */
+[data-institution-theme] .bg-accent\/10 {
+  background-color: color-mix(in srgb, var(--institution-primary, #7c3aed) 10%, transparent) !important;
 }
 [data-institution-theme] .text-accent {
   color: var(--institution-primary, #7c3aed) !important;
