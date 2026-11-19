@@ -38,7 +38,15 @@ const DEFAULT_SITE_CONFIG_KEYS = [
   'bank_reference',
   'whatsapp_phone_number_id',
   'whatsapp_access_token',
+  'whatsapp_otp_template_name',
+  'portal_otp_enabled',
 ];
+
+// Non-empty defaults: '' would render the admin switch as "off" while the
+// feature treats an empty value as enabled (absent = on).
+const DEFAULT_SITE_CONFIG_VALUES: Record<string, string> = {
+  portal_otp_enabled: 'true',
+};
 
 function serializeClub(club: {
   id: string;
@@ -148,7 +156,7 @@ export async function POST(request: NextRequest) {
         data: DEFAULT_SITE_CONFIG_KEYS.map((key) => ({
           clubId: club.id,
           key,
-          value: '',
+          value: DEFAULT_SITE_CONFIG_VALUES[key] ?? '',
         })),
         skipDuplicates: true,
       });

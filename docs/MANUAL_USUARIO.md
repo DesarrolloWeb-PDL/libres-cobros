@@ -112,13 +112,21 @@ El sistema descuenta la cuota pendiente automáticamente.
 
 ### Lo que ve el socio (portal de pagos)
 Cada institución tiene una URL propia: `/pagos/<slug>`.
-El socio entra con su **DNI** y ve:
+El socio entra con su **DNI** y, si el **acceso verificado por código** está
+activado, recibe un **código por WhatsApp** (o email) que debe ingresar para
+verificar su identidad — nadie puede ver los datos de otro socio con solo
+saber su DNI. El código dura **10 minutos** y admite hasta **5 intentos**.
+
+Una vez verificado, el socio ve:
 - sus cuotas pendientes,
 - su historial de pagos,
 - los medios de pago disponibles: **Mercado Pago**, **Stripe**, **transferencia bancaria**
   (los que estén activados en tu configuración),
 - su **débito automático**,
 - y el **comprobante** con QR de ARCA si tenés facturación activada.
+
+La sesión dura **7 días**; después debe ingresar el código de nuevo.
+El botón **"Cambiar socio"** cierra la sesión (por ejemplo, en un celular prestado).
 
 ### Confirmación y reconciliación
 - Los pagos por MP/Stripe llegan **solos** vía webhook (sin que hagas nada).

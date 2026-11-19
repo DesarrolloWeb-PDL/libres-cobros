@@ -50,6 +50,8 @@ const CONFIG_KEYS = [
   'bank_transfer_enabled',
   'whatsapp_template_name',
   'whatsapp_template_language',
+  'whatsapp_otp_template_name',
+  'portal_otp_enabled',
   // Platform SaaS billing (platform-level; stored with clubId = null)
   'saas_billing_enabled',
   'saas_billing_day',
@@ -92,6 +94,8 @@ const INSTITUTION_ONLY_KEYS = [
   'bank_transfer_enabled',
   'whatsapp_template_name',
   'whatsapp_template_language',
+  'whatsapp_otp_template_name',
+  'portal_otp_enabled',
 ];
 
 // Platform-scoped keys must only be written when no institution is selected.
@@ -396,6 +400,8 @@ function getConfigDescription(key: string): string {
     whatsapp_access_token: 'Access Token de WhatsApp Cloud API (Meta)',
     whatsapp_template_name: 'Nombre de la plantilla aprobada en Meta para recordatorios (vacío = texto libre)',
     whatsapp_template_language: 'Idioma de la plantilla en Meta (ej: es_AR)',
+    whatsapp_otp_template_name: 'Nombre de la plantilla aprobada para códigos de acceso al portal (vacío = texto libre)',
+    portal_otp_enabled: 'Acceso al portal verificado por código (OTP) — requiere plantilla de WhatsApp o email configurados',
     resend_api_key: 'API Key de Resend para envío de emails',
     resend_from_email: 'Email remitente (ej: Cuotas <cuotas@tudominio.com>)',
     arca_enabled: 'Emitir comprobantes electrónicos ARCA (Recibo C) ante cada pago confirmado',

@@ -50,6 +50,8 @@ const siteConfigLabels: Record<string, string> = {
   whatsapp_access_token: 'Access Token',
   whatsapp_template_name: 'Plantilla de recordatorios',
   whatsapp_template_language: 'Idioma de la plantilla',
+  whatsapp_otp_template_name: 'Plantilla de códigos de acceso',
+  portal_otp_enabled: 'Acceso verificado por código (OTP)',
   resend_api_key: 'API Key',
   resend_from_email: 'Email remitente',
   arca_enabled: 'Emitir comprobantes electrónicos (ARCA)',
@@ -77,6 +79,7 @@ const siteConfigPlaceholders: Record<string, string> = {
   whatsapp_access_token: 'Ej: EAAG...',
   whatsapp_template_name: 'Ej: recordatorio_pago (vacío = texto libre)',
   whatsapp_template_language: 'Ej: es_AR',
+  whatsapp_otp_template_name: 'Ej: codigo_acceso (vacío = texto libre)',
   resend_api_key: 'Ej: re_xxxxxxxx',
   resend_from_email: 'Ej: Cuotas <cuotas@tudominio.com>',
   arca_cuit: 'Ej: 30712345678',
@@ -543,11 +546,22 @@ export function ConfigurationForm({
                         renderTextField(key)
                       )}
                     </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      {['whatsapp_otp_template_name'].map((key) => renderTextField(key))}
+                    </div>
                     <p className="text-xs text-muted-foreground">
                       Fuera de la ventana de 24h WhatsApp solo acepta plantillas aprobadas en Meta.
                       Creá la plantilla con 4 variables (nombre, monto, vencimiento, link de pago)
                       y poné su nombre acá; si lo dejás vacío se envía texto libre.
                     </p>
+                    <div className="pt-2 border-t">
+                      {renderSwitch('portal_otp_enabled')}
+                      <p className="text-xs text-muted-foreground mt-1.5 ml-6">
+                        Al activarlo, el socio ingresa su DNI y recibe un código por WhatsApp
+                        (o email) para verificar su identidad. Requiere una plantilla de códigos
+                        o email configurados. Si no hay ningún canal, el acceso queda como antes.
+                      </p>
+                    </div>
                   </div>
 
                   <div className="space-y-4">

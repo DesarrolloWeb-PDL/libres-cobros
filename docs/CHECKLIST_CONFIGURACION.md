@@ -40,6 +40,20 @@ Panel → **Configuración** (pestañas: *Datos bancarios · Medios de pago · F
   3. Esperar la aprobación de Meta (minutos u horas).
   4. Pegar el **nombre** de la plantilla en `Plantilla de recordatorios`
      (ej: `recordatorio_pago`) y el idioma en `Idioma de la plantilla` (ej: `es_AR`).
+- [ ] **Plantilla de códigos de acceso (OTP al portal)** — solo si activás
+      **"Acceso verificado por código (OTP)"**. El socio ingresa su DNI y recibe
+      un código por WhatsApp para entrar al portal.
+  1. En Meta: crear plantilla tipo *Authentication* o *Utility*, idioma `es_AR`,
+     con **1 sola variable**:
+
+     ```
+     Tu código de acceso es {{1}}. Válido por 10 minutos.
+     ```
+  2. Esperar la aprobación de Meta.
+  3. Pegar el nombre en `Plantilla de códigos de acceso`.
+  4. Activar el switch **"Acceso verificado por código (OTP)"**.
+  > Sin plantilla ni email configurados, el portal queda con acceso por DNI
+  > (sin código) para no dejar afuera a los socios.
 - [ ] Si dejás la plantilla **vacía**, los mensajes salen como texto libre — solo
       funcionarán si el socio escribió primero en las últimas 24h.
 
