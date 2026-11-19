@@ -75,6 +75,7 @@ export function AdminAutoDebitSection({ memberId, memberEmail }: AdminAutoDebitS
   const [cancelOpen, setCancelOpen] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [consentAccepted, setConsentAccepted] = useState(false);
 
   useEffect(() => {
     // Refresh from the API on mount so the section always reflects the
@@ -103,7 +104,7 @@ export function AdminAutoDebitSection({ memberId, memberEmail }: AdminAutoDebitS
       const response = await fetch(`/api/admin/members/${memberId}/autodebit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ gateway }),
+        body: JSON.stringify({ gateway, acceptance: consentAccepted }),
       });
 
       const data: CreateMemberAutoDebitResponse & { error?: string } = await response.json();
@@ -203,10 +204,23 @@ export function AdminAutoDebitSection({ memberId, memberEmail }: AdminAutoDebitS
 
   const subscribeButtons = (
     <div className="space-y-3">
+      <label className="flex items-start gap-2 text-sm text-muted-foreground cursor-pointer">
+        <input
+          type="checkbox"
+          checked={consentAccepted}
+          onChange={(e) => setConsentAccepted(e.target.checked)}
+          className="mt-0.5 size-4 shrink-0 accent-[var(--accent)]"
+          data-testid="autodebit-consent-admin"
+        />
+        <span>
+          Confirmo que el socio aceptó el débito automático mensual (verbal o por
+          escrito) y que fue informado de las condiciones.
+        </span>
+      </label>
       <Button
         className="w-full h-11"
         onClick={() => handleSubscribe('mercadopago')}
-        disabled={!memberEmail || loadingGateway !== null}
+        disabled={!memberEmail || loadingGateway !== null || !consentAccepted}
       >
         {loadingGateway === 'mercadopago' ? (
           <Loader2 className="mr-2 size-4 animate-spin" />
@@ -218,7 +232,7 @@ export function AdminAutoDebitSection({ memberId, memberEmail }: AdminAutoDebitS
       <Button
         className="w-full h-11"
         onClick={() => handleSubscribe('stripe')}
-        disabled={!memberEmail || loadingGateway !== null}
+        disabled={!memberEmail || loadingGateway !== null || !consentAccepted}
       >
         {loadingGateway === 'stripe' ? (
           <Loader2 className="mr-2 size-4 animate-spin" />

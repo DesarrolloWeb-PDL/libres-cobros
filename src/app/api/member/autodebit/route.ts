@@ -17,6 +17,12 @@ const CreateAutoDebitSchema = z.object({
   dni: z.string().min(1, 'El DNI es obligatorio'),
   clubSlug: z.string().min(1, 'La institución es obligatoria'),
   gateway: z.enum(['mercadopago', 'stripe']),
+  // Explicit member consent: required so we can prove acceptance on our side.
+  // A missing field fails the boolean type check; false fails the refine —
+  // both surface as an acceptance issue handled below.
+  acceptance: z.boolean().refine((v) => v === true, {
+    message: 'Se requiere la aceptación explícita del socio',
+  }),
 });
 
 const CancelAutoDebitSchema = z.object({
@@ -34,6 +40,8 @@ function serializeAutoDebit(autoDebit: AutoDebit): {
   status: string;
   amount: number;
   nextBillingAt: string | null;
+  acceptedAt: string | null;
+  acceptanceSource: string | null;
 } {
   return {
     id: autoDebit.id,
@@ -41,6 +49,8 @@ function serializeAutoDebit(autoDebit: AutoDebit): {
     status: autoDebit.status,
     amount: autoDebit.amount,
     nextBillingAt: autoDebit.nextBillingAt?.toISOString() ?? null,
+    acceptedAt: autoDebit.acceptedAt?.toISOString() ?? null,
+    acceptanceSource: autoDebit.acceptanceSource,
   };
 }
 
@@ -101,15 +111,20 @@ export async function POST(request: NextRequest) {
     const parsed = CreateAutoDebitSchema.safeParse(body);
 
     if (!parsed.success) {
+      const issues = parsed.error.issues.map((e) => `${e.path.join('.')}: ${e.message}`).join('; ');
+      const consentIssue = parsed.error.issues.some((e) => e.path[0] === 'acceptance');
       return apiError(
-        'Datos inválidos',
+        consentIssue ? 'Se requiere la aceptación explícita del socio' : 'Datos inválidos',
         400,
-        parsed.error.issues.map((e) => `${e.path.join('.')}: ${e.message}`).join('; '),
-        'VALIDATION_ERROR'
+        issues,
+        consentIssue ? 'ACCEPTANCE_REQUIRED' : 'VALIDATION_ERROR'
       );
     }
 
     const { dni, clubSlug, gateway } = parsed.data;
+    // Consent is validated by the schema; record when and by whom it was given.
+    const acceptedAt = new Date();
+    const acceptanceSource = 'member';
 
     const club = await getEffectiveClub(clubSlug);
     if (!club) {
@@ -205,6 +220,8 @@ export async function POST(request: NextRequest) {
         amount,
         payerEmail: member.email,
         nextBillingAt: null,
+        acceptedAt,
+        acceptanceSource,
       });
 
       return apiSuccess({
@@ -253,6 +270,8 @@ export async function POST(request: NextRequest) {
       amount,
       payerEmail: member.email,
       nextBillingAt: firstDayOfNextMonth(),
+      acceptedAt,
+      acceptanceSource,
     });
 
     return apiSuccess({
@@ -358,6 +377,8 @@ async function upsertAutoDebit(data: {
   amount: number;
   payerEmail: string;
   nextBillingAt: Date | null;
+  acceptedAt: Date;
+  acceptanceSource: string;
 }): Promise<AutoDebit> {
   return prisma.autoDebit.upsert({
     where: {
@@ -372,6 +393,8 @@ async function upsertAutoDebit(data: {
       amount: data.amount,
       payerEmail: data.payerEmail,
       nextBillingAt: data.nextBillingAt,
+      acceptedAt: data.acceptedAt,
+      acceptanceSource: data.acceptanceSource,
     },
     update: {
       gateway: data.gateway,
@@ -380,6 +403,8 @@ async function upsertAutoDebit(data: {
       amount: data.amount,
       payerEmail: data.payerEmail,
       nextBillingAt: data.nextBillingAt,
+      acceptedAt: data.acceptedAt,
+      acceptanceSource: data.acceptanceSource,
     },
   });
 }

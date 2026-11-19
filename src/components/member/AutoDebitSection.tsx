@@ -71,6 +71,7 @@ export function AutoDebitSection({
   const [loadingGateway, setLoadingGateway] = useState<Gateway | null>(null);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [consentAccepted, setConsentAccepted] = useState(false);
 
   useEffect(() => {
     // Refresh from the API on mount so returning members always see the
@@ -100,7 +101,7 @@ export function AutoDebitSection({
       const response = await fetch('/api/member/autodebit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dni, clubSlug, gateway }),
+        body: JSON.stringify({ dni, clubSlug, gateway, acceptance: consentAccepted }),
       });
 
       const data: CreateMemberAutoDebitResponse & { error?: string } = await response.json();
@@ -212,10 +213,23 @@ export function AutoDebitSection({
 
         {!autoDebit && memberEmail && (
           <div className="space-y-3">
+            <label className="flex items-start gap-2 text-sm text-muted-foreground cursor-pointer">
+              <input
+                type="checkbox"
+                checked={consentAccepted}
+                onChange={(e) => setConsentAccepted(e.target.checked)}
+                className="mt-0.5 size-4 shrink-0 accent-[var(--accent)]"
+                data-testid="autodebit-consent"
+              />
+              <span>
+                Acepto que se debite automáticamente mi cuota mensual de forma
+                recurrente hasta que cancele la suscripción.
+              </span>
+            </label>
             <Button
               className="w-full h-11"
               onClick={() => handleSubscribe('mercadopago')}
-              disabled={loadingGateway !== null}
+              disabled={loadingGateway !== null || !consentAccepted}
             >
               {loadingGateway === 'mercadopago' ? (
                 <Loader2 className="mr-2 size-4 animate-spin" />
@@ -227,7 +241,7 @@ export function AutoDebitSection({
             <Button
               className="w-full h-11"
               onClick={() => handleSubscribe('stripe')}
-              disabled={loadingGateway !== null}
+              disabled={loadingGateway !== null || !consentAccepted}
             >
               {loadingGateway === 'stripe' ? (
                 <Loader2 className="mr-2 size-4 animate-spin" />

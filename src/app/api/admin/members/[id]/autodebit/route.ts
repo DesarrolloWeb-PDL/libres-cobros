@@ -10,6 +10,10 @@ import type { AutoDebit } from '@prisma/client';
 
 const CreateAutoDebitSchema = z.object({
   gateway: z.enum(['mercadopago', 'stripe']),
+  // Admin confirms the member accepted the auto-debit (e.g. by phone/in person).
+  acceptance: z.boolean().refine((v) => v === true, {
+    message: 'Se requiere la aceptación explícita del socio',
+  }),
 });
 
 function getSiteUrl(): string {
@@ -22,6 +26,8 @@ function serializeAutoDebit(autoDebit: AutoDebit): {
   status: string;
   amount: number;
   nextBillingAt: string | null;
+  acceptedAt: string | null;
+  acceptanceSource: string | null;
 } {
   return {
     id: autoDebit.id,
@@ -29,6 +35,8 @@ function serializeAutoDebit(autoDebit: AutoDebit): {
     status: autoDebit.status,
     amount: autoDebit.amount,
     nextBillingAt: autoDebit.nextBillingAt?.toISOString() ?? null,
+    acceptedAt: autoDebit.acceptedAt?.toISOString() ?? null,
+    acceptanceSource: autoDebit.acceptanceSource,
   };
 }
 
@@ -93,15 +101,19 @@ export async function POST(
     const parsed = CreateAutoDebitSchema.safeParse(body);
 
     if (!parsed.success) {
+      const issues = parsed.error.issues.map((e) => `${e.path.join('.')}: ${e.message}`).join('; ');
+      const consentIssue = parsed.error.issues.some((e) => e.path[0] === 'acceptance');
       return apiError(
-        'Datos inválidos',
+        consentIssue ? 'Se requiere la aceptación explícita del socio' : 'Datos inválidos',
         400,
-        parsed.error.issues.map((e) => `${e.path.join('.')}: ${e.message}`).join('; '),
-        'VALIDATION_ERROR'
+        issues,
+        consentIssue ? 'ACCEPTANCE_REQUIRED' : 'VALIDATION_ERROR'
       );
     }
 
     const { gateway } = parsed.data;
+    const acceptedAt = new Date();
+    const acceptanceSource = 'admin';
 
     const club = await prisma.club.findUnique({ where: { id: member.clubId } });
     if (!club) {
@@ -189,6 +201,8 @@ export async function POST(
         amount,
         payerEmail: member.email,
         nextBillingAt: null,
+        acceptedAt,
+        acceptanceSource,
       });
 
       return apiSuccess({
@@ -237,6 +251,8 @@ export async function POST(
       amount,
       payerEmail: member.email,
       nextBillingAt: firstDayOfNextMonth(),
+      acceptedAt,
+      acceptanceSource,
     });
 
     return apiSuccess({
@@ -336,6 +352,8 @@ async function upsertAutoDebit(data: {
   amount: number;
   payerEmail: string;
   nextBillingAt: Date | null;
+  acceptedAt: Date;
+  acceptanceSource: string;
 }): Promise<AutoDebit> {
   return prisma.autoDebit.upsert({
     where: {
@@ -350,6 +368,8 @@ async function upsertAutoDebit(data: {
       amount: data.amount,
       payerEmail: data.payerEmail,
       nextBillingAt: data.nextBillingAt,
+      acceptedAt: data.acceptedAt,
+      acceptanceSource: data.acceptanceSource,
     },
     update: {
       gateway: data.gateway,
@@ -358,6 +378,8 @@ async function upsertAutoDebit(data: {
       amount: data.amount,
       payerEmail: data.payerEmail,
       nextBillingAt: data.nextBillingAt,
+      acceptedAt: data.acceptedAt,
+      acceptanceSource: data.acceptanceSource,
     },
   });
 }

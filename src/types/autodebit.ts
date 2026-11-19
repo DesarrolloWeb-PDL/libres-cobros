@@ -9,6 +9,10 @@ export interface AutoDebitInfo {
   status: string;
   amount: number;
   nextBillingAt: string | null;
+  /** When the member explicitly accepted the auto-debit (ISO string). */
+  acceptedAt?: string | null;
+  /** Who recorded the acceptance: 'member' (self-service) | 'admin'. */
+  acceptanceSource?: string | null;
 }
 
 export interface MemberAutoDebitResponse {

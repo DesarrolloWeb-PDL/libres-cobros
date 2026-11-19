@@ -298,6 +298,8 @@ model AutoDebit {
   amount                Float    // monthly amount locked at subscription creation
   payerEmail            String?
   nextBillingAt         DateTime?
+  acceptedAt            DateTime? // when the member explicitly accepted the auto-debit
+  acceptanceSource      String?   // 'member' (self-service) | 'admin' (on behalf)
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
   club                  Club     @relation(fields: [clubId], references: [id])
