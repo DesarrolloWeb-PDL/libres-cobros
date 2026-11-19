@@ -51,6 +51,7 @@ model Club {
   invoices        ProviderInvoice[]
   autoDebits      AutoDebit[]
   comprobantes    Comprobante[]
+  loginCodes      MemberLoginCode[]
   saasSubscriptions       SaasSubscription[]
   saasInvoices            SaasInvoice[]
   saasAutoDebits          SaasAutoDebit[]
@@ -125,6 +126,7 @@ model Member {
   smsLogs      SmsLog[]
   autoDebits   AutoDebit[]
   comprobantes Comprobante[]
+  loginCodes   MemberLoginCode[]
 
   @@unique([clubId, dni])
   @@unique([clubId, email])
@@ -286,6 +288,25 @@ model SiteConfig {
 
   @@unique([clubId, key])
   @@index([clubId])
+}
+
+// One-time login code for the member portal (OTP via WhatsApp/email).
+// The code itself is never stored: only its SHA-256 hash.
+model MemberLoginCode {
+  id           String    @id @default(cuid())
+  clubId       String
+  memberId     String
+  codeHash     String
+  channel      String    // 'whatsapp' | 'email' | 'bypass'
+  expiresAt    DateTime
+  attempts     Int       @default(0)
+  consumedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  club         Club      @relation(fields: [clubId], references: [id])
+  member       Member    @relation(fields: [memberId], references: [id])
+
+  @@index([clubId, memberId])
+  @@index([expiresAt])
 }
 
 model AutoDebit {

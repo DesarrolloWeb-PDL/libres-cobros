@@ -27,6 +27,7 @@ vi.mock('@/lib/stripe', () => ({
 }));
 
 import { POST } from '@/app/api/member/autodebit/route';
+import { issueSessionCookie } from '@/lib/member-auth';
 
 const CLUB = { id: 'c1', name: 'Club Test', slug: 'club-test' };
 const MEMBER = {
@@ -39,10 +40,16 @@ const MEMBER = {
 };
 const PLAN = { id: 'p1', clubId: 'c1', amount: 15000, isActive: true };
 
+// The member APIs now require a signed session cookie bound to club+member.
+process.env.NEXTAUTH_SECRET = 'autodebit-acceptance-test-secret';
+
 function makeRequest(body: unknown) {
   return new NextRequest('http://localhost/api/member/autodebit', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      cookie: `member_session=${issueSessionCookie(CLUB.id, MEMBER.id)}`,
+    },
     body: JSON.stringify(body),
   });
 }
