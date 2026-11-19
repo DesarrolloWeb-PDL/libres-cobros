@@ -48,6 +48,8 @@ const CONFIG_KEYS = [
   'stripe_enabled',
   'mercadopago_enabled',
   'bank_transfer_enabled',
+  'whatsapp_template_name',
+  'whatsapp_template_language',
   // Platform SaaS billing (platform-level; stored with clubId = null)
   'saas_billing_enabled',
   'saas_billing_day',
@@ -88,6 +90,8 @@ const INSTITUTION_ONLY_KEYS = [
   'stripe_enabled',
   'mercadopago_enabled',
   'bank_transfer_enabled',
+  'whatsapp_template_name',
+  'whatsapp_template_language',
 ];
 
 // Platform-scoped keys must only be written when no institution is selected.
@@ -390,6 +394,8 @@ function getConfigDescription(key: string): string {
     stripe_webhook_secret: 'Signing secret del webhook de Stripe (whsec_...)',
     whatsapp_phone_number_id: 'Phone Number ID de WhatsApp Cloud API (Meta)',
     whatsapp_access_token: 'Access Token de WhatsApp Cloud API (Meta)',
+    whatsapp_template_name: 'Nombre de la plantilla aprobada en Meta para recordatorios (vacío = texto libre)',
+    whatsapp_template_language: 'Idioma de la plantilla en Meta (ej: es_AR)',
     resend_api_key: 'API Key de Resend para envío de emails',
     resend_from_email: 'Email remitente (ej: Cuotas <cuotas@tudominio.com>)',
     arca_enabled: 'Emitir comprobantes electrónicos ARCA (Recibo C) ante cada pago confirmado',

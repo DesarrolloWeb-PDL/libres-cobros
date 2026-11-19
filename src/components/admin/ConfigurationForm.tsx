@@ -48,6 +48,8 @@ const siteConfigLabels: Record<string, string> = {
   stripe_webhook_secret: 'Webhook signing secret',
   whatsapp_phone_number_id: 'Phone Number ID',
   whatsapp_access_token: 'Access Token',
+  whatsapp_template_name: 'Plantilla de recordatorios',
+  whatsapp_template_language: 'Idioma de la plantilla',
   resend_api_key: 'API Key',
   resend_from_email: 'Email remitente',
   arca_enabled: 'Emitir comprobantes electrónicos (ARCA)',
@@ -73,6 +75,8 @@ const siteConfigPlaceholders: Record<string, string> = {
   stripe_webhook_secret: 'Ej: whsec_...',
   whatsapp_phone_number_id: 'Ej: 1234567890',
   whatsapp_access_token: 'Ej: EAAG...',
+  whatsapp_template_name: 'Ej: recordatorio_pago (vacío = texto libre)',
+  whatsapp_template_language: 'Ej: es_AR',
   resend_api_key: 'Ej: re_xxxxxxxx',
   resend_from_email: 'Ej: Cuotas <cuotas@tudominio.com>',
   arca_cuit: 'Ej: 30712345678',
@@ -534,6 +538,16 @@ export function ConfigurationForm({
                         renderTextField(key)
                       )}
                     </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      {['whatsapp_template_name', 'whatsapp_template_language'].map((key) =>
+                        renderTextField(key)
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Fuera de la ventana de 24h WhatsApp solo acepta plantillas aprobadas en Meta.
+                      Creá la plantilla con 4 variables (nombre, monto, vencimiento, link de pago)
+                      y poné su nombre acá; si lo dejás vacío se envía texto libre.
+                    </p>
                   </div>
 
                   <div className="space-y-4">

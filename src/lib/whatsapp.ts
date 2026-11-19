@@ -11,6 +11,15 @@ export interface WhatsAppBulkResult {
 
 const WHATSAPP_API_BASE = 'https://graph.facebook.com/v18.0';
 
+/** Plantilla aprobada en Meta (WhatsApp Cloud API). */
+export interface WhatsAppTemplate {
+  name: string;
+  /** Código de idioma de la plantilla en Meta. Por defecto es_AR. */
+  language?: string;
+  /** Variables {{1}}..{{N}} de la plantilla, en orden. */
+  parameters: string[];
+}
+
 async function getSiteConfig(
   tx: Prisma.TransactionClient | typeof prisma,
   clubId: string,
@@ -52,7 +61,8 @@ export async function sendWhatsAppMessage(
   phoneNumberId: string,
   accessToken: string,
   toNumber: string,
-  body: string
+  body: string,
+  template?: WhatsAppTemplate
 ): Promise<{ externalId: string | null }> {
   // Validar credenciales antes de enviar
   if (!phoneNumberId || !accessToken) {
@@ -63,6 +73,35 @@ export async function sendWhatsAppMessage(
 
   const normalizedTo = normalizePhoneForWhatsApp(toNumber);
 
+  // Fuera de la ventana de 24h Meta solo acepta plantillas aprobadas, así que
+  // cuando hay plantilla se envía type: 'template' y el texto libre queda como
+  // fallback para los casos en que no hay plantilla configurada.
+  const payload = template
+    ? {
+        messaging_product: 'whatsapp',
+        to: normalizedTo,
+        type: 'template',
+        template: {
+          name: template.name,
+          language: { code: template.language ?? 'es_AR' },
+          components: [
+            {
+              type: 'body',
+              parameters: template.parameters.map((text) => ({ type: 'text', text })),
+            },
+          ],
+        },
+      }
+    : {
+        messaging_product: 'whatsapp',
+        to: normalizedTo,
+        type: 'text',
+        text: {
+          preview_url: true,
+          body: body,
+        },
+      };
+
   const response = await fetch(
     `${WHATSAPP_API_BASE}/${phoneNumberId}/messages`,
     {
@@ -71,15 +110,7 @@ export async function sendWhatsAppMessage(
         'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        messaging_product: 'whatsapp',
-        to: normalizedTo,
-        type: 'text',
-        text: {
-          preview_url: true,
-          body: body,
-        },
-      }),
+      body: JSON.stringify(payload),
     }
   );
 
@@ -157,10 +188,12 @@ export async function sendWhatsAppReminder(memberId: string): Promise<WhatsAppBu
     }
 
     // Obtener configuración de WhatsApp
-    const [phoneNumberId, accessToken, nextPublicUrl] = await Promise.all([
+    const [phoneNumberId, accessToken, nextPublicUrl, templateName, templateLanguage] = await Promise.all([
       getSiteConfig(prisma, clubId, 'whatsapp_phone_number_id'),
       getSiteConfig(prisma, clubId, 'whatsapp_access_token'),
       getSiteConfig(prisma, clubId, 'next_public_url', process.env.NEXT_PUBLIC_URL || ''),
+      getSiteConfig(prisma, clubId, 'whatsapp_template_name'),
+      getSiteConfig(prisma, clubId, 'whatsapp_template_language', 'es_AR'),
     ]);
 
     if (!phoneNumberId || !accessToken) {
@@ -180,11 +213,22 @@ export async function sendWhatsAppReminder(memberId: string): Promise<WhatsAppBu
       `Paga acá: ${paymentUrl}`,
     ].join('\n');
 
+    // Si la institución tiene plantilla aprobada en Meta, se envía como plantilla
+    // (única forma válida fuera de la ventana de 24h). Si no, texto libre.
+    const template: WhatsAppTemplate | undefined = templateName
+      ? {
+          name: templateName,
+          language: templateLanguage || 'es_AR',
+          parameters: [member.firstName, amount, dueDate, paymentUrl],
+        }
+      : undefined;
+
     const { externalId } = await sendWhatsAppMessage(
       phoneNumberId,
       accessToken,
       member.phone,
-      messageBody
+      messageBody,
+      template
     );
 
     // Log exitoso
