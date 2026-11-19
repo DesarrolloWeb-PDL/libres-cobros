@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
 import { getEffectiveClub } from '@/lib/access';
 import { getClubSiteConfigValue } from '@/lib/site-config';
+import { requireAnySession, requireSessionFor } from '@/lib/member-auth';
 import { createMpPreapproval, cancelMpPreapproval } from '@/lib/mercadopago';
 import { createStripeSubscription, cancelStripeSubscription } from '@/lib/stripe';
 import { z } from 'zod';
@@ -62,6 +63,12 @@ function firstDayOfNextMonth(): Date {
 
 export async function GET(request: NextRequest) {
   try {
+    // Phase 1 (before any DNI lookup): prevents DNI enumeration via 401-vs-404.
+    const sessionGate = requireAnySession(request);
+    if (!sessionGate.ok) {
+      return apiError(sessionGate.message, sessionGate.status, undefined, sessionGate.code);
+    }
+
     const { searchParams } = request.nextUrl;
 
     const parsed = MemberDniQuerySchema.safeParse({
@@ -93,6 +100,11 @@ export async function GET(request: NextRequest) {
       return apiError('Socio no encontrado', 404, 'DNI inválido', 'MEMBER_NOT_FOUND');
     }
 
+    const guard = requireSessionFor(request, club.id, member.id);
+    if (!guard.ok) {
+      return apiError(guard.message, guard.status, undefined, guard.code);
+    }
+
     const autoDebit = await prisma.autoDebit.findUnique({
       where: { clubId_memberId: { clubId: club.id, memberId: member.id } },
     });
@@ -107,6 +119,12 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Phase 1 (before any DNI lookup): prevents DNI enumeration via 401-vs-404.
+    const sessionGate = requireAnySession(request);
+    if (!sessionGate.ok) {
+      return apiError(sessionGate.message, sessionGate.status, undefined, sessionGate.code);
+    }
+
     const body = await request.json();
     const parsed = CreateAutoDebitSchema.safeParse(body);
 
@@ -137,6 +155,11 @@ export async function POST(request: NextRequest) {
 
     if (!member) {
       return apiError('Socio no encontrado', 404, 'DNI inválido', 'MEMBER_NOT_FOUND');
+    }
+
+    const guard = requireSessionFor(request, club.id, member.id);
+    if (!guard.ok) {
+      return apiError(guard.message, guard.status, undefined, guard.code);
     }
 
     const existing = await prisma.autoDebit.findUnique({
@@ -285,6 +308,12 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    // Phase 1 (before any DNI lookup): prevents DNI enumeration via 401-vs-404.
+    const sessionGate = requireAnySession(request);
+    if (!sessionGate.ok) {
+      return apiError(sessionGate.message, sessionGate.status, undefined, sessionGate.code);
+    }
+
     const body = await request.json();
     const parsed = CancelAutoDebitSchema.safeParse(body);
 
@@ -310,6 +339,11 @@ export async function DELETE(request: NextRequest) {
 
     if (!member) {
       return apiError('Socio no encontrado', 404, 'DNI inválido', 'MEMBER_NOT_FOUND');
+    }
+
+    const guard = requireSessionFor(request, club.id, member.id);
+    if (!guard.ok) {
+      return apiError(guard.message, guard.status, undefined, guard.code);
     }
 
     const autoDebit = await prisma.autoDebit.findUnique({

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { prisma } from '@/lib/db';
+import { requirePortalSession, assertMemberPageAccess } from '@/lib/member-session-server';
 import { MemberNav } from '@/components/member/MemberNav';
 import { InstitutionThemeInjector } from '@/components/admin/InstitutionThemeInjector';
 import { CommunicationsInbox, type InboxMessage } from '@/components/member/CommunicationsInbox';
@@ -47,10 +48,17 @@ export default async function MemberInboxPage({ params, searchParams }: MemberIn
   const smsMessages: { id: string; message: string; sentAt: Date; status: string; type: string }[] = [];
 
   if (dni) {
+    // Phase 1: valid session required before any lookup (anti-enumeration).
+    const session = await requirePortalSession(club.id, slug);
+
     const foundMember = await prisma.member.findUnique({
       where: { clubId_dni: { clubId: club.id, dni } },
       select: { id: true, firstName: true, lastName: true, dni: true },
     });
+
+    // Phase 2: the session must belong to the displayed member.
+    assertMemberPageAccess(session, foundMember, slug);
+
     if (foundMember) {
       member = foundMember;
       const logs = await prisma.smsLog.findMany({

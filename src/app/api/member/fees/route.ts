@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
 import { getEffectiveClub } from '@/lib/access';
+import { requireAnySession, requireSessionFor } from '@/lib/member-auth';
 import { z } from 'zod';
 import type { MemberFeeItem, MemberFeesResponse } from '@/types/fee';
 
@@ -33,6 +34,12 @@ function serializeFee(fee: {
 
 export async function GET(request: NextRequest) {
   try {
+    // Phase 1 (before any DNI lookup): prevents DNI enumeration via 401-vs-404.
+    const sessionGate = requireAnySession(request);
+    if (!sessionGate.ok) {
+      return apiError(sessionGate.message, sessionGate.status, undefined, sessionGate.code);
+    }
+
     const { searchParams } = request.nextUrl;
 
     const parsed = MemberDniQuerySchema.safeParse({
@@ -62,6 +69,11 @@ export async function GET(request: NextRequest) {
 
     if (!member) {
       return apiError('Socio no encontrado', 404, 'DNI inválido', 'MEMBER_NOT_FOUND');
+    }
+
+    const guard = requireSessionFor(request, club.id, member.id);
+    if (!guard.ok) {
+      return apiError(guard.message, guard.status, undefined, guard.code);
     }
 
     const fees = await prisma.fee.findMany({

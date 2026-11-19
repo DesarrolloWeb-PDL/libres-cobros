@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Receipt, User, Wallet, History, CreditCard } from 'lucide-react';
 import { prisma } from '@/lib/db';
+import { requirePortalSession, assertMemberPageAccess } from '@/lib/member-session-server';
 import { Button } from '@/components/ui/button';
 import { MemberNav } from '@/components/member/MemberNav';
 import { InstitutionThemeInjector } from '@/components/admin/InstitutionThemeInjector';
@@ -94,10 +95,16 @@ export default async function MemberAccountPage({ params, searchParams }: Member
   }> = [];
 
   if (dni) {
+    // Phase 1: valid session required before any lookup (anti-enumeration).
+    const session = await requirePortalSession(club.id, slug);
+
     const foundMember = await prisma.member.findUnique({
       where: { clubId_dni: { clubId: club.id, dni } },
       select: { id: true, firstName: true, lastName: true, dni: true },
     });
+
+    // Phase 2: the session must belong to the displayed member.
+    assertMemberPageAccess(session, foundMember, slug);
 
     if (foundMember) {
       member = foundMember;
