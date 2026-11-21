@@ -25,6 +25,20 @@ A institution fee management system built for Argentine institutions, clubs, org
 - **Excel export** for members, debts, payments, and commissions
 - **Vercel Cron Jobs** for automatic fee generation and overdue marking
 
+## User manuals
+
+**[Interactive manual](https://libres-cobros.vercel.app/manual/)** — a single
+self-contained HTML file with an audience selector (institution / member),
+sidebar table of contents, full-text search, and dark mode. Sources live in
+[`docs/`](./docs).
+
+PDF and Word versions per audience are in [`manual/`](./manual):
+
+| Audience | PDF | Word |
+| --- | --- | --- |
+| Institution (admin) | [manual-institucional-libres-cobros.pdf](./manual/manual-institucional-libres-cobros.pdf) | [Manual-Institucion-Libres-Cobros.docx](./manual/Manual-Institucion-Libres-Cobros.docx) |
+| Member | [manual-socio-libres-cobros.pdf](./manual/manual-socio-libres-cobros.pdf) | [Manual-Socio-Libres-Cobros.docx](./manual/Manual-Socio-Libres-Cobros.docx) |
+
 ## Prerequisites
 
 - Node.js 20+
