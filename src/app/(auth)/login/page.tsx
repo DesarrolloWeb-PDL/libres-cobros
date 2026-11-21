@@ -135,6 +135,35 @@ export default function AdminLoginPage() {
           </form>
         </CardContent>
       </Card>
+
+      {/* Exit paths for everyone else who lands here: members, prospects and
+          locked-out admins (there is no self-service password recovery). */}
+      <div className="space-y-3 text-center">
+        <Link
+          href="/pagos"
+          className="inline-flex items-center justify-center gap-1.5 text-sm font-medium text-foreground transition-colors hover:text-accent"
+        >
+          ¿Sos socio? Entrá al Portal de socios
+          <span aria-hidden="true">→</span>
+        </Link>
+        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+          <Link
+            href="/registro"
+            className="transition-colors underline-offset-4 hover:text-foreground hover:underline"
+          >
+            ¿Todavía no tenés cuenta? Registrar mi club
+          </Link>
+          <span aria-hidden="true" className="text-muted-foreground/50">
+            ·
+          </span>
+          <Link
+            href="/soporte"
+            className="transition-colors underline-offset-4 hover:text-foreground hover:underline"
+          >
+            ¿Problemas para entrar? Soporte
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }
