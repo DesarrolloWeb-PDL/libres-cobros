@@ -31,7 +31,7 @@ export default async function ClubPaymentConfirmationPage({ params, searchParams
 
   if (!paymentId) {
     return (
-      <div className="flex min-h-full flex-col">
+      <div className="flex min-h-screen flex-col">
         <main className="flex-1 px-4 py-8">
           <PaymentConfirmation
             status="failure"
@@ -63,7 +63,7 @@ export default async function ClubPaymentConfirmationPage({ params, searchParams
   }
 
   return (
-    <div className="flex min-h-full flex-col">
+    <div className="flex min-h-screen flex-col">
       <main className="flex-1 px-4 py-8">
         <PaymentConfirmation
           status={status}

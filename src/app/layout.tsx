@@ -63,7 +63,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body className={`${inter.variable} ${jakarta.variable} ${jetbrains.variable} min-h-full flex flex-col font-sans antialiased`}>
+      <body className={`${inter.variable} ${jakarta.variable} ${jetbrains.variable} min-h-screen flex flex-col font-sans antialiased`}>
         <Providers>{children}</Providers>
         <SuperAdminThemeInjector />
         <ThemeToggle />

@@ -144,7 +144,7 @@ export default async function MemberAccountPage({ params, searchParams }: Member
 
   return (
     <div
-      className="flex min-h-full flex-col"
+      className="flex min-h-screen flex-col"
       style={{
         '--club-primary': club.primaryColor,
         '--club-secondary': club.secondaryColor,

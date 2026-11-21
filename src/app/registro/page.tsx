@@ -73,7 +73,7 @@ const benefits = [
 
 export default function RegisterPage() {
   return (
-    <div className="flex min-h-full flex-col">
+    <div className="flex min-h-screen flex-col">
       {/* Hero */}
       <header className="relative flex flex-col items-center justify-center px-6 pt-16 pb-14 text-center">
         <Link href="/">

@@ -39,7 +39,7 @@ export default async function ClubPaymentPage({ params, searchParams }: SlugPage
 
   return (
     <div
-      className="flex min-h-full flex-col"
+      className="flex min-h-screen flex-col"
       style={{
         '--club-primary': club.primaryColor,
         '--club-secondary': club.secondaryColor,
