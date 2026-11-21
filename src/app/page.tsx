@@ -296,7 +296,7 @@ export default async function LandingPage() {
               </p>
               <h2 className="text-3xl sm:text-4xl font-heading font-extrabold tracking-tight">El precio que ves es el precio que pagás</h2>
             </div>
-            <div className="grid gap-6 sm:grid-cols-3">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {landingPlans.map((plan) => (
                 <div
                   key={plan.id}

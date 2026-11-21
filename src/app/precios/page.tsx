@@ -86,7 +86,7 @@ export default async function PricingPage() {
         {/* Plans */}
         <section className="py-12 px-6 border-t border-border">
           <div className="max-w-5xl mx-auto">
-            <div className="grid gap-6 sm:grid-cols-3">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {landingPlans.map((plan) => (
                 <div
                   key={plan.id}
