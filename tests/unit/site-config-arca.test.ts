@@ -186,6 +186,85 @@ describe('GET /api/admin/site-config ARCA masking', () => {
   });
 });
 
+describe('GET /api/admin/site-config — scope-appropriate keys', () => {
+  beforeEach(() => {
+    prismaMock.$reset();
+    vi.clearAllMocks();
+    vi.stubEnv('ARCA_STORAGE_SECRET', 'test-secret');
+    // Empty DB: only the "ensure" creations matter for these assertions.
+    prismaMock.siteConfig.findMany.mockResolvedValue([]);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  function queriedKeys(): string[] {
+    const call = prismaMock.siteConfig.findMany.mock.calls.at(-1);
+    return call?.[0]?.where?.key?.in ?? [];
+  }
+
+  function createdKeys(): string[] {
+    return prismaMock.siteConfig.create.mock.calls.map(
+      (c) => (c[0] as { data: { key: string } }).data.key
+    );
+  }
+
+  it('platform scope only queries and ensures platform keys (no institution keys at clubId=null)', async () => {
+    vi.mocked(access.requireInstitution).mockResolvedValue({
+      role: 'SUPER_ADMIN',
+      institutionId: null,
+    });
+
+    await GET(new NextRequest('http://localhost/api/admin/site-config'));
+
+    const keys = queriedKeys();
+    expect(keys.length).toBeGreaterThan(0);
+    expect(keys.some((k) => k.startsWith('saas_'))).toBe(true);
+    // Regression: institution-scoped keys must never be ensured at platform scope.
+    expect(keys).not.toContain('portal_otp_test_code');
+    expect(keys).not.toContain('bank_alias');
+    expect(keys).not.toContain('whatsapp_access_token');
+
+    const created = createdKeys();
+    expect(created).not.toContain('portal_otp_test_code');
+    expect(created).not.toContain('bank_alias');
+  });
+
+  it('institution scope only queries and ensures institution keys (no saas_* for the club)', async () => {
+    vi.mocked(access.requireInstitution).mockResolvedValue({
+      role: 'ADMIN',
+      institutionId: 'club-a',
+    });
+
+    await GET(new NextRequest('http://localhost/api/admin/site-config'));
+
+    const keys = queriedKeys();
+    expect(keys.length).toBeGreaterThan(0);
+    expect(keys).toContain('portal_otp_test_code');
+    // Regression: platform keys must never be ensured per club — they are what
+    // previously made every institution save fail with "Clave fuera de alcance".
+    expect(keys.some((k) => k.startsWith('saas_'))).toBe(false);
+
+    const created = createdKeys();
+    expect(created).not.toContain('saas_billing_enabled');
+    expect(created).not.toContain('saas_whatsapp_access_token');
+  });
+
+  it('existing junk rows are not returned: institution view excludes club saas_* rows', async () => {
+    vi.mocked(access.requireInstitution).mockResolvedValue({
+      role: 'ADMIN',
+      institutionId: 'club-a',
+    });
+
+    // Simulate a DB that already contains the historical junk: the query itself
+    // must not even ask for platform keys.
+    await GET(new NextRequest('http://localhost/api/admin/site-config'));
+
+    expect(queriedKeys()).not.toContain('saas_billing_enabled');
+  });
+});
+
 describe('PUT /api/admin/site-config ARCA scoping', () => {
   beforeEach(() => {
     prismaMock.$reset();

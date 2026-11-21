@@ -119,6 +119,14 @@ const PLATFORM_ONLY_KEYS = [
 const PRIVATE_KEY_CONFIG_KEYS = new Set(['arca_key', 'saas_arca_key']);
 const CERT_CONFIG_KEYS = new Set(['arca_cert', 'saas_arca_cert']);
 
+// The GET endpoint auto-ensures missing keys, but only within its own scope:
+// platform scope (clubId=null) may only create PLATFORM_ONLY keys, and
+// institution scope only the rest. Ensuring everything in both scopes created
+// cross-scope junk rows that made every subsequent save fail the PUT scope
+// check with "Clave fuera de alcance".
+const PLATFORM_SCOPE_KEYS = CONFIG_KEYS.filter((key) => PLATFORM_ONLY_KEYS.includes(key));
+const INSTITUTION_SCOPE_KEYS = CONFIG_KEYS.filter((key) => !PLATFORM_ONLY_KEYS.includes(key));
+
 function maskCertValue(value: string): string {
   const trimmed = value.trim();
   if (!trimmed) return '';
@@ -175,13 +183,13 @@ export async function GET(request: NextRequest) {
     // Stored with clubId = null; theme lives on /api/admin/theme instead.
     if (!ctx.institutionId) {
       const platformConfigs = await prisma.siteConfig.findMany({
-        where: { clubId: null, key: { in: CONFIG_KEYS } },
+        where: { clubId: null, key: { in: PLATFORM_SCOPE_KEYS } },
         orderBy: { key: 'asc' },
       });
 
       const platformMap = new Map(platformConfigs.map((c) => [c.key, c]));
       const ensuredPlatform = await prisma.$transaction(
-        CONFIG_KEYS.filter((key) => !platformMap.has(key)).map((key) =>
+        PLATFORM_SCOPE_KEYS.filter((key) => !platformMap.has(key)).map((key) =>
           prisma.siteConfig.create({
             data: { clubId: null, key, value: '' },
           })
@@ -196,14 +204,14 @@ export async function GET(request: NextRequest) {
     }
 
     const configs = await prisma.siteConfig.findMany({
-      where: { clubId: ctx.institutionId, key: { in: CONFIG_KEYS } },
+      where: { clubId: ctx.institutionId, key: { in: INSTITUTION_SCOPE_KEYS } },
       orderBy: { key: 'asc' },
     });
 
     const configMap = new Map(configs.map((c) => [c.key, c]));
 
     const ensuredConfigs = await prisma.$transaction(
-      CONFIG_KEYS.filter((key) => !configMap.has(key)).map((key) =>
+      INSTITUTION_SCOPE_KEYS.filter((key) => !configMap.has(key)).map((key) =>
         prisma.siteConfig.create({
           data: {
             clubId: ctx.institutionId!,
