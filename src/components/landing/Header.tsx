@@ -55,6 +55,12 @@ export function Header() {
             </Link>
           ))}
           <Link
+            href="/pagos"
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          >
+            Portal de socios
+          </Link>
+          <Link
             href="/registro"
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
@@ -90,6 +96,13 @@ export function Header() {
                 {item.label}
               </Link>
             ))}
+            <Link
+              href="/pagos"
+              onClick={closeMobile}
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-border px-4 py-3 text-sm font-medium text-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            >
+              Portal de socios
+            </Link>
             <Link
               href="/registro"
               onClick={closeMobile}
