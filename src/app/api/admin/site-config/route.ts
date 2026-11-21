@@ -318,7 +318,9 @@ export async function PUT(request: NextRequest) {
     }
 
     const commissionRate = configs.find((c) => c.key === 'commission_rate');
-    if (commissionRate) {
+    // Empty means "unset": every club auto-ensures this row with '' and the
+    // form never edits it, so only a present value must be validated.
+    if (commissionRate && commissionRate.value.trim() !== '') {
       const rate = parseFloat(commissionRate.value);
       if (Number.isNaN(rate) || rate < 0 || rate > 100) {
         return apiError(

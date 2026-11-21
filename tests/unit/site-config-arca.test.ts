@@ -265,6 +265,71 @@ describe('GET /api/admin/site-config — scope-appropriate keys', () => {
   });
 });
 
+describe('PUT /api/admin/site-config — commission_rate validation', () => {
+  beforeEach(() => {
+    prismaMock.$reset();
+    vi.clearAllMocks();
+    vi.stubEnv('ARCA_STORAGE_SECRET', 'test-secret');
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  function putRequest(body: unknown) {
+    vi.mocked(access.requireInstitution).mockResolvedValue({
+      role: 'ADMIN',
+      institutionId: 'club-a',
+    });
+    return new NextRequest('http://localhost/api/admin/site-config', {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    });
+  }
+
+  it('accepts an empty commission_rate (row exists but is unset)', async () => {
+    // Regression: every club ships with commission_rate='' (auto-ensured), the
+    // form never edits it, and validating '' as NaN blocked EVERY institution
+    // save with "Tasa de comisión inválida".
+    const response = await PUT(
+      putRequest({
+        configs: [
+          { key: 'commission_rate', value: '' },
+          { key: 'bank_alias', value: 'mi-alias' },
+        ],
+      })
+    );
+
+    expect(response.status).toBe(200);
+  });
+
+  it('still rejects a non-numeric commission_rate', async () => {
+    const response = await PUT(
+      putRequest({ configs: [{ key: 'commission_rate', value: 'abc' }] })
+    );
+
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.error).toContain('Tasa de comisión');
+  });
+
+  it('still rejects a commission_rate out of the 0-100 range', async () => {
+    const response = await PUT(
+      putRequest({ configs: [{ key: 'commission_rate', value: '150' }] })
+    );
+
+    expect(response.status).toBe(400);
+  });
+
+  it('accepts a valid commission_rate', async () => {
+    const response = await PUT(
+      putRequest({ configs: [{ key: 'commission_rate', value: '12.5' }] })
+    );
+
+    expect(response.status).toBe(200);
+  });
+});
+
 describe('PUT /api/admin/site-config ARCA scoping', () => {
   beforeEach(() => {
     prismaMock.$reset();
