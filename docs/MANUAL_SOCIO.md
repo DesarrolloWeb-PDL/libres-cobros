@@ -1,3 +1,11 @@
+<div style="text-align: center; padding-top: 200px; page-break-after: always;">
+<img src="../manual/img/logo-libres-cobros.png" width="150" alt="Logo de Libres Cobros">
+<h1 style="text-align: center;">Manual del Socio</h1>
+<p style="text-align: center; font-size: 13pt;"><strong>Libres Cobros</strong> — Sistema de cobros para clubes e instituciones</p>
+<p style="text-align: center; color: #666666; margin-top: 40px;">Guía de uso del portal de socios<br>Versión noviembre 2026</p>
+<p style="text-align: center; color: #999999; font-size: 10pt;">desarrolloweb-pdl.dev</p>
+</div>
+
 # Manual del Socio — Libres Cobros
 
 Guía para usar el portal de tu club: ver tus cuotas, pagarlas y gestionar tu
@@ -32,6 +40,20 @@ por **Ayuda** (soporte) o preguntale a tu club.
 > **Tip:** si entraste desde el link de un recordatorio de tu club, tu DNI ya
 > aparece cargado — solo tenés que tocar **Buscar**.
 
+<img src="../manual/img/socio-01-selector.png" width="600" alt="Selector de institución del portal">
+
+*Paso 1 — Elegí tu institución.*
+
+<img src="../manual/img/socio-02-dni.png" width="600" alt="Formulario de ingreso con DNI">
+
+*Paso 2 — Ingresá tu DNI y tocá **Buscar**.*
+
+<img src="../manual/img/socio-06-codigo-otp.png" width="600" alt="Pantalla de verificación con código">
+
+*Paso 3 — Ingresá el código que recibiste y tocá **Verificar**. (Captura con el
+modo de prueba de una institución; con WhatsApp activo el mensaje dice
+"Si el DNI corresponde a un socio, recibirás un código".)*
+
 ---
 
 ## 2. Qué ves en tu panel
@@ -44,6 +66,10 @@ por **Ayuda** (soporte) o preguntale a tu club.
 | **Ver historial de pagos** | Todos tus pagos con fecha, medio y estado |
 | **Mensajes** | Avisos que manda tu club (recordatorios, novedades) |
 | **Ayuda** | Soporte del sistema |
+
+<img src="../manual/img/socio-03-panel-alpha.png" width="600" alt="Panel principal del socio con sus cuotas">
+
+*Tu panel: cada cuota con su estado y, si está pendiente, el botón para pagarla.*
 
 La barra de arriba siempre te deja moverte entre pantallas; el logo te vuelve
 al inicio de tu portal.
@@ -60,6 +86,10 @@ al inicio de tu portal.
      transferir, tu club registra el pago (o seguí las instrucciones que aparezcan).
 3. Cuando el pago se confirma, ves la pantalla de confirmación con el botón
    **"Descargar comprobante"**.
+
+<img src="../manual/img/socio-04-pagar.png" width="600" alt="Cuota pendiente con el botón Pagar ahora">
+
+*En tu cuota pendiente, tocá **"Pagar ahora"**.*
 
 > Los medios que ves dependen de lo que tu club tenga configurado: si no ves
 > Mercado Pago, es porque tu club no lo activó — preguntale a administración.
@@ -100,6 +130,10 @@ pedile a tu club que lo agregue).
 
 También podés **cancelar** cuando quieras desde el mismo botón.
 
+<img src="../manual/img/socio-09-debito.png" width="600" alt="Sección de débito automático en el panel">
+
+*La sección **Débito automático** aparece al final de tu panel.*
+
 ---
 
 ## 6. Estado de cuenta e historial
@@ -109,6 +143,14 @@ También podés **cancelar** cuando quieras desde el mismo botón.
 - **"Ver historial de pagos"**: cada pago con fecha, medio (Mercado Pago, Stripe,
   transferencia) y estado — lo que necesitás para revisar o reclamar.
 
+<img src="../manual/img/socio-05-cuenta.png" width="600" alt="Estado de cuenta del socio">
+
+*Estado de cuenta: saldo actual y movimientos.*
+
+<img src="../manual/img/socio-08-historial.png" width="600" alt="Historial de pagos con comprobante">
+
+*Historial: cada pago con su medio, fecha y **"Descargar comprobante"**.*
+
 ---
 
 ## 7. Mensajes de tu club
@@ -116,6 +158,10 @@ También podés **cancelar** cuando quieras desde el mismo botón.
 En **Mensajes** llegan los avisos que manda tu club: recordatorios de vencimiento
 y novedades. Si tu club envía por WhatsApp, también los ves en tu WhatsApp —
 esta pantalla es tu respaldo ordenado.
+
+<img src="../manual/img/socio-10-mensajes.png" width="600" alt="Bandeja de entrada de mensajes del club">
+
+*Bandeja de entrada: los mensajes de tu club, con fecha y estado.*
 
 ---
 

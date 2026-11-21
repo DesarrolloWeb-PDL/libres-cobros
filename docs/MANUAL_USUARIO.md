@@ -1,3 +1,11 @@
+<div style="text-align: center; padding-top: 200px; page-break-after: always;">
+<img src="../manual/img/logo-libres-cobros.png" width="150" alt="Logo de Libres Cobros">
+<h1 style="text-align: center;">Manual de la Institución</h1>
+<p style="text-align: center; font-size: 13pt;"><strong>Libres Cobros</strong> — Sistema de cobros para clubes e instituciones</p>
+<p style="text-align: center; color: #666666; margin-top: 40px;">Guía de uso del panel de administración<br>Versión noviembre 2026</p>
+<p style="text-align: center; color: #999999; font-size: 10pt;">desarrolloweb-pdl.dev</p>
+</div>
+
 # Manual de Usuario — Libres Cobros
 
 Guía completa para administrar tu institución en la plataforma.
@@ -37,6 +45,14 @@ El alta ocurre en 4 pasos:
 En el **Panel** vas a ver un **checklist de onboarding** con 5 pasos que te marca
 qué falta: datos del club → socios → medios de pago → primeras cuotas → primer mensaje.
 
+<img src="../manual/img/admin-01-login.png" width="600" alt="Pantalla de ingreso al panel de administración">
+
+*Ingresá con tu email y contraseña desde la pantalla de acceso.*
+
+<img src="../manual/img/admin-02-panel.png" width="600" alt="Panel de administración con checklist de onboarding">
+
+*Primer panel: el checklist te dice qué falta configurar.*
+
 ---
 
 ## 2. Tu institución: datos y apariencia
@@ -55,6 +71,10 @@ Se aplica al portal de socios y a los mensajes.
 ## 3. Socios
 
 Panel → **Socios**.
+
+<img src="../manual/img/admin-03-socios.png" width="600" alt="Listado de socios en el panel">
+
+*Listado de socios: cada uno con su estado y la cuota que le corresponde.*
 
 ### Cargar un socio
 1. **Socios → Nuevo socio**.
@@ -100,6 +120,10 @@ Esto también lo hace **solo, todos los días 1 del mes** (ver
 [sección 11](#11-automatismos-que-corren-solos)) — la generación manual es para
 adelantarte o cubrir un mes que faltó.
 
+<img src="../manual/img/admin-04-cuotas.png" width="600" alt="Sección de cuotas con el botón Generar cuotas">
+
+*Panel → Cuotas: revisá las cuotas del mes y generá las que falten.*
+
 ### Estados de una cuota
 - **Pendiente** — todavía no venció.
 - **Vencida** — pasó la fecha y no se pagó (la marca el sistema a diario).
@@ -112,6 +136,10 @@ adelantarte o cubrir un mes que faltó.
 ### Registrar un pago en efectivo / transferencia
 Panel → **Pagos** → **Registrar pago**: elegí socio, monto y método.
 El sistema descuenta la cuota pendiente automáticamente.
+
+<img src="../manual/img/admin-05-pagos.png" width="600" alt="Sección de pagos del panel">
+
+*Panel → Pagos: registrá cobros en efectivo o transferencia y revisá lo cobrado.*
 
 ### Lo que ve el socio (portal de pagos)
 Cada institución tiene una URL propia: `/pagos/<slug>`.
@@ -147,7 +175,11 @@ El socio lo descarga desde su ticket.
 
 La cuota se debita sola todos los meses. Hay dos formas de activarlo:
 
-### La la activa el socio (recomendado)
+<img src="../manual/img/admin-06-debito.png" width="600" alt="Panel de débito automático con suscripciones y estados">
+
+*Panel → Débito automático: suscripciones, estados y reintentos.*
+
+### La activa el socio (recomendado)
 1. El socio entra a su portal con su DNI.
 2. Sección **Débito automático** → marca el **checkbox de aceptación**
    (obligatorio: sin él los botones están deshabilitados).
@@ -180,6 +212,10 @@ La cuota se debita sola todos los meses. Hay dos formas de activarlo:
 ## 7. Mensajes (WhatsApp y email)
 
 Panel → **Mensajes**.
+
+<img src="../manual/img/admin-07-mensajes.png" width="600" alt="Sección de mensajes con campaña y bandeja de entrada">
+
+*Panel → Mensajes: creá campañas y mirá las respuestas de los socios.*
 
 ### Enviar una campaña
 1. **Segmento**: socios al día, con deuda o en mora (o todos).
@@ -225,6 +261,10 @@ Panel → **Reportes**:
 
 Todos se pueden **exportar**.
 
+<img src="../manual/img/admin-08-reportes.png" width="600" alt="Sección de reportes del panel">
+
+*Panel → Reportes: deudas, pagos, morosidad y más — todos exportables.*
+
 ---
 
 ## 10. Configuración completa paso a paso
@@ -241,6 +281,10 @@ El orden importa — cada paso habilita el siguiente:
 
 **Detalle paso a paso con links y campos exactos:**
 → **[`CHECKLIST_CONFIGURACION.md`](./CHECKLIST_CONFIGURACION.md)**
+
+<img src="../manual/img/admin-09-config.png" width="600" alt="Configuración con las pestañas de datos, medios de pago y mensajería">
+
+*Panel → Configuración: cada pestaña habilita una parte del sistema.*
 
 ---
 
