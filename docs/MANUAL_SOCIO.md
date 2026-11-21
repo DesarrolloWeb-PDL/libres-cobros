@@ -89,7 +89,7 @@ al inicio de tu portal.
 
 <img src="../manual/img/socio-04-pagar.png" width="600" alt="Cuota pendiente con el botón Pagar ahora">
 
-*En tu cuota pendiente, tocá **"Pagar ahora"**.*
+*En tu cuota pendiente, tocá el botón **Pagar ahora**.*
 
 > Los medios que ves dependen de lo que tu club tenga configurado: si no ves
 > Mercado Pago, es porque tu club no lo activó — preguntale a administración.
@@ -149,7 +149,7 @@ También podés **cancelar** cuando quieras desde el mismo botón.
 
 <img src="../manual/img/socio-08-historial.png" width="600" alt="Historial de pagos con comprobante">
 
-*Historial: cada pago con su medio, fecha y **"Descargar comprobante"**.*
+*Historial: cada pago con fecha, medio y botón **Descargar comprobante**.*
 
 ---
 
