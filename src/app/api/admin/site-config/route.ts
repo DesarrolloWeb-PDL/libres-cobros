@@ -52,6 +52,7 @@ const CONFIG_KEYS = [
   'whatsapp_template_language',
   'whatsapp_otp_template_name',
   'portal_otp_enabled',
+  'portal_otp_test_code',
   // Platform SaaS billing (platform-level; stored with clubId = null)
   'saas_billing_enabled',
   'saas_billing_day',
@@ -96,6 +97,7 @@ const INSTITUTION_ONLY_KEYS = [
   'whatsapp_template_language',
   'whatsapp_otp_template_name',
   'portal_otp_enabled',
+  'portal_otp_test_code',
 ];
 
 // Platform-scoped keys must only be written when no institution is selected.
@@ -402,6 +404,7 @@ function getConfigDescription(key: string): string {
     whatsapp_template_language: 'Idioma de la plantilla en Meta (ej: es_AR)',
     whatsapp_otp_template_name: 'Nombre de la plantilla aprobada para códigos de acceso al portal (vacío = texto libre)',
     portal_otp_enabled: 'Acceso al portal verificado por código (OTP) — requiere plantilla de WhatsApp o email configurados',
+    portal_otp_test_code: 'Código fijo de prueba para el portal (vacío = desactivado) — DEJAR VACÍO EN PRODUCCIÓN',
     resend_api_key: 'API Key de Resend para envío de emails',
     resend_from_email: 'Email remitente (ej: Cuotas <cuotas@tudominio.com>)',
     arca_enabled: 'Emitir comprobantes electrónicos ARCA (Recibo C) ante cada pago confirmado',

@@ -23,6 +23,9 @@ const RequestCodeSchema = z.object({
 /** Identical response whether or not the DNI exists (anti-enumeration). */
 const GENERIC_MESSAGE = 'Si el DNI corresponde a un socio, recibirás un código.';
 
+/** Shown while an institutional test code is configured (portal_otp_test_code). */
+const TEST_MODE_MESSAGE = 'Modo de prueba activo: ingresá el código de prueba.';
+
 function withSessionCookie(data: unknown, clubId: string, memberId: string): NextResponse {
   const maxAge = SESSION_TTL_DAYS * 24 * 60 * 60;
   return NextResponse.json(data, {
@@ -70,9 +73,10 @@ export async function POST(request: NextRequest) {
     });
 
     // Resolve channel configuration for this institution.
-    const [otpEnabled, waPhoneId, waToken, waTemplate, waLanguage, resendKey, resendFrom] =
+    const [otpEnabled, testCode, waPhoneId, waToken, waTemplate, waLanguage, resendKey, resendFrom] =
       await Promise.all([
         getClubSiteConfigValue(club.id, 'portal_otp_enabled'),
+        getClubSiteConfigValue(club.id, 'portal_otp_test_code'),
         getClubSiteConfigValue(club.id, 'whatsapp_phone_number_id'),
         getClubSiteConfigValue(club.id, 'whatsapp_access_token'),
         getClubSiteConfigValue(club.id, 'whatsapp_otp_template_name'),
@@ -84,14 +88,28 @@ export async function POST(request: NextRequest) {
     const whatsappConfigured = Boolean(waPhoneId && waToken);
     const emailConfigured = Boolean(resendKey && resendFrom);
 
-    // Degrade to DNI-only access when the institution opted out (kill switch)
-    // or has no channel at all — otherwise empty keys would lock every member out.
-    const bypassOtp = otpEnabled === 'false' || (!whatsappConfigured && !emailConfigured);
-    if (bypassOtp) {
-      if (member) {
-        return withSessionCookie({ otpRequired: false, message: GENERIC_MESSAGE }, club.id, member.id);
-      }
-      return NextResponse.json({ otpRequired: false, message: GENERIC_MESSAGE });
+    const bypassResponse = () =>
+      member
+        ? withSessionCookie({ otpRequired: false, message: GENERIC_MESSAGE }, club.id, member.id)
+        : NextResponse.json({ otpRequired: false, message: GENERIC_MESSAGE });
+
+    // Kill switch: institution opted out of OTP entirely (wins over test mode).
+    if (otpEnabled === 'false') {
+      return bypassResponse();
+    }
+
+    // Test mode: while a fixed test code is configured the portal always asks
+    // for a code — even with no channels configured — so the full flow can be
+    // exercised without WhatsApp/email. Same response for known and unknown
+    // DNIs, so anti-enumeration still holds.
+    if (testCode) {
+      return NextResponse.json({ otpRequired: true, message: TEST_MODE_MESSAGE });
+    }
+
+    // Degrade to DNI-only access when the institution has no channel at all —
+    // otherwise empty keys would lock every member out.
+    if (!whatsappConfigured && !emailConfigured) {
+      return bypassResponse();
     }
 
     // Anti-enumeration: identical success response when the member is unknown.

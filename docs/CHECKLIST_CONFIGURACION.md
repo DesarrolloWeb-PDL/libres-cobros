@@ -54,6 +54,16 @@ Panel → **Configuración** (pestañas: *Datos bancarios · Medios de pago · F
   4. Activar el switch **"Acceso verificado por código (OTP)"**.
   > Sin plantilla ni email configurados, el portal queda con acceso por DNI
   > (sin código) para no dejar afuera a los socios.
+- [ ] **Modo de prueba del portal (opcional, sin WhatsApp)** — para verificar el
+      flujo DNI → código → ingreso sin configurar canales:
+  1. En *Mensajería*, cargar `Código de prueba (solo testing)` con un valor fijo
+     (ej: `55667788`, hasta 8 caracteres).
+  2. Mientras ese campo tenga valor, el portal **pide ese código** para ingresar
+     en esa institución (el interruptor OTP debe estar activado).
+  3. Probá en `/pagos/<slug>`: DNI → código → adentro.
+  4. **Al terminar, vaciar el campo** — mientras esté cargado, cualquiera que
+     sepa el código y un DNI puede entrar a esa institución (esa advertencia
+     queda visible en el panel a propósito).
 - [ ] Si dejás la plantilla **vacía**, los mensajes salen como texto libre — solo
       funcionarán si el socio escribió primero en las últimas 24h.
 

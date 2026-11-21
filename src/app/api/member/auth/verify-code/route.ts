@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { apiError, apiDbError } from '@/lib/api-response';
 import { getEffectiveClub } from '@/lib/access';
+import { getClubSiteConfigValue } from '@/lib/site-config';
 import { rateLimit } from '@/lib/rate-limit';
 import {
   verifyLoginCode,
   issueSessionCookie,
+  timingSafeStringEqual,
   SESSION_COOKIE_NAME,
   SESSION_TTL_DAYS,
 } from '@/lib/member-auth';
@@ -24,6 +26,21 @@ const VERIFY_ERROR_MESSAGES: Record<string, string> = {
   too_many_attempts: 'Demasiados intentos. Pedí un código nuevo.',
   no_pending_code: 'No hay un código pendiente. Pedí uno nuevo.',
 };
+
+function verifiedResponse(clubId: string, memberId: string): NextResponse {
+  const maxAge = SESSION_TTL_DAYS * 24 * 60 * 60;
+  return NextResponse.json(
+    { ok: true, message: 'Acceso verificado.' },
+    {
+      headers: {
+        'Set-Cookie': `${SESSION_COOKIE_NAME}=${issueSessionCookie(
+          clubId,
+          memberId
+        )}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`,
+      },
+    }
+  );
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -65,6 +82,13 @@ export async function POST(request: NextRequest) {
       return apiError('El código es incorrecto.', 401, 'Unknown member', 'INVALID_CODE');
     }
 
+    // Test mode: while an institutional test code is configured it is accepted
+    // directly (no pending DB code needed). Comparison is constant-time.
+    const testCode = await getClubSiteConfigValue(club.id, 'portal_otp_test_code');
+    if (testCode && timingSafeStringEqual(code, testCode)) {
+      return verifiedResponse(club.id, member.id);
+    }
+
     const result = await verifyLoginCode(club.id, member.id, code);
 
     if (!result.ok) {
@@ -73,18 +97,7 @@ export async function POST(request: NextRequest) {
       return apiError(message, status, result.reason, 'INVALID_CODE');
     }
 
-    const maxAge = SESSION_TTL_DAYS * 24 * 60 * 60;
-    return NextResponse.json(
-      { ok: true, message: 'Acceso verificado.' },
-      {
-        headers: {
-          'Set-Cookie': `${SESSION_COOKIE_NAME}=${issueSessionCookie(
-            club.id,
-            member.id
-          )}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`,
-        },
-      }
-    );
+    return verifiedResponse(club.id, member.id);
   } catch (error) {
     return apiDbError(error, 'Error al verificar el código de acceso');
   }

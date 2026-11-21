@@ -40,6 +40,7 @@ const DEFAULT_SITE_CONFIG_KEYS = [
   'whatsapp_access_token',
   'whatsapp_otp_template_name',
   'portal_otp_enabled',
+  'portal_otp_test_code',
 ];
 
 // Non-empty defaults: '' would render the admin switch as "off" while the

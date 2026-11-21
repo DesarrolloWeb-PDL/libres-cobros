@@ -29,6 +29,13 @@ export function hashCode(code: string): string {
   return createHash('sha256').update(code, 'utf8').digest('hex');
 }
 
+/** Constant-time string comparison (used for the institutional test code). */
+export function timingSafeStringEqual(a: string, b: string): boolean {
+  const bufA = Buffer.from(a, 'utf8');
+  const bufB = Buffer.from(b, 'utf8');
+  return bufA.length === bufB.length && timingSafeEqual(bufA, bufB);
+}
+
 /**
  * Creates a pending login code for a member. Returns the plaintext code (to be
  * sent over the channel) — it exists only in this response, never in the DB.

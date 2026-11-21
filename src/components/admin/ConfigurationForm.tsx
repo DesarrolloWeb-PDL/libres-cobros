@@ -52,6 +52,7 @@ const siteConfigLabels: Record<string, string> = {
   whatsapp_template_language: 'Idioma de la plantilla',
   whatsapp_otp_template_name: 'Plantilla de códigos de acceso',
   portal_otp_enabled: 'Acceso verificado por código (OTP)',
+  portal_otp_test_code: 'Código de prueba (solo testing)',
   resend_api_key: 'API Key',
   resend_from_email: 'Email remitente',
   arca_enabled: 'Emitir comprobantes electrónicos (ARCA)',
@@ -80,6 +81,7 @@ const siteConfigPlaceholders: Record<string, string> = {
   whatsapp_template_name: 'Ej: recordatorio_pago (vacío = texto libre)',
   whatsapp_template_language: 'Ej: es_AR',
   whatsapp_otp_template_name: 'Ej: codigo_acceso (vacío = texto libre)',
+  portal_otp_test_code: 'Ej: 55667788 — DEJAR VACÍO EN PRODUCCIÓN',
   resend_api_key: 'Ej: re_xxxxxxxx',
   resend_from_email: 'Ej: Cuotas <cuotas@tudominio.com>',
   arca_cuit: 'Ej: 30712345678',
@@ -562,6 +564,15 @@ export function ConfigurationForm({
                         o email configurados. Si no hay ningún canal, el acceso queda como antes.
                       </p>
                     </div>
+                    <div className="grid gap-4 sm:grid-cols-2 pt-2 border-t">
+                      {renderTextField('portal_otp_test_code')}
+                    </div>
+                    <p className="text-xs text-muted-foreground -mt-4">
+                      Solo para probar el flujo del portal sin WhatsApp/email: mientras tenga un
+                      valor, el portal pide ese código fijo para ingresar. <strong>Dejalo vacío
+                      en producción</strong> — es una puerta de entrada conocida para esa
+                      institución.
+                    </p>
                   </div>
 
                   <div className="space-y-4">

@@ -295,6 +295,109 @@ describe('POST /api/member/auth/verify-code', () => {
   });
 });
 
+describe('POST /api/member/auth/request-code — modo de prueba (portal_otp_test_code)', () => {
+  function mockTestClub({ testCode = '55667788', otpEnabled = 'true' } = {}) {
+    // Sin canales configurados: sin el modo prueba, esto haría bypass.
+    mockGetClubSiteConfigValue.mockImplementation((_clubId: string, key: string) => {
+      if (key === 'portal_otp_test_code') return Promise.resolve(testCode);
+      if (key === 'portal_otp_enabled') return Promise.resolve(otpEnabled);
+      return Promise.resolve('');
+    });
+  }
+
+  it('muestra el paso de código aunque no haya canales configurados', async () => {
+    mockTestClub();
+
+    const res = await requestCode(jsonRequest('/api/member/auth/request-code', {
+      dni: '28111222', clubSlug: 'club-test',
+    }));
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.otpRequired).toBe(true);
+    expect(body.message).toContain('prueba');
+    // No real code is generated nor a session issued: the fixed code is the credential.
+    expect(mockCreateLoginCode).not.toHaveBeenCalled();
+    expect(mockIssueSessionCookie).not.toHaveBeenCalled();
+    expect(mockSendWhatsAppMessage).not.toHaveBeenCalled();
+  });
+
+  it('respuesta idéntica para DNI inexistente (anti-enumeración)', async () => {
+    mockTestClub();
+    const known = await requestCode(jsonRequest('/api/member/auth/request-code', {
+      dni: '28111222', clubSlug: 'club-test',
+    }));
+    const knownBody = await known.json();
+
+    mockPrisma.member.findUnique.mockResolvedValue(null);
+    const unknown = await requestCode(jsonRequest('/api/member/auth/request-code', {
+      dni: '99999999', clubSlug: 'club-test',
+    }));
+    const unknownBody = await unknown.json();
+
+    expect(unknownBody.otpRequired).toBe(true);
+    expect(unknownBody.message).toBe(knownBody.message);
+  });
+
+  it('el kill switch (otp apagado) gana sobre el modo prueba', async () => {
+    mockTestClub({ otpEnabled: 'false' });
+
+    const res = await requestCode(jsonRequest('/api/member/auth/request-code', {
+      dni: '28111222', clubSlug: 'club-test',
+    }));
+    const body = await res.json();
+
+    expect(body.otpRequired).toBe(false);
+    expect(mockIssueSessionCookie).toHaveBeenCalled();
+  });
+});
+
+describe('POST /api/member/auth/verify-code — modo de prueba', () => {
+  it('código de prueba correcto otorga sesión sin código pendiente en la DB', async () => {
+    mockGetClubSiteConfigValue.mockImplementation((_clubId: string, key: string) =>
+      key === 'portal_otp_test_code' ? Promise.resolve('55667788') : Promise.resolve('')
+    );
+
+    const res = await verifyCode(jsonRequest('/api/member/auth/verify-code', {
+      dni: '28111222', clubSlug: 'club-test', code: '55667788',
+    }));
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.ok).toBe(true);
+    expect(mockVerifyLoginCode).not.toHaveBeenCalled();
+    expect(mockIssueSessionCookie).toHaveBeenCalledWith('c1', 'm1');
+    expect(res.headers.get('set-cookie')).toContain('member_session=');
+  });
+
+  it('código distinto del de prueba cae al flujo normal de la DB', async () => {
+    mockGetClubSiteConfigValue.mockImplementation((_clubId: string, key: string) =>
+      key === 'portal_otp_test_code' ? Promise.resolve('55667788') : Promise.resolve('')
+    );
+    mockVerifyLoginCode.mockResolvedValue({ ok: false, reason: 'invalid_code' });
+
+    const res = await verifyCode(jsonRequest('/api/member/auth/verify-code', {
+      dni: '28111222', clubSlug: 'club-test', code: '000000',
+    }));
+
+    expect(res.status).toBe(401);
+    expect(mockVerifyLoginCode).toHaveBeenCalledWith('c1', 'm1', '000000');
+    expect(mockIssueSessionCookie).not.toHaveBeenCalled();
+  });
+
+  it('sin modo prueba, el código de prueba NO otorga sesión', async () => {
+    // Default mock: portal_otp_test_code returns '' → only the DB path applies.
+    mockVerifyLoginCode.mockResolvedValue({ ok: false, reason: 'no_pending_code' });
+
+    const res = await verifyCode(jsonRequest('/api/member/auth/verify-code', {
+      dni: '28111222', clubSlug: 'club-test', code: '55667788',
+    }));
+
+    expect(res.status).toBe(401);
+    expect(mockIssueSessionCookie).not.toHaveBeenCalled();
+  });
+});
+
 describe('POST /api/member/auth/logout', () => {
   it('borra la cookie con maxAge 0', async () => {
     const res = await logout();

@@ -16,6 +16,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 const KEYS: Array<{ key: string; value: string }> = [
   { key: 'portal_otp_enabled', value: 'true' },
   { key: 'whatsapp_otp_template_name', value: '' },
+  { key: 'portal_otp_test_code', value: '' },
 ];
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
