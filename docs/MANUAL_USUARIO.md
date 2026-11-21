@@ -3,6 +3,9 @@
 Guía completa para administrar tu institución en la plataforma.
 Está pensada para usarse sin conocimientos técnicos: si algo no está acá, escribinos por soporte.
 
+> **¿Sos socio en lugar de administrador?** Tu guía es el
+> [Manual del Socio](./MANUAL_SOCIO.md) — cómo entrar, pagar y activar tu débito automático.
+
 **Contenido:**
 1. [Primeros pasos](#1-primeros-pasos)
 2. [Tu institución: datos y apariencia](#2-tu-institución-datos-y-apariencia)
