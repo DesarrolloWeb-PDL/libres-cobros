@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Download } from 'lucide-react';
 import { prisma } from '@/lib/db';
+import { GlowBackdrop } from '@/components/GlowBackdrop';
 import { PaymentConfirmation } from '@/components/member/PaymentConfirmation';
 import { Button } from '@/components/ui/button';
 
@@ -31,7 +32,8 @@ export default async function ClubPaymentConfirmationPage({ params, searchParams
 
   if (!paymentId) {
     return (
-      <div className="flex min-h-screen flex-col">
+      <div className="relative flex min-h-screen flex-col overflow-hidden">
+        <GlowBackdrop />
         <main className="flex-1 px-4 py-8">
           <PaymentConfirmation
             status="failure"
@@ -63,7 +65,8 @@ export default async function ClubPaymentConfirmationPage({ params, searchParams
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="relative flex min-h-screen flex-col overflow-hidden">
+      <GlowBackdrop />
       <main className="flex-1 px-4 py-8">
         <PaymentConfirmation
           status={status}

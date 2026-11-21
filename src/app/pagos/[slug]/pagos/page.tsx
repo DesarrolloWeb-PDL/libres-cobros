@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Download, Receipt, User } from 'lucide-react';
 import { prisma } from '@/lib/db';
+import { GlowBackdrop } from '@/components/GlowBackdrop';
 import { requirePortalSession, assertMemberPageAccess } from '@/lib/member-session-server';
 import { Button } from '@/components/ui/button';
 import { MemberNav } from '@/components/member/MemberNav';
@@ -111,13 +112,14 @@ export default async function MemberPaymentsPage({
 
   return (
     <div
-      className="flex min-h-screen flex-col"
+      className="relative flex min-h-screen flex-col overflow-hidden"
       style={{
         '--club-primary': club.primaryColor,
         '--club-secondary': club.secondaryColor,
         '--club-accent': club.accentColor,
       } as React.CSSProperties}
     >
+      <GlowBackdrop />
       <InstitutionThemeInjector primaryColor={club.primaryColor} />
       <MemberNav
         institutionName={club.name}

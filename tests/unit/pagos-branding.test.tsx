@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 
 vi.mock('@/lib/db', () => ({
   prisma: {
-    club: { findMany: vi.fn() },
+    club: { findMany: vi.fn(), findUnique: vi.fn() },
   },
 }));
 
@@ -57,6 +57,34 @@ describe('Portal de socios (/pagos) — marca y footer', () => {
 
   it('tiene el fondo con glow de acento, igual que el login', async () => {
     const { container } = render(await PagosPage());
+
+    expect(container.querySelector('.blur-3xl')).not.toBeNull();
+  });
+});
+
+describe('Portal del socio (/[slug]) — glow de fondo', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(prisma.club.findUnique).mockResolvedValue({
+      id: 'c1',
+      name: 'Club Test',
+      slug: 'club-test',
+      status: 'ACTIVE',
+      logoUrl: null,
+      primaryColor: '#000000',
+      secondaryColor: '#111111',
+      accentColor: '#7c3aed',
+    } as never);
+  });
+
+  it('la página de entrada del socio comparte el glow del login', async () => {
+    const { default: MemberPortalPage } = await import('@/app/pagos/[slug]/page');
+    const { container } = render(
+      await MemberPortalPage({
+        params: Promise.resolve({ slug: 'club-test' }),
+        searchParams: Promise.resolve({}),
+      })
+    );
 
     expect(container.querySelector('.blur-3xl')).not.toBeNull();
   });
