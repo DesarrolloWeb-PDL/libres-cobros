@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { Logo } from '@/components/Logo';
+import { GlowBackdrop } from '@/components/GlowBackdrop';
 import { InstitutionSelector } from '@/components/member/InstitutionSelector';
 
 export const dynamic = 'force-dynamic';
@@ -19,9 +20,12 @@ export default async function PagosPage() {
 
   if (clubs.length === 0) {
     return (
-      <div className="flex min-h-screen flex-col">
+      <div className="relative flex min-h-screen flex-col overflow-hidden">
+        <GlowBackdrop />
         <header className="relative flex flex-col items-center justify-center min-h-[60vh] px-6 pt-16 text-center">
-          <Logo size={120} showScroll={false} />
+          <Link href="/" aria-label="Ir al inicio">
+            <Logo size={120} showScroll={false} />
+          </Link>
           <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-4 mt-6">
             Portal de Socios
           </p>
@@ -46,9 +50,12 @@ export default async function PagosPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="relative flex min-h-screen flex-col overflow-hidden">
+      <GlowBackdrop />
       <header className="relative flex flex-col items-center justify-center min-h-[60vh] px-6 pt-16 text-center">
-        <Logo size={120} showScroll={false} />
+        <Link href="/" aria-label="Ir al inicio">
+          <Logo size={120} showScroll={false} />
+        </Link>
         <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-4 mt-6">
           Portal de Socios
         </p>

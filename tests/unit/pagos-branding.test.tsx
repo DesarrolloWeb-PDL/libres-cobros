@@ -47,4 +47,17 @@ describe('Portal de socios (/pagos) — marca y footer', () => {
     expect(screen.getAllByText(/Libres Cobros — Sistema de cobros/).length).toBeGreaterThan(0);
     expect(screen.queryByText(/Institución Libres/)).toBeNull();
   });
+
+  it('el logo enlaza a la landing (no queda inerte)', async () => {
+    render(await PagosPage());
+
+    const logoLink = screen.getByRole('link', { name: /ir al inicio/i });
+    expect(logoLink).toHaveAttribute('href', '/');
+  });
+
+  it('tiene el fondo con glow de acento, igual que el login', async () => {
+    const { container } = render(await PagosPage());
+
+    expect(container.querySelector('.blur-3xl')).not.toBeNull();
+  });
 });
