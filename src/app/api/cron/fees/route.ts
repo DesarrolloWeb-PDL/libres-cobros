@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { authorizeCron } from '@/lib/cron-auth';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
 import { prisma } from '@/lib/db';
 import { generateMonthlyFees } from '@/lib/fees';
@@ -10,11 +11,6 @@ interface ClubFeeGenerationReport {
   clubName: string;
   created: number;
   skipped: number;
-}
-
-function authorizeCron(request: NextRequest): boolean {
-  const cronSecret = request.headers.get('x-cron-secret');
-  return cronSecret === process.env.CRON_SECRET;
 }
 
 function getCurrentPeriod(): { month: number; year: number } {

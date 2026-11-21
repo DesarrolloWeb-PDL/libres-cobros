@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { authorizeCron } from '@/lib/cron-auth';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
 import { markOverdueFees } from '@/lib/fees';
@@ -15,10 +16,6 @@ function getTodayUtc(): Date {
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
 }
 
-function authorizeCron(request: NextRequest): boolean {
-  const cronSecret = request.headers.get('x-cron-secret');
-  return cronSecret === process.env.CRON_SECRET;
-}
 
 export async function GET(request: NextRequest) {
   try {
