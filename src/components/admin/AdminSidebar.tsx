@@ -24,6 +24,7 @@ import {
   Repeat,
   Palette,
   Layers,
+  BookOpen,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -168,6 +169,18 @@ export function AdminSidebar({ institution, themeColor, saasEnabled }: AdminSide
                 </Link>
               );
             })}
+
+            {/* Interactive user manual (static HTML — opens in a new tab) */}
+            <a
+              href="/manual"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-white/80 hover:bg-white/12 hover:text-white transition-all duration-150"
+            >
+              <BookOpen className="size-4 shrink-0" />
+              <span className="truncate">Manual</span>
+            </a>
           </nav>
 
           {/* Institution Selector */}

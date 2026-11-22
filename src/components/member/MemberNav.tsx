@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Home, CreditCard, Mail, HelpCircle, Menu, X } from 'lucide-react';
+import { Home, CreditCard, Mail, HelpCircle, Menu, X, BookOpen } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -148,6 +148,20 @@ export function MemberNav({ institutionName, institutionSlug, institutionLogo, p
               </Link>
             );
           })}
+
+          {/* Interactive user manual (static HTML — opens in a new tab) */}
+          <a
+            href="/manual"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn(
+              'flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all',
+              inactiveDesktopClass
+            )}
+          >
+            <BookOpen className="size-4" />
+            <span>Manual</span>
+          </a>
         </nav>
 
         {/* Mobile Menu Button */}
@@ -200,6 +214,21 @@ export function MemberNav({ institutionName, institutionSlug, institutionLogo, p
                 </Link>
               );
             })}
+
+            {/* Interactive user manual (static HTML — opens in a new tab) */}
+            <a
+              href="/manual"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setMobileOpen(false)}
+              className={cn(
+                'flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all',
+                inactiveMobileClass
+              )}
+            >
+              <BookOpen className="size-5" />
+              <span>Manual</span>
+            </a>
           </nav>
         </div>
       )}
