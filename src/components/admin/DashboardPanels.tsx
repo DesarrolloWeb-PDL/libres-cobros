@@ -155,7 +155,7 @@ export function DashboardPanels({ data }: DashboardPanelsProps) {
   ];
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="grid gap-6 lg:grid-cols-2 items-start">
       <Card className="rounded-2xl shadow-sm">
         <CardHeader className="p-5 pb-3">
           <CardTitle className="text-base font-semibold">Estado de Cuotas</CardTitle>

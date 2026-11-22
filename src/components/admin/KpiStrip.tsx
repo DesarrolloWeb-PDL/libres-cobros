@@ -204,15 +204,34 @@ export function KpiStrip() {
             Morosidad por antigüedad
           </h3>
           <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-            {institution.overdueAging.map((bucket) => (
-              <div key={bucket.key} className="rounded-xl bg-muted/40 p-3">
-                <p className="text-xs font-medium text-muted-foreground">{bucket.label}</p>
-                <p className="text-lg font-bold tabular-nums">{bucket.count}</p>
-                <p className="text-xs text-muted-foreground tabular-nums">
-                  {currencyFormatter.format(bucket.amount)}
-                </p>
-              </div>
-            ))}
+            {institution.overdueAging.map((bucket) => {
+              // Severity tint: the older the debt, the hotter the color.
+              const tone =
+                bucket.key === '0-30'
+                  ? 'bg-emerald-500/10 dark:bg-emerald-500/15'
+                  : bucket.key === '31-60'
+                    ? 'bg-amber-500/10 dark:bg-amber-500/15'
+                    : bucket.key === '61-90'
+                      ? 'bg-orange-500/10 dark:bg-orange-500/15'
+                      : 'bg-red-500/10 dark:bg-red-500/15';
+              const toneText =
+                bucket.key === '0-30'
+                  ? 'text-emerald-700 dark:text-emerald-400'
+                  : bucket.key === '31-60'
+                    ? 'text-amber-700 dark:text-amber-400'
+                    : bucket.key === '61-90'
+                      ? 'text-orange-700 dark:text-orange-400'
+                      : 'text-red-700 dark:text-red-400';
+              return (
+                <div key={bucket.key} className={cn('rounded-xl p-3', tone)}>
+                  <p className="text-xs font-medium text-muted-foreground">{bucket.label}</p>
+                  <p className={cn('text-lg font-bold tabular-nums', toneText)}>{bucket.count}</p>
+                  <p className="text-xs text-muted-foreground tabular-nums">
+                    {currencyFormatter.format(bucket.amount)}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
