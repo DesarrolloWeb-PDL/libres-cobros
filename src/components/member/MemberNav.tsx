@@ -149,9 +149,9 @@ export function MemberNav({ institutionName, institutionSlug, institutionLogo, p
             );
           })}
 
-          {/* Interactive user manual (static HTML — opens in a new tab) */}
+          {/* Interactive user manual (static HTML — members only see theirs) */}
           <a
-            href="/manual"
+            href="/manual?audience=socio"
             target="_blank"
             rel="noopener noreferrer"
             className={cn(
@@ -215,9 +215,9 @@ export function MemberNav({ institutionName, institutionSlug, institutionLogo, p
               );
             })}
 
-            {/* Interactive user manual (static HTML — opens in a new tab) */}
+            {/* Interactive user manual (static HTML — members only see theirs) */}
             <a
-              href="/manual"
+              href="/manual?audience=socio"
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => setMobileOpen(false)}

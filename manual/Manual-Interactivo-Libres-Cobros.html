@@ -772,6 +772,24 @@ No. Funciona desde el navegador de tu celular o computadora.</p>
   });
 
   /* ---------- cover <-> audience ---------- */
+  // Audience restriction: /manual?audience=socio shows ONLY that manual.
+  // Member portals link here; the admin sidebar links to plain /manual.
+  var params = new URLSearchParams(location.search);
+  var restricted = params.get('audience');
+  if (restricted !== 'institucion' && restricted !== 'socio') restricted = null;
+
+  function applyRestriction() {
+    if (!restricted) return;
+    // Hide cross-links (and their paragraph) to the other audience.
+    document.querySelectorAll('a[data-goto]').forEach(function (a) {
+      if (a.dataset.goto === restricted) return;
+      var p = a.closest('p');
+      (p || a).style.display = 'none';
+    });
+    // No cover switching when only one audience is allowed.
+    document.getElementById('btnCover').style.display = 'none';
+  }
+
   function buildToc(aud){
     var art=document.getElementById('art-'+aud);
     headings=[];
@@ -792,6 +810,7 @@ No. Funciona desde el navegador de tu celular o computadora.</p>
     });
   }
   function show(aud){
+    if (restricted && aud !== restricted) return;
     current=aud;
     COVER.style.display='none';APP.classList.add('on');
     document.getElementById('art-institucion').classList.toggle('on',aud==='institucion');
@@ -803,6 +822,7 @@ No. Funciona desde el navegador de tu celular o computadora.</p>
     if(window.innerWidth<=900) SIDEBAR.classList.remove('open');
   }
   function showCover(){
+    if (restricted) return;
     current=null;APP.classList.remove('on');COVER.style.display='';
     if(history.replaceState) history.replaceState(null,'',location.pathname+location.search);
     window.scrollTo(0,0);
@@ -919,8 +939,13 @@ No. Funciona desde el navegador de tu celular o computadora.</p>
   });
 
   /* ---------- deep link ---------- */
-  var hash=location.hash.replace('#','');
-  if(hash==='institucion'||hash==='socio') show(hash);
+  if (restricted) {
+    applyRestriction();
+    show(restricted); // land directly on the allowed manual
+  } else {
+    var hash=location.hash.replace('#','');
+    if(hash==='institucion'||hash==='socio') show(hash);
+  }
 })();
 </script>
 </body>
