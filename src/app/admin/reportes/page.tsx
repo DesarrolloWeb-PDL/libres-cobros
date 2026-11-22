@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 const reports = [
   { href: '/admin/reportes/deudas', title: 'Reporte de deudas', description: 'Socios con cuotas pendientes o vencidas y monto total adeudado.' },
   { href: '/admin/reportes/pagos', title: 'Historial de pagos', description: 'Pagos confirmados con filtros por período, método y socio.' },
-  { href: '/admin/comisiones', title: 'Reporte de comisiones', description: 'Comisiones generadas por período y método de pago.' },
   { href: '/admin/reportes/morosidad', title: 'Morosidad por antigüedad', description: 'Socios con cuotas vencidas agrupados por días de atraso.' },
   { href: '/admin/reportes/conceptos', title: 'Reporte por concepto', description: 'Cuotas agrupadas por plan y categoría.' },
 ];

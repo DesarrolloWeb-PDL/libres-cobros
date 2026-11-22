@@ -42,11 +42,6 @@ const statusLabels: Record<string, string> = {
   PENDING: 'Pendiente',
 };
 
-const commissionTypeLabels: Record<string, string> = {
-  PERCENTAGE: '%',
-  FIXED: '$',
-};
-
 export function InstitutionList({ initialData }: InstitutionListProps) {
   const router = useRouter();
   const [institutions, setInstitutions] = useState<ClubListItem[]>(initialData);
@@ -105,7 +100,6 @@ export function InstitutionList({ initialData }: InstitutionListProps) {
             <TableRow>
               <TableHead>Nombre</TableHead>
               <TableHead>Identificador URL</TableHead>
-              <TableHead>Comisión</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead className="w-16">Acciones</TableHead>
             </TableRow>
@@ -129,12 +123,6 @@ export function InstitutionList({ initialData }: InstitutionListProps) {
                     )}
                   </TableCell>
                   <TableCell className="text-muted-foreground">{institution.slug}</TableCell>
-                  <TableCell>
-                    {commissionTypeLabels[institution.commissionType] ?? ''}{' '}
-                    {institution.commissionType === 'PERCENTAGE'
-                      ? `${institution.commissionValue}%`
-                      : institution.commissionValue.toFixed(2)}
-                  </TableCell>
                   <TableCell>
                     <Badge
                       variant={statusVariants[institution.status] ?? 'default'}

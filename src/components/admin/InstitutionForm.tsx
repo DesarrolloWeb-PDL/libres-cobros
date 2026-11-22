@@ -25,10 +25,6 @@ export function InstitutionForm({ club }: InstitutionFormProps) {
   const [siglas, setSiglas] = useState(club.siglas || '');
   const [phone, setPhone] = useState(club.phone || '');
   const [slug, setSlug] = useState(club.slug);
-  const [commissionType, setCommissionType] = useState<'PERCENTAGE' | 'FIXED'>(
-    club.commissionType as 'PERCENTAGE' | 'FIXED'
-  );
-  const [commissionValue, setCommissionValue] = useState<number>(club.commissionValue);
   const [status, setStatus] = useState<'ACTIVE' | 'INACTIVE'>(
     club.status as 'ACTIVE' | 'INACTIVE'
   );
@@ -51,8 +47,6 @@ export function InstitutionForm({ club }: InstitutionFormProps) {
           siglas: siglas || null,
           phone: phone || null,
           slug,
-          commissionType,
-          commissionValue: Number(commissionValue),
           status,
           cuit: cuit.trim() || null,
           ivaCondicion,
@@ -201,38 +195,6 @@ export function InstitutionForm({ club }: InstitutionFormProps) {
             required
             className="h-10"
           />
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Tipo de comisión</Label>
-            <StyledSelect
-              value={commissionType}
-              onChange={(v) => setCommissionType(v as 'PERCENTAGE' | 'FIXED')}
-              options={[
-                { value: 'PERCENTAGE', label: 'Porcentual (%)' },
-                { value: 'FIXED', label: 'Fijo ($)' },
-              ]}
-              className="h-10"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="commissionValue" className="text-sm font-medium">
-              Valor de comisión {commissionType === 'PERCENTAGE' ? '(%)' : '($)'}
-            </Label>
-            <Input
-              id="commissionValue"
-              type="number"
-              step="0.01"
-              min="0"
-              max={commissionType === 'PERCENTAGE' ? 100 : undefined}
-              value={commissionValue}
-              onChange={(e) => setCommissionValue(Number(e.target.value))}
-              required
-              className="h-10"
-            />
-          </div>
         </div>
 
         <div className="space-y-2">

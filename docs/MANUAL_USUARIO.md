@@ -22,12 +22,11 @@ Está pensada para usarse sin conocimientos técnicos: si algo no está acá, es
 5. [Cobros y pagos](#5-cobros-y-pagos)
 6. [Débito automático](#6-débito-automático)
 7. [Mensajes (WhatsApp y email)](#7-mensajes-whatsapp-y-email)
-8. [Comisiones y cierre mensual](#8-comisiones-y-cierre-mensual)
-9. [Reportes](#9-reportes)
-10. [Configuración completa paso a paso](#10-configuración-completa-paso-a-paso)
-11. [Automatismos que corren solos](#11-automatismos-que-corren-solos)
-12. [Roles y seguridad](#12-roles-y-seguridad)
-13. [Preguntas frecuentes](#13-preguntas-frecuentes)
+8. [Reportes](#8-reportes)
+9. [Configuración completa paso a paso](#9-configuración-completa-paso-a-paso)
+10. [Automatismos que corren solos](#10-automatismos-que-corren-solos)
+11. [Roles y seguridad](#11-roles-y-seguridad)
+12. [Preguntas frecuentes](#12-preguntas-frecuentes)
 
 ---
 
@@ -117,7 +116,7 @@ Podés tener varios planes conviviendo.
 3. **Generar**: crea las cuotas en estado *pendiente*.
 
 Esto también lo hace **solo, todos los días 1 del mes** (ver
-[sección 11](#11-automatismos-que-corren-solos)) — la generación manual es para
+[sección 10](#10-automatismos-que-corren-solos)) — la generación manual es para
 adelantarte o cubrir un mes que faltó.
 
 <img src="../manual/img/admin-04-cuotas.png" width="600" alt="Sección de cuotas con el botón Generar cuotas">
@@ -225,7 +224,7 @@ Panel → **Mensajes**.
 
 ### Recordatorios automáticos
 El sistema envía recordatorios de cuota pendiente solo
-(ver [sección 11](#11-automatismos-que-corren-solos)).
+(ver [sección 10](#10-automatismos-que-corren-solos)).
 
 > **Importante sobre WhatsApp:** para enviarle a un socio que no te escribió
 > primero hace falta una **plantilla aprobada por Meta**.
@@ -237,17 +236,7 @@ Panel → **Mensajes** muestra las respuestas de los socios (bandeja WhatsApp).
 
 ---
 
-## 8. Comisiones y cierre mensual
-
-- **Comisiones** (Panel → Comisiones): si tu modelo cobra comisión sobre lo recaudado,
-  este monto se calcula automáticamente.
-- **Cierre mensual** (Panel → Comisiones → Cierre): al cerrar el mes queda liquidado
-  lo recaudado, las comisiones y los aportes. Se recomienda cerrar **una vez por mes**,
-  después de que entren todos los pagos del período.
-
----
-
-## 9. Reportes
+## 8. Reportes
 
 Panel → **Reportes**:
 
@@ -255,7 +244,6 @@ Panel → **Reportes**:
 |---|---|
 | Deudas | Quién debe y cuánto, por socio |
 | Pagos | Todo lo cobrado en un período |
-| Comisiones | Lo que corresponde en comisiones |
 | Morosidad | Antigüedad de la deuda (quién debe hace cuánto) |
 | Por concepto | Desglose por tipo de cobro |
 
@@ -267,7 +255,7 @@ Todos se pueden **exportar**.
 
 ---
 
-## 10. Configuración completa paso a paso
+## 9. Configuración completa paso a paso
 
 El orden importa — cada paso habilita el siguiente:
 
@@ -277,7 +265,7 @@ El orden importa — cada paso habilita el siguiente:
    → habilita los toggles para ofrecerlos a los socios.
 4. **WhatsApp** (+ plantilla aprobada) o **Email (Resend)** → habilita recordatorios y campañas.
 5. **ARCA** (opcional) → habilita comprobantes electrónicos. Usá *Probar credenciales*.
-6. **Categorías → Socios → Planes → Generar cuotas → cobrar → Comisiones/Cierre.**
+6. **Categorías → Socios → Planes → Generar cuotas → cobrar.**
 
 **Detalle paso a paso con links y campos exactos:**
 → **[`CHECKLIST_CONFIGURACION.md`](./CHECKLIST_CONFIGURACION.md)**
@@ -288,7 +276,7 @@ El orden importa — cada paso habilita el siguiente:
 
 ---
 
-## 11. Automatismos que corren solos
+## 10. Automatismos que corren solos
 
 Estos procesos están programados y no requieren que hagas nada:
 
@@ -306,7 +294,7 @@ Estos procesos están programados y no requieren que hagas nada:
 
 ---
 
-## 12. Roles y seguridad
+## 11. Roles y seguridad
 
 | Rol | Qué ve |
 |---|---|
@@ -322,7 +310,7 @@ Estos procesos están programados y no requieren que hagas nada:
 
 ---
 
-## 13. Preguntas frecuentes
+## 12. Preguntas frecuentes
 
 **¿El socio no tiene email, puede usar débito automático?**
 No. El email es obligatorio para MP y Stripe. Cargalo en la ficha del socio.

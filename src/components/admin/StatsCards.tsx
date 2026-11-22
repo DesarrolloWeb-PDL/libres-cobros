@@ -2,7 +2,6 @@ import {
   Users,
   Wallet,
   Clock,
-  Percent,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -40,13 +39,6 @@ const cards = [
     iconColor: 'text-amber-600',
     format: (value: number) => value.toLocaleString('es-AR'),
   },
-  {
-    key: 'commissions' as const,
-    label: 'Comisiones',
-    icon: Percent,
-    iconColor: 'text-violet-600',
-    format: (value: number) => currencyFormatter.format(value),
-  },
 ];
 
 export function StatsCards({ data }: StatsCardsProps) {
@@ -54,11 +46,10 @@ export function StatsCards({ data }: StatsCardsProps) {
     activeMembers: data.activeMembers,
     incomeCollected: data.income.collected,
     pendingFees: data.fees.pending.count,
-    commissions: data.commissions,
   };
 
   return (
-    <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
       {cards.map((card) => {
         const Icon = card.icon;
         const value = valueMap[card.key];

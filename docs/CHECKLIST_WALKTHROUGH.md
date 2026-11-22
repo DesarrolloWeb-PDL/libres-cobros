@@ -90,11 +90,6 @@ Este checklist verifica que el sistema multi-tenant funcione correctamente. Comp
 - [ ] Confirmar pago
 - [ ] Pago confirmado actualiza estado de cuota
 
-### Comisiones
-- [ ] Calcular comisión para institución A
-- [ ] Comisión tiene institutionId correcto
-- [ ] Comisión aparece en reportes de la institución A
-
 ---
 
 ## 5. Configuración por Institución

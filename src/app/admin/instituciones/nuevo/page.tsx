@@ -7,7 +7,6 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { StyledSelect } from '@/components/ui/styled-select';
 import { toast } from '@/components/ui/toast';
 
 function slugify(text: string): string {
@@ -27,8 +26,6 @@ export default function NewInstitucionPage() {
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [slugEdited, setSlugEdited] = useState(false);
-  const [commissionType, setCommissionType] = useState<'PERCENTAGE' | 'FIXED'>('PERCENTAGE');
-  const [commissionValue, setCommissionValue] = useState<number>(0);
 
   function handleNameChange(value: string) {
     setName(value);
@@ -53,8 +50,6 @@ export default function NewInstitucionPage() {
         body: JSON.stringify({
           name,
           slug,
-          commissionType,
-          commissionValue,
           status: 'ACTIVE',
         }),
       });
@@ -119,34 +114,6 @@ export default function NewInstitucionPage() {
           <p className="text-xs text-muted-foreground">
             Parte de la URL para el portal de socios. Ejemplo: libres-cobros.vercel.app/pagos/<strong>zum-zum</strong>
           </p>
-        </div>
-
-        <div className="space-y-2">
-          <Label>Tipo de comisión</Label>
-          <StyledSelect
-            value={commissionType}
-            onChange={(v) => setCommissionType(v as 'PERCENTAGE' | 'FIXED')}
-            options={[
-              { value: 'PERCENTAGE', label: 'Porcentual (%)' },
-              { value: 'FIXED', label: 'Fijo ($)' },
-            ]}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="commissionValue">
-            Valor de comisión {commissionType === 'PERCENTAGE' ? '(%)' : '($)'}
-          </Label>
-          <Input
-            id="commissionValue"
-            type="number"
-            step="0.01"
-            min="0"
-            max={commissionType === 'PERCENTAGE' ? 100 : undefined}
-            value={commissionValue}
-            onChange={(e) => setCommissionValue(Number(e.target.value))}
-            required
-          />
         </div>
 
         <div className="flex gap-3 pt-4">
