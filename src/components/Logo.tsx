@@ -2,31 +2,24 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-// Cubes on a 32×32 viewBox — large and well-separated, like the portfolio mark.
-const CUBE_SIZE = 14;
-const CUBE_GAP = 4;
-const CUBE_POS = [
-  { x: 0, y: 0 },
-  { x: CUBE_SIZE + CUBE_GAP, y: 0 },
-  { x: 0, y: CUBE_SIZE + CUBE_GAP },
-  { x: CUBE_SIZE + CUBE_GAP, y: CUBE_SIZE + CUBE_GAP },
+// Three ascending bars on a 64×64 viewBox — "growth" mark (collections rising).
+// Geometry mirrors public/icons and the favicon generator in lib/theme-color.ts.
+const BARS = [
+  { x: 8, y: 36, w: 13, h: 20, opacity: 0.5 },
+  { x: 25.5, y: 24, w: 13, h: 32, opacity: 0.75 },
+  { x: 43, y: 10, w: 13, h: 46, opacity: 1 },
 ];
 
-// Centers = pos + size/2
-const HALF = CUBE_SIZE / 2;
-const CUBES = [
-  { cx: 0 + HALF, cy: 0 + HALF },
-  { cx: CUBE_SIZE + CUBE_GAP + HALF, cy: 0 + HALF },
-  { cx: 0 + HALF, cy: CUBE_SIZE + CUBE_GAP + HALF },
-  { cx: CUBE_SIZE + CUBE_GAP + HALF, cy: CUBE_SIZE + CUBE_GAP + HALF },
-];
+// Centers = x + w/2, y + h/2
+const BAR_CENTERS = BARS.map(({ x, y, w, h }) => ({ cx: x + w / 2, cy: y + h / 2 }));
+const BASE_OPACITIES = BARS.map((b) => b.opacity);
 
-const MAX_DIST = 26;
+const MAX_DIST = 40;
 
 function getOpacities(mx: number | null, my: number | null) {
-  if (mx === null || my === null) return [1, 0.7, 0.5, 0.3];
+  if (mx === null || my === null) return BASE_OPACITIES;
 
-  return CUBES.map(({ cx, cy }) => {
+  return BAR_CENTERS.map(({ cx, cy }) => {
     const d = Math.sqrt((mx - cx) ** 2 + (my - cy) ** 2);
     const factor = Math.max(0, 1 - d / MAX_DIST);
     return 0.15 + factor * 0.85;
@@ -67,8 +60,8 @@ export function Logo({ size = 180, showScroll = true, className = "", color }: L
     const el = logoRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 32;
-    const y = ((e.clientY - rect.top) / rect.height) * 32;
+    const x = ((e.clientX - rect.left) / rect.width) * 64;
+    const y = ((e.clientY - rect.top) / rect.height) * 64;
     setMouse({ x, y });
   }, []);
 
@@ -85,21 +78,21 @@ export function Logo({ size = 180, showScroll = true, className = "", color }: L
   const color2 = color ? `${color}cc` : '#a78bfa';
 
   const svg = (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width={size} height={size}>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width={size} height={size}>
       <defs>
         <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor={color1} />
           <stop offset="100%" stopColor={color2} />
         </linearGradient>
       </defs>
-      {CUBE_POS.map(({ x, y }, i) => (
+      {BARS.map(({ x, y, w, h }, i) => (
         <rect
           key={`${x}-${y}`}
           x={x}
           y={y}
-          width={CUBE_SIZE}
-          height={CUBE_SIZE}
-          rx="2.5"
+          width={w}
+          height={h}
+          rx={w / 2}
           fill={`url(#${gradId})`}
           opacity={opacities[i]}
           style={{ transition: "opacity 0.25s ease-out" }}

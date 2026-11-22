@@ -28,26 +28,25 @@ export function updateMetaThemeColor() {
 }
 
 /**
- * Recolors the four-cubes app icon (favicon) to match the active brand color.
+ * Recolors the app icon (favicon) to match the active brand color.
  */
 export function setCubesFavicon(color: string) {
   if (typeof document === 'undefined' || !color) return;
 
-  // Portfolio-style cubes: 11×11 at (4,4)/(17,4)/(4,17)/(17,17)
-  const opacitySteps = [1, 0.7, 0.5, 0.3];
-  const rects = [
-    { x: 4, y: 4 },
-    { x: 17, y: 4 },
-    { x: 4, y: 17 },
-    { x: 17, y: 17 },
+  // Growth bars: 13-wide rounded bars at (8,36)/(25.5,24)/(43,10), all ending at y=56.
+  const opacitySteps = [0.5, 0.75, 1];
+  const bars = [
+    { x: 8, y: 36 },
+    { x: 25.5, y: 24 },
+    { x: 43, y: 10 },
   ]
     .map(
       ({ x, y }, i) =>
-        `<rect x="${x}" y="${y}" width="11" height="11" rx="2" fill="${color}" opacity="${opacitySteps[i]}"/>`
+        `<rect x="${x}" y="${y}" width="13" height="${56 - y}" rx="6.5" fill="${color}" opacity="${opacitySteps[i]}"/>`
     )
     .join('');
 
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">${rects}</svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">${bars}</svg>`;
   const href = `data:image/svg+xml,${encodeURIComponent(svg)}`;
 
   let link = document.querySelector<HTMLLinkElement>("link[rel='icon']");
