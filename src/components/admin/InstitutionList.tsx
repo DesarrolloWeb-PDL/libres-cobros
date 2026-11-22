@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import {
@@ -22,12 +22,30 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { StyledSelect } from '@/components/ui/styled-select';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/components/ui/toast';
 import type { ClubListItem } from '@/types/club';
 
 interface InstitutionListProps {
   initialData: ClubListItem[];
+}
+
+interface SaasPlanOption {
+  id: string;
+  name: string;
+  minMembers: number;
+  maxMembers: number;
+  priceArs: number;
 }
 
 const statusVariants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
@@ -45,6 +63,84 @@ const statusLabels: Record<string, string> = {
 export function InstitutionList({ initialData }: InstitutionListProps) {
   const router = useRouter();
   const [institutions, setInstitutions] = useState<ClubListItem[]>(initialData);
+
+  const [plans, setPlans] = useState<SaasPlanOption[]>([]);
+  const [planByInstitution, setPlanByInstitution] = useState<Record<string, { id: string; name: string }>>({});
+  const [dialogInstitution, setDialogInstitution] = useState<ClubListItem | null>(null);
+  const [selectedPlanId, setSelectedPlanId] = useState('');
+  const [assigning, setAssigning] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([
+      fetch('/api/admin/saas/plans?active=true').then((r) => (r.ok ? r.json() : { data: [] })),
+      fetch('/api/admin/saas/subscriptions').then((r) => (r.ok ? r.json() : { data: [] })),
+    ])
+      .then(([plansRes, subsRes]) => {
+        if (cancelled) return;
+        if (Array.isArray(plansRes.data)) setPlans(plansRes.data);
+        if (Array.isArray(subsRes.data)) {
+          const map: Record<string, { id: string; name: string }> = {};
+          for (const sub of subsRes.data) {
+            if (sub.status === 'ACTIVE' && sub.institution?.id && sub.saasPlan?.id) {
+              map[sub.institution.id] = { id: sub.saasPlan.id, name: sub.saasPlan.name };
+            }
+          }
+          setPlanByInstitution(map);
+        }
+      })
+      .catch(() => {
+        /* sin datos de planes: la columna queda como "Sin plan" */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  function openPlanDialog(institution: ClubListItem) {
+    setSelectedPlanId(planByInstitution[institution.id]?.id ?? '');
+    setDialogInstitution(institution);
+  }
+
+  async function assignPlan() {
+    if (!dialogInstitution || !selectedPlanId) return;
+    setAssigning(true);
+    try {
+      const response = await fetch(
+        `/api/admin/saas/institutions/${dialogInstitution.id}/subscription`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ saasPlanId: selectedPlanId }),
+        }
+      );
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Error al asignar el plan');
+      }
+
+      const updated = await response.json();
+      setPlanByInstitution((prev) => ({
+        ...prev,
+        [dialogInstitution.id]: { id: updated.saasPlan.id, name: updated.saasPlan.name },
+      }));
+      toast.add({
+        title: 'Plan asignado',
+        description: `${dialogInstitution.name} → ${updated.saasPlan.name}`,
+        type: 'success',
+      });
+      setDialogInstitution(null);
+    } catch (error) {
+      toast.add({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'No se pudo asignar el plan',
+        type: 'error',
+      });
+    } finally {
+      setAssigning(false);
+    }
+  }
 
   async function updateStatus(institution: ClubListItem, newStatus: 'ACTIVE' | 'INACTIVE') {
     const actionLabel = newStatus === 'ACTIVE' ? 'activado' : 'desactivado';
@@ -101,6 +197,7 @@ export function InstitutionList({ initialData }: InstitutionListProps) {
               <TableHead>Nombre</TableHead>
               <TableHead>Identificador URL</TableHead>
               <TableHead>Estado</TableHead>
+              <TableHead>Plan</TableHead>
               <TableHead className="w-16">Acciones</TableHead>
             </TableRow>
           </TableHeader>
@@ -136,6 +233,17 @@ export function InstitutionList({ initialData }: InstitutionListProps) {
                     </Badge>
                   </TableCell>
                   <TableCell>
+                    {planByInstitution[institution.id] ? (
+                      <Badge variant="secondary">
+                        {planByInstitution[institution.id].name}
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-muted-foreground">
+                        Sin plan
+                      </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger
                         render={(props) => (
@@ -149,6 +257,9 @@ export function InstitutionList({ initialData }: InstitutionListProps) {
                           onClick={() => router.push(`/admin/instituciones/${institution.id}`)}
                         >
                           Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => openPlanDialog(institution)}>
+                          Asignar plan
                         </DropdownMenuItem>
                         {institution.status === 'PENDING' ? (
                           <DropdownMenuItem onClick={() => updateStatus(institution, 'ACTIVE')}>
@@ -175,6 +286,50 @@ export function InstitutionList({ initialData }: InstitutionListProps) {
           </TableBody>
         </Table>
       </div>
+
+      <Dialog
+        open={!!dialogInstitution}
+        onOpenChange={(open) => {
+          if (!open) setDialogInstitution(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Asignar plan</DialogTitle>
+            <DialogDescription>
+              {dialogInstitution?.name} —{' '}
+              {dialogInstitution && planByInstitution[dialogInstitution.id]
+                ? `plan actual: ${planByInstitution[dialogInstitution.id].name}`
+                : 'sin plan contratado (nivel gratuito)'}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-2">
+            <Label>Plan SaaS</Label>
+            <StyledSelect
+              value={selectedPlanId}
+              onChange={setSelectedPlanId}
+              options={plans.map((p) => ({
+                value: p.id,
+                label: `${p.name} — ${p.minMembers}-${p.maxMembers} socios — $${p.priceArs.toLocaleString('es-AR')}/mes`,
+              }))}
+              placeholder="Seleccioná un plan"
+            />
+            <p className="text-xs text-muted-foreground">
+              El cambio se aplica de inmediato para esta institución.
+            </p>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogInstitution(null)}>
+              Cancelar
+            </Button>
+            <Button onClick={assignPlan} disabled={!selectedPlanId || assigning}>
+              {assigning ? 'Asignando…' : 'Asignar plan'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

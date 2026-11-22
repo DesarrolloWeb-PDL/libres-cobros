@@ -252,3 +252,79 @@ export async function POST(
     return apiDbError(error, 'Error al asignar la suscripción SaaS');
   }
 }
+
+/**
+ * SUPER_ADMIN assigns or replaces the plan of an EXISTING institution
+ * (immediate effect: the plan changes now and any pending change request
+ * plan is cleared). Institutions without a subscription get one created.
+ */
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const ctx = await requireInstitution(request);
+    const { id } = await params;
+
+    if (ctx.role !== 'SUPER_ADMIN') {
+      return apiError('No autorizado', 403, 'Solo SUPER_ADMIN puede modificar suscripciones', 'FORBIDDEN');
+    }
+
+    const body = await request.json();
+    const parsed = AssignSubscriptionSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return apiError(
+        'Datos inválidos',
+        400,
+        parsed.error.issues.map((e) => `${e.path.join('.')}: ${e.message}`).join('; '),
+        'VALIDATION_ERROR'
+      );
+    }
+
+    const institution = await prisma.club.findUnique({
+      where: { id },
+      select: { id: true, name: true },
+    });
+
+    if (!institution) {
+      return apiError('Institución no encontrada', 404, 'ID de institución inválido', 'INSTITUTION_NOT_FOUND');
+    }
+
+    const plan = await prisma.saasPlan.findUnique({
+      where: { id: parsed.data.saasPlanId },
+    });
+
+    if (!plan || !plan.isActive) {
+      return apiError('Plan no encontrado', 404, 'El plan no existe o está inactivo', 'PLAN_NOT_FOUND');
+    }
+
+    const include = {
+      institution: { select: { id: true, name: true } },
+      saasPlan: { select: { id: true, name: true, priceArs: true, maxMembers: true } },
+      pendingSaasPlan: { select: { id: true, name: true } },
+    } as const;
+
+    const existing = await prisma.saasSubscription.findUnique({
+      where: { institutionId: id },
+    });
+
+    const subscription = existing
+      ? await prisma.saasSubscription.update({
+          where: { id: existing.id },
+          data: { saasPlanId: plan.id, pendingSaasPlanId: null },
+          include,
+        })
+      : await prisma.saasSubscription.create({
+          data: { institutionId: id, saasPlanId: plan.id, status: 'ACTIVE' },
+          include,
+        });
+
+    return apiSuccess(serializeSubscription(subscription));
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return apiError(error.message, error.status);
+    }
+    return apiDbError(error, 'Error al modificar la suscripción SaaS');
+  }
+}
