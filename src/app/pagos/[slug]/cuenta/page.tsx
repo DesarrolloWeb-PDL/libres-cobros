@@ -247,7 +247,9 @@ export default async function MemberAccountPage({ params, searchParams }: Member
               <section className="mb-6">
                 <div className="mb-3 flex items-center gap-2">
                   <Receipt className="size-4 text-accent" />
-                  <h2 className="font-semibold text-sm">Cuotas recientes</h2>
+                  <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                    Cuotas recientes
+                  </h2>
                 </div>
                 {fees.length === 0 ? (
                   <div className="rounded-xl border border-dashed border-border bg-muted/20 p-8 text-center">
@@ -284,7 +286,9 @@ export default async function MemberAccountPage({ params, searchParams }: Member
               <section className="mb-6">
                 <div className="mb-3 flex items-center gap-2">
                   <CreditCard className="size-4 text-accent" />
-                  <h2 className="font-semibold text-sm">Pagos recientes</h2>
+                  <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                    Pagos recientes
+                  </h2>
                 </div>
                 {payments.length === 0 ? (
                   <div className="rounded-xl border border-dashed border-border bg-muted/20 p-8 text-center">

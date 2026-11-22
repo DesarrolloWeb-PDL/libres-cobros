@@ -115,9 +115,9 @@ export function MemberNav({ institutionName, institutionSlug, institutionLogo, p
             </div>
           )}
           <div>
-            <h1 className={cn('font-semibold transition-colors', textClass)}>
+            <span className={cn('block font-semibold transition-colors', textClass)}>
               {institutionName}
-            </h1>
+            </span>
             <p className={cn('text-xs', mutedTextClass)}>Portal de Socios</p>
           </div>
         </Link>

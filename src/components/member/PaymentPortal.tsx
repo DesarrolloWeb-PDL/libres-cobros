@@ -70,7 +70,9 @@ export function PaymentPortal({ member, fees, institutionSlug, memberEmail }: Pa
 
           <div className="flex items-center gap-2 mb-5">
             <Receipt className="size-4 text-accent" />
-            <h3 className="font-semibold text-sm">Detalle de Cuotas</h3>
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              Detalle de Cuotas
+            </h3>
           </div>
 
           {fees.length === 0 ? (
