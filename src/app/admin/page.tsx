@@ -75,13 +75,13 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Real-time KPI strip */}
-      <KpiStrip />
+      {/* Metrics: KPI strip + stats cards grouped as one section */}
+      <KpiStrip>
+        <StatsCards data={data} />
+      </KpiStrip>
 
       {/* Onboarding checklist for new institutions */}
       <OnboardingChecklist />
-      {/* Stats */}
-      <StatsCards data={data} />
 
       {/* Middle panels */}
       <DashboardPanels data={data} />

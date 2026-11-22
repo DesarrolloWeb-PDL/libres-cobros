@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { RefreshCw, TrendingUp, TrendingDown, Users, Wallet, AlertTriangle, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +13,7 @@ const currencyFormatter = new Intl.NumberFormat('es-AR', {
   maximumFractionDigits: 0,
 });
 
-export function KpiStrip() {
+export function KpiStrip({ children }: { children?: ReactNode }) {
   const [data, setData] = useState<KpiResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -197,6 +197,8 @@ export function KpiStrip() {
           </Card>
         </div>
       )}
+
+      {children}
 
       {institution && institution.overdueAging && institution.overdueAging.length > 0 && (
         <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">

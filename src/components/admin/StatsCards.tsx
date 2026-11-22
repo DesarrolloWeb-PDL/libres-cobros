@@ -23,32 +23,28 @@ const cards = [
     key: 'activeMembers' as const,
     label: 'Socios Activos',
     icon: Users,
-    gradient: 'from-primary/10 to-accent/5',
-    iconGradient: 'from-primary to-primary/80',
+    iconColor: 'text-blue-600',
     format: (value: number) => value.toLocaleString('es-AR'),
   },
   {
     key: 'incomeCollected' as const,
     label: 'Ingresos del Mes',
     icon: Wallet,
-    gradient: 'from-accent/10 to-primary/5',
-    iconGradient: 'from-accent to-accent/80',
+    iconColor: 'text-emerald-600',
     format: (value: number) => currencyFormatter.format(value),
   },
   {
     key: 'pendingFees' as const,
     label: 'Cuotas Pendientes',
     icon: Clock,
-    gradient: 'from-muted/30 to-muted/10',
-    iconGradient: 'from-muted-foreground to-muted-foreground/80',
+    iconColor: 'text-amber-600',
     format: (value: number) => value.toLocaleString('es-AR'),
   },
   {
     key: 'commissions' as const,
     label: 'Comisiones',
     icon: Percent,
-    gradient: 'from-primary/5 to-accent/10',
-    iconGradient: 'from-primary/90 to-accent/90',
+    iconColor: 'text-violet-600',
     format: (value: number) => currencyFormatter.format(value),
   },
 ];
@@ -67,31 +63,15 @@ export function StatsCards({ data }: StatsCardsProps) {
         const Icon = card.icon;
         const value = valueMap[card.key];
         return (
-          <Card
-            key={card.key}
-            className={cn(
-              'group relative overflow-hidden rounded-2xl border-0 shadow-sm',
-              'hover:shadow-md hover:-translate-y-0.5',
-              'transition-all duration-300 ease-out',
-              'bg-gradient-to-br',
-              card.gradient
-            )}
-          >
-            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-current to-transparent opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
+          <Card key={card.key} className="rounded-2xl shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between pb-2 p-5">
               <CardTitle className="text-xs font-semibold text-muted-foreground/80 uppercase tracking-wider">
                 {card.label}
               </CardTitle>
-              <div className={cn(
-                'flex size-9 shrink-0 items-center justify-center rounded-xl',
-                'bg-gradient-to-br text-white shadow-sm',
-                card.iconGradient
-              )}>
-                <Icon className="size-4" />
-              </div>
+              <Icon className={cn('size-4', card.iconColor)} />
             </CardHeader>
             <CardContent className="p-5 pt-0">
-              <div className="text-2xl lg:text-3xl font-bold tabular-nums tracking-tight text-foreground">
+              <div className="text-2xl font-bold tabular-nums">
                 {card.format(value)}
               </div>
             </CardContent>
