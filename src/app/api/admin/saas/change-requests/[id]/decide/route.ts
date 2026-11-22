@@ -75,13 +75,22 @@ export async function POST(
         });
 
         if (!subscription) {
-          throw new Error('Institution has no active SaaS subscription to update');
+          // First plan for this institution: create the subscription directly
+          // with the requested plan (nothing else in the system creates them,
+          // so approval is the only entry point for a first subscription).
+          await tx.saasSubscription.create({
+            data: {
+              institutionId: changeRequest.institutionId,
+              saasPlanId: changeRequest.requestedSaasPlanId,
+              status: 'ACTIVE',
+            },
+          });
+        } else {
+          await tx.saasSubscription.update({
+            where: { id: subscription.id },
+            data: { pendingSaasPlanId: changeRequest.requestedSaasPlanId },
+          });
         }
-
-        await tx.saasSubscription.update({
-          where: { id: subscription.id },
-          data: { pendingSaasPlanId: changeRequest.requestedSaasPlanId },
-        });
 
         // Reject any other pending requests for the same institution so only
         // one approved change is in flight at a time.

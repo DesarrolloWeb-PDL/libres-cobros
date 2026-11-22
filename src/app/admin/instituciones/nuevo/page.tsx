@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { StyledSelect } from '@/components/ui/styled-select';
 import { toast } from '@/components/ui/toast';
 
 function slugify(text: string): string {
@@ -26,6 +27,25 @@ export default function NewInstitucionPage() {
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [slugEdited, setSlugEdited] = useState(false);
+  const [plans, setPlans] = useState<
+    { id: string; name: string; minMembers: number; maxMembers: number; priceArs: number }[]
+  >([]);
+  const [selectedPlanId, setSelectedPlanId] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/admin/saas/plans?active=true')
+      .then((r) => (r.ok ? r.json() : { data: [] }))
+      .then((d: { data?: { id: string; name: string; minMembers: number; maxMembers: number; priceArs: number }[] }) => {
+        if (!cancelled && Array.isArray(d.data)) setPlans(d.data);
+      })
+      .catch(() => {
+        /* sin planes: el selector queda solo con la opción gratuita */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function handleNameChange(value: string) {
     setName(value);
@@ -59,9 +79,41 @@ export default function NewInstitucionPage() {
         throw new Error(data.error || 'Error al crear la institución');
       }
 
+      const created = await response.json();
+
+      if (selectedPlanId) {
+        const subResponse = await fetch(
+          `/api/admin/saas/institutions/${created.id}/subscription`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ saasPlanId: selectedPlanId }),
+          }
+        );
+        const subText = await subResponse.text();
+
+        if (!subResponse.ok) {
+          let subData: { error?: string } = {};
+          try {
+            subData = JSON.parse(subText);
+          } catch {
+            /* respuesta no JSON */
+          }
+          toast.add({
+            title: 'Institución creada, pero el plan no se asignó',
+            description: `${subData.error || 'Error al asignar el plan'} — podés asignarlo desde "Mi suscripción".`,
+            type: 'error',
+          });
+          router.push('/admin/instituciones');
+          return;
+        }
+      }
+
       toast.add({
         title: 'Institución creada',
-        description: `La institución "${name}" fue creada correctamente`,
+        description: selectedPlanId
+          ? `La institución "${name}" fue creada con su plan SaaS asignado`
+          : `La institución "${name}" fue creada correctamente`,
         type: 'success',
       });
 
@@ -113,6 +165,27 @@ export default function NewInstitucionPage() {
           />
           <p className="text-xs text-muted-foreground">
             Parte de la URL para el portal de socios. Ejemplo: libres-cobros.vercel.app/pagos/<strong>zum-zum</strong>
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="saasPlan">Plan SaaS</Label>
+          <StyledSelect
+            id="saasPlan"
+            value={selectedPlanId}
+            onChange={setSelectedPlanId}
+            options={[
+              { value: '', label: 'Sin plan — nivel gratuito' },
+              ...plans.map((p) => ({
+                value: p.id,
+                label: `${p.name} — ${p.minMembers}-${p.maxMembers} socios — $${p.priceArs.toLocaleString('es-AR')}/mes`,
+              })),
+            ]}
+            className="h-10"
+          />
+          <p className="text-xs text-muted-foreground">
+            Se asigna al crear la institución. Si lo dejás en gratuito, la institución
+            puede solicitar un plan después desde <strong>Mi suscripción</strong>.
           </p>
         </div>
 

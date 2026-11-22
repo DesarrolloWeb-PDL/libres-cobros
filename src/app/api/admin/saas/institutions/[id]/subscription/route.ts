@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { apiError, apiSuccess, apiDbError } from '@/lib/api-response';
 import { requireInstitution, AuthError } from '@/lib/access';
@@ -164,5 +165,90 @@ export async function GET(
       return apiError(error.message, error.status);
     }
     return apiDbError(error, 'Error al obtener la suscripción SaaS');
+  }
+}
+
+const AssignSubscriptionSchema = z.object({
+  saasPlanId: z.string().min(1, 'El plan es obligatorio'),
+});
+
+/**
+ * SUPER_ADMIN assigns the first SaaS plan directly (e.g. right after
+ * creating the institution). Later plan changes go through the
+ * request/approve flow, which updates the pending plan instead.
+ */
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const ctx = await requireInstitution(request);
+    const { id } = await params;
+
+    if (ctx.role !== 'SUPER_ADMIN') {
+      return apiError('No autorizado', 403, 'Solo SUPER_ADMIN puede asignar suscripciones', 'FORBIDDEN');
+    }
+
+    const body = await request.json();
+    const parsed = AssignSubscriptionSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return apiError(
+        'Datos inválidos',
+        400,
+        parsed.error.issues.map((e) => `${e.path.join('.')}: ${e.message}`).join('; '),
+        'VALIDATION_ERROR'
+      );
+    }
+
+    const institution = await prisma.club.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+
+    if (!institution) {
+      return apiError('Institución no encontrada', 404, 'ID de institución inválido', 'INSTITUTION_NOT_FOUND');
+    }
+
+    const plan = await prisma.saasPlan.findUnique({
+      where: { id: parsed.data.saasPlanId },
+    });
+
+    if (!plan || !plan.isActive) {
+      return apiError('Plan no encontrado', 404, 'El plan no existe o está inactivo', 'PLAN_NOT_FOUND');
+    }
+
+    const existing = await prisma.saasSubscription.findUnique({
+      where: { institutionId: id },
+    });
+
+    if (existing) {
+      return apiError(
+        'La institución ya tiene una suscripción',
+        409,
+        'Para cambiar de plan usá el flujo de solicitudes',
+        'SUBSCRIPTION_EXISTS'
+      );
+    }
+
+    const subscription = await prisma.saasSubscription.create({
+      data: {
+        institutionId: id,
+        saasPlanId: plan.id,
+        status: 'ACTIVE',
+      },
+      include: {
+        institution: { select: { id: true, name: true } },
+        saasPlan: { select: { id: true, name: true, priceArs: true, maxMembers: true } },
+        pendingSaasPlan: { select: { id: true, name: true } },
+      },
+    });
+
+    return apiSuccess(serializeSubscription(subscription));
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return apiError(error.message, error.status);
+    }
+    return apiDbError(error, 'Error al asignar la suscripción SaaS');
   }
 }
