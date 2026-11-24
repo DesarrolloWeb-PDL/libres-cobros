@@ -1,9 +1,6 @@
 import { prisma } from '@/lib/db';
 import type { GenerateFeesResult } from '@/types/fee';
-
-export function buildDueDate(year: number, month: number): Date {
-  return new Date(Date.UTC(year, month - 1, 10));
-}
+import { buildDueDateForConfig, getFeeConfig } from '@/lib/fee-config';
 
 /**
  * Generates monthly fees for a single institution: one Fee per ACTIVE or INACTIVE member of that
@@ -21,7 +18,7 @@ export async function generateMonthlyFees(
   year: number,
   options?: { dryRun?: boolean; imputationDate?: Date }
 ): Promise<GenerateFeesResult> {
-  const [members, plans, existingFees] = await Promise.all([
+  const [members, plans, existingFees, club] = await Promise.all([
     prisma.member.findMany({
       where: { clubId, status: { in: ['ACTIVE', 'INACTIVE'] }, planId: { not: null } },
       select: { id: true, planId: true },
@@ -34,7 +31,13 @@ export async function generateMonthlyFees(
       where: { clubId, month, year },
       select: { memberId: true },
     }),
+    prisma.club.findUnique({
+      where: { id: clubId },
+      select: { createdAt: true },
+    }),
   ]);
+
+  const feeConfig = await getFeeConfig(clubId, club?.createdAt ?? new Date());
 
   const planById = new Map(plans.map((plan) => [plan.id, plan]));
   const existingMemberIds = new Set(existingFees.map((fee) => fee.memberId));
@@ -43,7 +46,10 @@ export async function generateMonthlyFees(
     (member) => !!member.planId && planById.has(member.planId) && !existingMemberIds.has(member.id)
   );
 
-  const dueDate = options?.imputationDate ?? buildDueDate(year, month);
+  // Explicit imputationDate wins; otherwise the institution's configured due
+  // day (with next-month rollover) applies.
+  const dueDate =
+    options?.imputationDate ?? buildDueDateForConfig(year, month, feeConfig);
   const totalAmount = membersToCreate.reduce((sum, member) => {
     const plan = member.planId ? planById.get(member.planId) : undefined;
     return sum + (plan?.amount ?? 0);
@@ -62,6 +68,8 @@ export async function generateMonthlyFees(
     };
   }
 
+  const createdMemberIds: string[] = [];
+
   if (membersToCreate.length > 0) {
     await prisma.fee.createMany({
       data: membersToCreate.map((member) => {
@@ -79,6 +87,19 @@ export async function generateMonthlyFees(
       }),
       skipDuplicates: true,
     });
+
+    // createMany does not return ids — read back the rows for the members we
+    // just targeted (they had no fee for this period before the run).
+    const createdRows = await prisma.fee.findMany({
+      where: {
+        clubId,
+        month,
+        year,
+        memberId: { in: membersToCreate.map((member) => member.id) },
+      },
+      select: { memberId: true },
+    });
+    createdMemberIds.push(...createdRows.map((row) => row.memberId));
   }
 
   return {
@@ -90,6 +111,7 @@ export async function generateMonthlyFees(
     totalAmount,
     dueDate: dueDate.toISOString(),
     dryRun: false,
+    createdMemberIds,
   };
 }
 

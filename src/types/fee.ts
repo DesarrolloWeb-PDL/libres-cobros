@@ -99,6 +99,8 @@ export interface GenerateFeesResult {
   totalAmount?: number;
   dueDate?: string;
   dryRun?: boolean;
+  /** Members that received a NEW fee in this run (drives the auto-notify). */
+  createdMemberIds?: string[];
 }
 
 export interface MemberFeeItem {
