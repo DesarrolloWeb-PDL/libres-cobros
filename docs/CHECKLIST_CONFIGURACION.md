@@ -17,7 +17,8 @@ Panel → **Configuración** (pestañas: *Datos bancarios · Medios de pago · F
 | 3 | Credenciales de cobro (MP y/o Stripe) | Medios de pago | Toggle "Ofrecer MP/Stripe a los socios" |
 | 4 | WhatsApp (+ plantilla) o Email | Mensajería | Recordatorios, campañas y mensajes |
 | 5 | Certificados ARCA (opcional) | Facturación ARCA | Comprobantes electrónicos (Recibo C) |
-| 6 | Socios → Planes → Cuotas | Socios / Cuotas | Primer cobro |
+| 6 | Días de cuotas y aviso a socios | Cuotas | Generación automática + aviso al generarse |
+| 7 | Socios → Planes → Cuotas | Socios / Cuotas | Primer cobro |
 
 ---
 
@@ -112,6 +113,23 @@ Panel → **Configuración** (pestañas: *Datos bancarios · Medios de pago · F
       (Certificados → *Descargar clave privada y certificado*).
 - [ ] Clic en **"Probar credenciales"** (emite un ticket de acceso sin comprobante) hasta que diga OK.
 - [ ] Activar **"Emitir comprobantes electrónicos (ARCA)"**.
+
+---
+
+## 6. Cuotas — días de generación y aviso a socios
+
+**Campos:** `Día de generación` · `Día de vencimiento` · `Aviso automático a los socios`
+
+- [ ] **Día de generación** (1-28, default 1) — día del mes en que el sistema crea las cuotas.
+- [ ] **Día de vencimiento** (1-28, default 10) — si es menor o igual al día de
+      generación, la cuota vence el mismo día del **mes siguiente**
+      (ej: generación 28, vencimiento 5 → vence el 5 del mes que viene).
+- [ ] **Aviso automático** — mensaje solo a los socios con cuota nueva, por el canal
+      configurado (WhatsApp o email). Sin canal configurado no se envía nada.
+
+El cron corre **todos los días** y genera solo en el día configurado de cada
+institución, siempre que ya haya pasado su **fecha de inicio** (por defecto: el mes
+siguiente al alta; la define el SUPER_ADMIN desde Instituciones → Editar).
 
 ---
 

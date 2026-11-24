@@ -115,9 +115,11 @@ Podés tener varios planes conviviendo.
    (ya la tienen) y el total.
 3. **Generar**: crea las cuotas en estado *pendiente*.
 
-Esto también lo hace **solo, todos los días 1 del mes** (ver
-[sección 10](#10-automatismos-que-corren-solos)) — la generación manual es para
-adelantarte o cubrir un mes que faltó.
+Esto también lo hace **solo, todos los días** (ver
+[sección 10](#10-automatismos-que-corren-solos)): el sistema genera en el **día
+configurado de cada institución** (Configuración → Cuotas; por defecto el día 1),
+siempre desde su fecha de inicio. La generación manual es para adelantarte o
+cubrir un mes que faltó.
 
 <img src="../manual/img/admin-04-cuotas.png" width="600" alt="Sección de cuotas con el botón Generar cuotas">
 
@@ -282,7 +284,7 @@ Estos procesos están programados y no requieren que hagas nada:
 
 | Automatismo | Cuándo | Qué hace |
 |---|---|---|
-| Generación de cuotas | El **día 1 de cada mes**, 06:00 | Crea las cuotas del mes para los socios activos |
+| Generación de cuotas | **Todos los días**, 06:00 | Genera las cuotas de cada institución en su día configurado (Configuración → Cuotas; default: día 1), si ya pasó su fecha de inicio |
 | Marcaje de vencidas | **Todos los días**, 06:00 | Pasa a *vencida* la cuota que venció sin pago |
 | Recordatorios / mensajes | **Cada 5 minutos** | Despacha los mensajes programados y recordatorios |
 | Facturación SaaS | Todos los días, 09:00 | (Plataforma) emite la facturación de las instituciones |
