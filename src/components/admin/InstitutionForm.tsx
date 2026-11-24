@@ -33,6 +33,9 @@ export function InstitutionForm({ club }: InstitutionFormProps) {
     (club.ivaCondicion as 'CF' | 'MONO' | 'RI' | 'EXENTO') ?? 'CF'
   );
   const [bgColor, setBgColor] = useState<string>(club.bgColor ?? '#f8fafc');
+  const [feeGenerationStart, setFeeGenerationStart] = useState(
+    club.feeGenerationStart ?? ''
+  );
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -51,6 +54,7 @@ export function InstitutionForm({ club }: InstitutionFormProps) {
           cuit: cuit.trim() || null,
           ivaCondicion,
           bgColor,
+          feeGenerationStart: feeGenerationStart || null,
         }),
       });
 
@@ -195,6 +199,23 @@ export function InstitutionForm({ club }: InstitutionFormProps) {
             required
             className="h-10"
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="feeGenerationStart" className="text-sm font-medium">
+            Inicio de generación de cuotas
+          </Label>
+          <Input
+            id="feeGenerationStart"
+            type="date"
+            value={feeGenerationStart}
+            onChange={(e) => setFeeGenerationStart(e.target.value)}
+            className="h-10"
+          />
+          <p className="text-xs text-muted-foreground">
+            Fecha desde la que empiezan a generarse las cuotas de esta institución.
+            Si la dejás vacía, arranca el <strong>mes siguiente</strong> al alta.
+          </p>
         </div>
 
         <div className="space-y-2">

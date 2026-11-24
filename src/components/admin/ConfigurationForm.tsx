@@ -4,6 +4,7 @@ import { useState, useSyncExternalStore } from 'react';
 import {
   AlertCircle,
   Building2,
+  CalendarDays,
   Check,
   Copy,
   CreditCard,
@@ -53,6 +54,9 @@ const siteConfigLabels: Record<string, string> = {
   whatsapp_otp_template_name: 'Plantilla de códigos de acceso',
   portal_otp_enabled: 'Acceso verificado por código (OTP)',
   portal_otp_test_code: 'Código de prueba (solo testing)',
+  fee_generation_day: 'Día de generación',
+  fee_due_day: 'Día de vencimiento',
+  fee_notify_enabled: 'Aviso automático a los socios',
   resend_api_key: 'API Key',
   resend_from_email: 'Email remitente',
   arca_enabled: 'Emitir comprobantes electrónicos (ARCA)',
@@ -82,6 +86,8 @@ const siteConfigPlaceholders: Record<string, string> = {
   whatsapp_template_language: 'Ej: es_AR',
   whatsapp_otp_template_name: 'Ej: codigo_acceso (vacío = texto libre)',
   portal_otp_test_code: 'Ej: 55667788 — DEJAR VACÍO EN PRODUCCIÓN',
+  fee_generation_day: 'Ej: 1 (default: 1)',
+  fee_due_day: 'Ej: 10 (default: 10)',
   resend_api_key: 'Ej: re_xxxxxxxx',
   resend_from_email: 'Ej: Cuotas <cuotas@tudominio.com>',
   arca_cuit: 'Ej: 30712345678',
@@ -327,6 +333,10 @@ export function ConfigurationForm({
                 <TabsTrigger value="messaging">
                   <MessageSquare className="size-4 mr-2" />
                   Mensajería
+                </TabsTrigger>
+                <TabsTrigger value="fees">
+                  <CalendarDays className="size-4 mr-2" />
+                  Cuotas
                 </TabsTrigger>
               </TabsList>
 
@@ -592,6 +602,34 @@ export function ConfigurationForm({
                         renderTextField(key)
                       )}
                     </div>
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="fees" className="mt-5">
+                <div className="space-y-4">
+                  <div className="mb-4">
+                    <h3 className="text-sm font-medium">Generación de cuotas</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Días en que el sistema genera las cuotas mensuales y avisa a los socios.
+                    </p>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {renderTextField('fee_generation_day', { type: 'number' })}
+                    {renderTextField('fee_due_day', { type: 'number' })}
+                  </div>
+                  <p className="text-xs text-muted-foreground -mt-2">
+                    Días entre 1 y 28. Si el vencimiento es menor o igual al día de generación,
+                    la cuota vence el mismo día del <strong>mes siguiente</strong> (ej: generación
+                    28, vencimiento 5 → vence el 5 del mes que viene). El sistema corre todos los
+                    días y genera solo en el día configurado de la institución.
+                  </p>
+                  <div className="pt-2 border-t">
+                    {renderSwitch('fee_notify_enabled', 'Avisar a los socios al generarse la cuota')}
+                    <p className="text-xs text-muted-foreground mt-1.5 ml-6">
+                      Mensaje automático solo a los socios que reciben cuota nueva, por el canal
+                      configurado (WhatsApp o email). Sin canal configurado no se envía nada.
+                    </p>
                   </div>
                 </div>
               </TabsContent>

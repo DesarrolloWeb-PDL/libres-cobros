@@ -86,6 +86,30 @@ vi.mock('@/lib/db', () => {
           };
         }
       ),
+      upsert: vi.fn(
+        async (args: {
+          where: { clubId_key: { clubId: string; key: string } };
+          update: Record<string, unknown>;
+          create: Record<string, unknown>;
+        }) => {
+          const target = state.configs.find(
+            (c) =>
+              c.clubId === args.where.clubId_key.clubId &&
+              c.key === args.where.clubId_key.key
+          );
+          if (target) {
+            Object.assign(target, args.update);
+            return { ...target, updatedAt: new Date() };
+          }
+          const config = {
+            id: `sc-${state.configs.length + 1}`,
+            updatedAt: new Date(),
+            ...args.create,
+          } as (typeof state.configs)[number];
+          state.configs.push(config);
+          return config;
+        }
+      ),
     },
     $transaction: vi.fn(async (fn: unknown) => {
       if (typeof fn === 'function') {
@@ -118,6 +142,7 @@ const prismaMock = prisma as unknown as {
     findMany: ReturnType<typeof vi.fn>;
     create: ReturnType<typeof vi.fn>;
     update: ReturnType<typeof vi.fn>;
+    upsert: ReturnType<typeof vi.fn>;
   };
   $transaction: ReturnType<typeof vi.fn>;
   $reset: () => void;

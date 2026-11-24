@@ -32,7 +32,7 @@ const IvaCondicionSchema = z.enum(['CF', 'MONO', 'RI', 'EXENTO']);
 
 const UpdateInstitutionSchema = z.object({
   name: z.string().min(1, 'El nombre es obligatorio').optional(),
-  siglas: z.string().optional(),
+  siglas: z.string().nullable().optional(),
   phone: z.string().max(50).nullable().optional(),
   slug: z
     .string()
@@ -49,6 +49,11 @@ const UpdateInstitutionSchema = z.object({
   secondaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
   accentColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
   bgColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  feeGenerationStart: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido (YYYY-MM-DD)')
+    .nullable()
+    .optional(),
 });
 
 function validateCommission(
@@ -114,7 +119,14 @@ export async function GET(
       return apiError('Institución no encontrada', 404, 'ID de institución inválido', 'INSTITUTION_NOT_FOUND');
     }
 
-    return apiSuccess(serializeInstitution(institution));
+    const feeGenerationStart = await prisma.siteConfig.findUnique({
+      where: { clubId_key: { clubId: id, key: 'fee_generation_start' } },
+    });
+
+    return apiSuccess({
+      ...serializeInstitution(institution),
+      feeGenerationStart: feeGenerationStart?.value || null,
+    });
   } catch (error) {
     if (error instanceof AuthError) {
       return apiError(error.message, error.status);
@@ -206,6 +218,25 @@ export async function PATCH(
 
     if (parsed.data.cuit !== undefined) {
       await syncArcaCuit(id, parsed.data.cuit);
+    }
+
+    // The fee generation start lives in SiteConfig and only the platform
+    // admin decides when an institution starts generating (spec S5).
+    if (parsed.data.feeGenerationStart !== undefined && ctx.role === 'SUPER_ADMIN') {
+      const value = parsed.data.feeGenerationStart ?? '';
+      const existingStart = await prisma.siteConfig.findUnique({
+        where: { clubId_key: { clubId: id, key: 'fee_generation_start' } },
+      });
+      if (existingStart) {
+        await prisma.siteConfig.update({
+          where: { id: existingStart.id },
+          data: { value },
+        });
+      } else if (value) {
+        await prisma.siteConfig.create({
+          data: { clubId: id, key: 'fee_generation_start', value },
+        });
+      }
     }
 
     return apiSuccess(serializeInstitution(institution));

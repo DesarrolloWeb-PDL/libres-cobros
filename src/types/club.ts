@@ -41,6 +41,9 @@ export interface InstitutionListItem {
   secondaryColor?: string;
   accentColor?: string;
   bgColor?: string;
+  // Fee generation start date (YYYY-MM-DD), set by the platform (spec S5).
+  // Null/absent = starts the month after signup.
+  feeGenerationStart?: string | null;
   createdAt: string;
   updatedAt: string;
 }

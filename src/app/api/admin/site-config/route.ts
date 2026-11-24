@@ -53,6 +53,11 @@ const CONFIG_KEYS = [
   'whatsapp_otp_template_name',
   'portal_otp_enabled',
   'portal_otp_test_code',
+  // Per-institution fee generation (specs S2/S3)
+  'fee_generation_day',
+  'fee_due_day',
+  'fee_notify_enabled',
+  'fee_generation_start',
   // Platform SaaS billing (platform-level; stored with clubId = null)
   'saas_billing_enabled',
   'saas_billing_day',
@@ -98,6 +103,10 @@ const INSTITUTION_ONLY_KEYS = [
   'whatsapp_otp_template_name',
   'portal_otp_enabled',
   'portal_otp_test_code',
+  'fee_generation_day',
+  'fee_due_day',
+  'fee_notify_enabled',
+  'fee_generation_start',
 ];
 
 // Platform-scoped keys must only be written when no institution is selected.
@@ -126,6 +135,15 @@ const CERT_CONFIG_KEYS = new Set(['arca_cert', 'saas_arca_cert']);
 // check with "Clave fuera de alcance".
 const PLATFORM_SCOPE_KEYS = CONFIG_KEYS.filter((key) => PLATFORM_ONLY_KEYS.includes(key));
 const INSTITUTION_SCOPE_KEYS = CONFIG_KEYS.filter((key) => !PLATFORM_ONLY_KEYS.includes(key));
+
+// Values used when the GET endpoint auto-ensures a missing institution key.
+// Fee settings seed with their real defaults so the form shows what the
+// system will actually do instead of empty inputs.
+const INSTITUTION_SEED_DEFAULTS: Record<string, string> = {
+  fee_generation_day: '1',
+  fee_due_day: '10',
+  fee_notify_enabled: 'true',
+};
 
 function maskCertValue(value: string): string {
   const trimmed = value.trim();
@@ -216,7 +234,7 @@ export async function GET(request: NextRequest) {
           data: {
             clubId: ctx.institutionId!,
             key,
-            value: '',
+            value: INSTITUTION_SEED_DEFAULTS[key] ?? '',
           },
         })
       )
@@ -332,55 +350,104 @@ export async function PUT(request: NextRequest) {
       }
     }
 
+    // Fee generation days: 1-28 so the day exists in every month (spec S2).
+    for (const dayKey of ['fee_generation_day', 'fee_due_day']) {
+      const dayConfig = configs.find((c) => c.key === dayKey);
+      if (dayConfig && dayConfig.value.trim() !== '') {
+        const day = Number.parseInt(dayConfig.value.trim(), 10);
+        if (Number.isNaN(day) || day < 1 || day > 28) {
+          return apiError(
+            'Día inválido',
+            400,
+            `${dayKey} debe ser un número entre 1 y 28`,
+            'VALIDATION_ERROR'
+          );
+        }
+      }
+    }
+
     const clubId = ctx.institutionId;
 
     // Platform-level config (SUPER_ADMIN without institution selection).
     // @@unique([clubId, key]) treats NULLs as distinct in PostgreSQL, so upsert
     // via the compound key is unreliable — use findFirst + update/create.
-    const updated = await prisma.$transaction(async (tx) => {
-      const results = [];
-      for (const config of configs) {
-        const existing = clubId
-          ? await tx.siteConfig.findUnique({
-              where: { clubId_key: { clubId, key: config.key } },
-            })
-          : await tx.siteConfig.findFirst({
+    // The unique [clubId, key] supports upsert directly for institution rows
+    // (one round trip per key). Platform rows keep find-first + write because
+    // @@unique treats NULLs as distinct in PostgreSQL, so the compound upsert
+    // is unreliable for clubId = null. Secret/cert keys need their current
+    // value when the input is empty, so they always read first. The timeout is
+    // raised because this loop issues one round trip per configured key.
+    const updated = await prisma.$transaction(
+      async (tx) => {
+        const results = [];
+        for (const config of configs) {
+          const isSecretKey = PRIVATE_KEY_CONFIG_KEYS.has(config.key);
+          const isCertKey = CERT_CONFIG_KEYS.has(config.key);
+
+          if (isSecretKey || isCertKey) {
+            const existing = clubId
+              ? await tx.siteConfig.findUnique({
+                  where: { clubId_key: { clubId, key: config.key } },
+                })
+              : await tx.siteConfig.findFirst({
+                  where: { clubId: null, key: config.key },
+                });
+            const currentValue = existing?.value ?? '';
+
+            // Write-only secrets: an empty/masked value means "keep existing".
+            let nextValue = config.value;
+            if (!nextValue.trim()) {
+              nextValue = currentValue;
+            }
+            if (isSecretKey && nextValue.trim() && nextValue !== currentValue) {
+              nextValue = encryptArcaKey(nextValue);
+            }
+
+            if (existing) {
+              results.push(
+                await tx.siteConfig.update({
+                  where: { id: existing.id },
+                  data: { value: nextValue },
+                })
+              );
+            } else {
+              results.push(
+                await tx.siteConfig.create({
+                  data: { clubId: clubId ?? null, key: config.key, value: nextValue },
+                })
+              );
+            }
+            continue;
+          }
+
+          if (clubId) {
+            results.push(
+              await tx.siteConfig.upsert({
+                where: { clubId_key: { clubId, key: config.key } },
+                update: { value: config.value },
+                create: { clubId, key: config.key, value: config.value },
+              })
+            );
+          } else {
+            const existing = await tx.siteConfig.findFirst({
               where: { clubId: null, key: config.key },
             });
-
-        const isSecretKey = PRIVATE_KEY_CONFIG_KEYS.has(config.key);
-        const isCertKey = CERT_CONFIG_KEYS.has(config.key);
-        const currentValue = existing?.value ?? '';
-
-        // Write-only secrets: an empty/masked value means "keep existing".
-        // This lets the UI show "configured" without echoing the PEM back.
-        let nextValue = config.value;
-        if ((isSecretKey || isCertKey) && !nextValue.trim()) {
-          nextValue = currentValue;
+            results.push(
+              existing
+                ? await tx.siteConfig.update({
+                    where: { id: existing.id },
+                    data: { value: config.value },
+                  })
+                : await tx.siteConfig.create({
+                    data: { clubId: null, key: config.key, value: config.value },
+                  })
+            );
+          }
         }
-        if (isSecretKey && nextValue.trim() && nextValue !== currentValue) {
-          nextValue = encryptArcaKey(nextValue);
-        }
-
-        if (existing) {
-          results.push(
-            await tx.siteConfig.update({
-              where: { id: existing.id },
-              data: { value: nextValue },
-            })
-          );
-        } else {
-          results.push(
-            await tx.siteConfig.create({
-              data: clubId
-                ? { clubId, key: config.key, value: nextValue }
-                : { clubId: null, key: config.key, value: nextValue },
-            })
-          );
-        }
-      }
-      return results;
-    });
+        return results;
+      },
+      { timeout: 15000 }
+    );
 
     const response: SiteConfigListResponse = {
       data: updated.map(serializeConfig),
@@ -415,6 +482,10 @@ function getConfigDescription(key: string): string {
     whatsapp_otp_template_name: 'Nombre de la plantilla aprobada para códigos de acceso al portal (vacío = texto libre)',
     portal_otp_enabled: 'Acceso al portal verificado por código (OTP) — requiere plantilla de WhatsApp o email configurados',
     portal_otp_test_code: 'Código fijo de prueba para el portal (vacío = desactivado) — DEJAR VACÍO EN PRODUCCIÓN',
+    fee_generation_day: 'Día del mes (1-28) en que se generan las cuotas',
+    fee_due_day: 'Día del mes (1-28) de vencimiento de las cuotas',
+    fee_notify_enabled: 'Avisar automáticamente a los socios cuando se genera su cuota',
+    fee_generation_start: 'Fecha (YYYY-MM-DD) desde la que empiezan a generarse las cuotas',
     resend_api_key: 'API Key de Resend para envío de emails',
     resend_from_email: 'Email remitente (ej: Cuotas <cuotas@tudominio.com>)',
     arca_enabled: 'Emitir comprobantes electrónicos ARCA (Recibo C) ante cada pago confirmado',
