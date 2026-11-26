@@ -24,6 +24,7 @@ import {
   Palette,
   Layers,
   BookOpen,
+  Globe,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -47,6 +48,7 @@ const navItems = [
   { href: '/admin/suscripcion', label: 'Mi suscripción', icon: Wallet, roles: ['ADMIN'] as const },
   { href: '/admin/configuracion', label: 'Configuración', icon: Settings, roles: ['SUPER_ADMIN', 'ADMIN'] as const },
   { href: '/admin/apariencia', label: 'Apariencia', icon: Palette, roles: ['SUPER_ADMIN', 'ADMIN'] as const },
+  { href: '/admin/landing', label: 'Landing', icon: Globe, roles: ['SUPER_ADMIN', 'ADMIN'] as const },
 ];
 
 interface InstitutionData {

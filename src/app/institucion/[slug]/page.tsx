@@ -1,8 +1,9 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { LayoutDashboard, Phone, Wallet } from 'lucide-react';
+import { Globe, LayoutDashboard, Phone, Wallet } from 'lucide-react';
 import { prisma } from '@/lib/db';
+import { LANDING_KEYS } from '@/lib/landing';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,6 +15,7 @@ async function getClub(slug: string) {
   return prisma.club.findUnique({
     where: { slug },
     select: {
+      id: true,
       name: true,
       slug: true,
       logoUrl: true,
@@ -50,6 +52,12 @@ export default async function InstitutionLandingPage({ params }: LandingParams) 
   const secondary = club.secondaryColor || '#a78bfa';
   const phoneHref = club.phone ? `tel:${club.phone.replace(/[^\d+]/g, '')}` : null;
 
+  // External landing URL (spec S4): shown only when configured.
+  const landingRow = await prisma.siteConfig.findUnique({
+    where: { clubId_key: { clubId: club.id, key: LANDING_KEYS.url } },
+  });
+  const landingUrl = landingRow?.value || null;
+
   return (
     <main
       className="min-h-screen flex flex-col items-center justify-center px-4 py-12"
@@ -84,6 +92,27 @@ export default async function InstitutionLandingPage({ params }: LandingParams) 
 
         {/* Access points */}
         <div className="mt-8 space-y-3 text-left">
+          {landingUrl && (
+            <a
+              href={landingUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center gap-4 rounded-2xl border bg-card p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+              style={{ borderColor: `${primary}33` }}
+            >
+              <Globe className="size-6 shrink-0" style={{ color: primary }} />
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold">Sitio web de la institución</p>
+                <p className="truncate text-sm text-muted-foreground">
+                  {landingUrl.replace(/^https?:\/\//, '')}
+                </p>
+              </div>
+              <span className="text-xl text-muted-foreground transition-transform group-hover:translate-x-1">
+                ↗
+              </span>
+            </a>
+          )}
+
           <Link
             href={`/pagos/${club.slug}`}
             className="group flex items-center gap-4 rounded-2xl p-5 shadow-md transition-transform hover:-translate-y-0.5"
