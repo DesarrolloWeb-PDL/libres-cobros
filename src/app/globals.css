@@ -439,3 +439,35 @@ a, button, input, select, textarea {
     stroke-dashoffset: 0;
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Photo-band scrims (landing parallax): theme-adaptive scrim keeps the */
+/* hero copy on theme colors; the fixed navy scrim backs white copy.    */
+/* ------------------------------------------------------------------ */
+:root {
+  --hero-scrim: linear-gradient(
+    180deg,
+    rgba(248, 250, 252, 0.8) 0%,
+    rgba(248, 250, 252, 0.58) 100%
+  );
+}
+
+.dark {
+  --hero-scrim: linear-gradient(
+    180deg,
+    rgba(0, 26, 64, 0.86) 0%,
+    rgba(0, 26, 64, 0.74) 100%
+  );
+}
+
+.hero-scrim {
+  background: var(--hero-scrim);
+}
+
+.hero-scrim-navy {
+  background: linear-gradient(
+    180deg,
+    rgba(0, 26, 64, 0.82) 0%,
+    rgba(14, 27, 99, 0.86) 100%
+  );
+}

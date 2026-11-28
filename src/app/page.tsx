@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Footer } from '@/components/Footer';
 import { Header } from '@/components/landing/Header';
+import { ParallaxBackdrop } from '@/components/landing/ParallaxBackdrop';
 import { HeroPanel } from '@/components/landing/HeroPanel';
 import { SocialProofBar } from '@/components/landing/SocialProofBar';
 import { AppScreenshot } from '@/components/landing/AppScreenshot';
@@ -142,20 +143,22 @@ export default async function LandingPage() {
       <Header />
 
       {/* Hero */}
-      <header className="relative flex flex-col items-center justify-center min-h-[72vh] px-6 pt-[calc(env(safe-area-inset-top)_+_6rem)] pb-16 text-center">
-        <h1 className="text-5xl sm:text-6xl md:text-7xl font-heading font-extrabold tracking-tight mb-4">
-          Libres Cobros
-        </h1>
-        <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-5">
-          Para clubes e instituciones
-        </p>
-        <h2 className="text-xl sm:text-2xl md:text-3xl font-heading font-semibold tracking-tight mb-6 max-w-2xl text-muted-foreground">
-          Cobrá tus cuotas sin comisiones ni letra chica.
-        </h2>
-        <p className="max-w-xl text-muted-foreground leading-relaxed mb-8">
-          Débito automático incluido. Un precio publicado, sin porcentaje sobre lo que recaudás.
-          Gratis hasta 50 socios.
-        </p>
+      <header className="relative flex min-h-[72vh] flex-col items-center justify-center overflow-hidden px-6 pt-[calc(env(safe-area-inset-top)_+_6rem)] pb-16 text-center">
+        <ParallaxBackdrop src="/img/landing-hero.jpg" />
+        <div className="relative z-10 flex w-full flex-col items-center">
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-heading font-extrabold tracking-tight mb-4">
+            Libres Cobros
+          </h1>
+          <p className="text-primary font-mono text-xs tracking-[0.2em] uppercase mb-5">
+            Para clubes e instituciones
+          </p>
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-heading font-semibold tracking-tight mb-6 max-w-2xl text-foreground/90">
+            Cobrá tus cuotas sin comisiones ni letra chica.
+          </h2>
+          <p className="max-w-xl text-foreground/85 leading-relaxed mb-8">
+            Débito automático incluido. Un precio publicado, sin porcentaje sobre lo que recaudás.
+            Gratis hasta 50 socios.
+          </p>
         <div className="flex flex-col sm:flex-row gap-4 mb-12">
           <Link
             href="/registro"
@@ -172,6 +175,7 @@ export default async function LandingPage() {
           </Link>
         </div>
         <HeroPanel />
+        </div>
       </header>
 
       <SocialProofBar />
@@ -201,7 +205,7 @@ export default async function LandingPage() {
         </section>
 
         {/* How it works */}
-        <section id="como-funciona" className="py-16 px-6 border-t border-border bg-muted/30 scroll-mt-24">
+        <section id="como-funciona" className="py-16 px-6 border-t border-border bg-secondary scroll-mt-24">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
               <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-3">
@@ -258,7 +262,7 @@ export default async function LandingPage() {
         </section>
 
         {/* Vista del panel */}
-        <section id="vista-panel" className="py-16 px-6 border-t border-border bg-muted/30 scroll-mt-24">
+        <section id="vista-panel" className="py-16 px-6 border-t border-border bg-card scroll-mt-24">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
               <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-3">
@@ -288,7 +292,7 @@ export default async function LandingPage() {
 
         {/* Pricing */}
         {/* Prices are rendered from the active SaaS plan catalog (D7). Deactivated plans are hidden. */}
-        <section id="precios" className="py-16 px-6 border-t border-border bg-muted/30 scroll-mt-24">
+        <section id="precios" className="py-16 px-6 border-t border-border bg-secondary scroll-mt-24">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
               <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-3">
@@ -332,7 +336,7 @@ export default async function LandingPage() {
         </section>
 
         {/* Trust commitments */}
-        <section id="compromisos" className="py-16 px-6 border-t border-border bg-muted/30 scroll-mt-24">
+        <section id="compromisos" className="py-16 px-6 border-t border-border scroll-mt-24">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
               <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-3">
@@ -352,7 +356,7 @@ export default async function LandingPage() {
         </section>
 
         {/* FAQ */}
-        <section id="faq" className="py-16 px-6 border-t border-border scroll-mt-24">
+        <section id="faq" className="py-16 px-6 border-t border-border bg-card scroll-mt-24">
           <div className="max-w-3xl mx-auto">
             <div className="text-center mb-12">
               <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-3">FAQ</p>
@@ -377,13 +381,14 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        {/* Final CTA */}
-        <section className="py-20 px-6 border-t border-border bg-muted/30 text-center">
-          <div className="max-w-2xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl font-heading font-extrabold tracking-tight mb-4">
+        {/* Final CTA — photo band (parallax, always navy scrim + white copy) */}
+        <section className="relative overflow-hidden border-t border-border px-6 py-20 text-center">
+          <ParallaxBackdrop src="/img/landing-cta.jpg" scrim="navy" />
+          <div className="relative z-10 mx-auto max-w-2xl">
+            <h2 className="mb-4 text-3xl font-heading font-extrabold tracking-tight text-white sm:text-4xl">
               Empezá gratis. Que la cuota se cobre sola.
             </h2>
-            <p className="text-muted-foreground leading-relaxed mb-8">
+            <p className="mb-8 leading-relaxed text-white/85">
               Si tu club tiene hasta 50 socios, no pagás nada. Activá el débito automático y dejá
               de perseguir cobros — el precio siguiente está publicado, sin sorpresas.
             </p>
