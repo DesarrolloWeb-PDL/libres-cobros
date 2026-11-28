@@ -262,6 +262,20 @@ export default async function LandingPage() {
         </section>
 
         {/* Vista del panel */}
+        {/* Social proof photo band — member showing PAGADA at the club gate */}
+        <section className="relative overflow-hidden border-t border-border px-6 py-16 text-center">
+          <ParallaxBackdrop src="/img/landing-socio.jpg" scrim="navy" />
+          <div className="relative z-10 mx-auto max-w-2xl">
+            <h2 className="mb-4 text-2xl font-heading font-extrabold tracking-tight text-white sm:text-3xl">
+              La cuota al día, a la vista.
+            </h2>
+            <p className="leading-relaxed text-white/85">
+              Tu socio ve “PAGADA” en su portal y lo muestra donde hace falta. El club sabe
+              quién está al día sin perseguir a nadie.
+            </p>
+          </div>
+        </section>
+
         <section id="vista-panel" className="py-16 px-6 border-t border-border bg-card scroll-mt-24">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
@@ -336,6 +350,20 @@ export default async function LandingPage() {
         </section>
 
         {/* Trust commitments */}
+        {/* Payment coupon photo band — the member pays from the phone */}
+        <section className="relative overflow-hidden border-t border-border px-6 py-16 text-center">
+          <ParallaxBackdrop src="/img/landing-cupon.jpg" scrim="navy" />
+          <div className="relative z-10 mx-auto max-w-2xl">
+            <h2 className="mb-4 text-2xl font-heading font-extrabold tracking-tight text-white sm:text-3xl">
+              Su cupón, en el celular.
+            </h2>
+            <p className="leading-relaxed text-white/85">
+              Estado de la cuota, comprobante con QR y link de pago — todo desde el portal
+              del socio, en cualquier momento.
+            </p>
+          </div>
+        </section>
+
         <section id="compromisos" className="py-16 px-6 border-t border-border scroll-mt-24">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
