@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { BrandIntro } from '@/components/landing/BrandIntro';
 import { Footer } from '@/components/Footer';
 import { Header } from '@/components/landing/Header';
 import { HeroPanel } from '@/components/landing/HeroPanel';
@@ -139,6 +140,7 @@ export default async function LandingPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
+      <BrandIntro />
       <Header />
 
       {/* Hero */}

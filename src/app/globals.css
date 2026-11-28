@@ -384,3 +384,114 @@ a, button, input, select, textarea {
   font-weight: var(--text-caption-weight);
   line-height: var(--text-caption-line-height);
 }
+
+/* ------------------------------------------------------------------ */
+/* Brand intro — "Libres Cobros" fluidifies into the LC monogram        */
+/* (branding guide S1 transition storyboard). Plays once per session.   */
+/* ------------------------------------------------------------------ */
+.brand-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #1e1674 0%, #0e1b63 55%, #001a40 100%);
+}
+
+.brand-intro.exit {
+  animation: brandIntroOut 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.intro-stack {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.intro-wordmark {
+  grid-area: 1 / 1;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: clamp(34px, 7vw, 64px);
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  animation: introWordIn 0.65s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.intro-word-libres {
+  color: #ffffff;
+}
+
+.intro-word-cobros {
+  color: #d8b4fe;
+}
+
+.brand-intro.morph .intro-wordmark {
+  animation: introWordOut 0.55s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.intro-mark {
+  grid-area: 1 / 1;
+  opacity: 0;
+}
+
+.brand-intro.morph .intro-mark {
+  animation: introMarkIn 0.7s 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.brand-intro.morph .intro-mark path {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: introDraw 0.85s 0.35s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+@keyframes introWordIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+@keyframes introWordOut {
+  to {
+    opacity: 0;
+    transform: scale(0.82);
+    filter: blur(10px);
+  }
+}
+
+@keyframes introMarkIn {
+  from {
+    opacity: 0;
+    transform: scale(0.65) rotate(-8deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes introDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes brandIntroOut {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-intro {
+    display: none;
+  }
+}
