@@ -14,7 +14,9 @@ const navItems = [
   { label: 'FAQ', href: '#faq' },
 ];
 
-const LOCKUP_KEY = 'lc-lockup-played';
+// v2: the v1 flag got burned while the lockup CSS was stale (Turbopack panic),
+// so existing sessions never saw the effect — bumping replays it once.
+const LOCKUP_KEY = 'lc-lockup-played-v2';
 type LockupPhase = 'name' | 'morph' | 'done';
 
 export function Header() {
@@ -35,6 +37,12 @@ export function Header() {
     if (reduce || sessionStorage.getItem(LOCKUP_KEY)) {
       const id = window.setTimeout(() => setLockup('done'), 0);
       return () => window.clearTimeout(id);
+    }
+    // If the lockup CSS hasn't applied (stale stylesheet), skip WITHOUT
+    // burning the session flag so a later load can still play the effect.
+    const wrap = document.querySelector('.brand-mark-wrap');
+    if (wrap && getComputedStyle(wrap).opacity !== '0') {
+      return;
     }
     const t1 = window.setTimeout(() => setLockup('morph'), 850);
     const t2 = window.setTimeout(() => {

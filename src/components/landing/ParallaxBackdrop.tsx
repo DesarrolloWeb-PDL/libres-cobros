@@ -34,7 +34,9 @@ export function ParallaxBackdrop({ src, scrim = 'theme' }: ParallaxBackdropProps
       if (!layer || !host) return;
       const rect = host.getBoundingClientRect();
       const progress = Math.min(1, Math.max(0, -rect.top / Math.max(1, rect.height)));
-      layer.style.transform = `translate3d(0, ${Math.round(progress * 60)}px, 0)`;
+      // 300px of lag across the band's scroll-out: ~30% slower than the page —
+      // clearly perceptible — while the ±300px headroom keeps full coverage.
+      layer.style.transform = `translate3d(0, ${Math.round(progress * 300)}px, 0)`;
     };
     const onScroll = () => {
       if (!raf) raf = requestAnimationFrame(update);
@@ -51,7 +53,7 @@ export function ParallaxBackdrop({ src, scrim = 'theme' }: ParallaxBackdropProps
     <div className="absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
       <div
         ref={layerRef}
-        className="absolute inset-x-0 -top-[60px] -bottom-[60px] bg-cover bg-center will-change-transform"
+        className="absolute inset-x-0 -top-[300px] -bottom-[300px] bg-cover bg-center will-change-transform"
         style={{ backgroundImage: `url(${src})` }}
       />
       <div className={scrim === 'navy' ? 'hero-scrim-navy absolute inset-0' : 'hero-scrim absolute inset-0'} />
