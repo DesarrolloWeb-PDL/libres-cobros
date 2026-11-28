@@ -65,6 +65,35 @@ la página que ven tus socios para pagar.
 Panel → **Apariencia**: elegí los colores de marca (primario, secundario, acento, fondo).
 Se aplica al portal de socios y a los mensajes.
 
+### Landing de la institución (Panel → **Landing**)
+Tu institución puede tener un sitio público aparte (una landing) con eventos,
+autoridades y contacto. El contenido se carga desde el panel y la landing lo
+lee sola desde la API.
+
+<img src="../manual/img/admin-10-landing.png" width="600" alt="Panel de Landing con sus bloques de edición">
+
+*Panel de Landing: cada bloque se guarda por separado con su botón **Guardar**.*
+
+Qué podés administrar:
+
+- **URL del sitio**: enlace a la landing externa. Si la cargás, la página
+  `/institucion/<slug>` muestra la tarjeta **Sitio web de la institución**.
+- **Portada principal**: imagen de fondo (máx. 2 MB), titular, botón con texto
+  y link — es la publicidad que se ve al entrar a la landing.
+- **Eventos (carteles)**: hasta 8 flyers con título, fecha y link opcional
+  (máx. 1 MB cada uno).
+- **Autoridades**: hasta 12 (nombre y cargo).
+- **Contactos por área**: hasta 10 (área, teléfono, email y nota) — el
+  teléfono y el email se muestran como links tocables.
+- **Historia**: texto largo; los párrafos se separan con una línea en blanco.
+- **Apariencia**: tema claro/oscuro, qué secciones se muestran (eventos,
+  autoridades, contactos, historia) y el estilo de la portada (foto con
+  overlay o color de marca).
+
+> Los colores y el logo de la landing salen de la configuración de la
+> institución (ver **Apariencia** arriba); los cambios se ven al recargar el
+> sitio.
+
 ---
 
 ## 3. Socios
