@@ -83,7 +83,7 @@ export function AdminSidebar({ institution, themeColor, saasEnabled }: AdminSide
     : [];
 
   // Institution colors for admin - use themeColor for super admin
-  const primaryColor = themeColor || institution?.primaryColor || '#7c3aed';
+  const primaryColor = themeColor || institution?.primaryColor || '#582694';
   const accentStyle = { color: primaryColor };
   const accentBgStyle = { backgroundColor: primaryColor };
 

@@ -47,7 +47,7 @@ export default async function AdminDashboardPage() {
   const quickActions = [
     { href: '/admin/socios', label: 'Socios', description: 'Gestionar socios de la institución', icon: Users, color: 'bg-blue-500/10 text-blue-600', roles: ['ADMIN'] as const },
     { href: '/admin/pagos', label: 'Pagos', description: 'Historial de pagos recibidos', icon: CreditCard, color: 'bg-emerald-500/10 text-emerald-600', roles: ['ADMIN'] as const },
-    { href: '/admin/reportes', label: 'Reportes', description: 'Estadísticas y exportaciones', icon: FileText, color: 'bg-violet-500/10 text-violet-600', roles: ['ADMIN'] as const },
+    { href: '/admin/reportes', label: 'Reportes', description: 'Estadísticas y exportaciones', icon: FileText, color: 'bg-primary/10 text-primary', roles: ['ADMIN'] as const },
     { href: '/admin/instituciones', label: 'Instituciones', description: 'Administrar instituciones', icon: Users, color: 'bg-blue-500/10 text-blue-600', roles: ['SUPER_ADMIN'] as const },
     { href: '/admin/usuarios', label: 'Usuarios', description: 'Gestión de usuarios del sistema', icon: Users, color: 'bg-emerald-500/10 text-emerald-600', roles: ['SUPER_ADMIN'] as const },
   ];

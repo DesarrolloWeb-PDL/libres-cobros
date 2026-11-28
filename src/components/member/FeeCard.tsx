@@ -21,11 +21,11 @@ const statusLabels: Record<string, string> = {
 
 const statusBadgeClasses: Record<string, string> = {
   PENDING:
-    'bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800',
+    'bg-status-pending-bg text-status-pending border-status-pending/30 hover:bg-status-pending-bg',
   PAID:
-    'bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800',
+    'bg-status-paid-bg text-status-paid border-status-paid/30 hover:bg-status-paid-bg',
   OVERDUE:
-    'bg-red-100 text-red-700 border-red-200 hover:bg-red-100 dark:bg-red-950 dark:text-red-300 dark:border-red-800',
+    'bg-status-overdue-bg text-status-overdue border-status-overdue/30 hover:bg-status-overdue-bg',
 };
 
 const monthLabels: Record<number, string> = {

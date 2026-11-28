@@ -50,9 +50,9 @@ const statusLabels: Record<string, string> = {
 };
 
 const statusBadgeClasses: Record<string, string> = {
-  PENDING: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100',
-  PAID: 'bg-green-100 text-green-800 hover:bg-green-100',
-  FAILED: 'bg-red-100 text-red-800 hover:bg-red-100',
+  PENDING: 'bg-status-pending-bg text-status-pending hover:bg-status-pending-bg',
+  PAID: 'bg-status-paid-bg text-status-paid hover:bg-status-paid-bg',
+  FAILED: 'bg-status-overdue-bg text-status-overdue hover:bg-status-overdue-bg',
   REFUNDED: 'bg-gray-100 text-gray-800 hover:bg-gray-100',
   UNIDENTIFIED: 'bg-orange-100 text-orange-800 hover:bg-orange-100',
   PARTIAL: 'bg-blue-100 text-blue-800 hover:bg-blue-100',
@@ -68,7 +68,7 @@ const reconciliationLabels: Record<string, string> = {
 };
 
 const reconciliationBadgeClasses: Record<string, string> = {
-  PAID: 'bg-emerald-100 text-emerald-800 hover:bg-emerald-100',
+  PAID: 'bg-status-paid-bg text-status-paid hover:bg-status-paid-bg',
   PARTIAL: 'bg-blue-100 text-blue-800 hover:bg-blue-100',
   PENDING: 'bg-gray-100 text-gray-800 hover:bg-gray-100',
   UNIDENTIFIED: 'bg-gray-100 text-gray-800 hover:bg-gray-100',

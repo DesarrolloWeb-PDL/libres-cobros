@@ -48,7 +48,7 @@ export default async function InstitutionLandingPage({ params }: LandingParams) 
     notFound();
   }
 
-  const primary = club.primaryColor || '#7c3aed';
+  const primary = club.primaryColor || '#582694';
   const secondary = club.secondaryColor || '#a78bfa';
   const phoneHref = club.phone ? `tel:${club.phone.replace(/[^\d+]/g, '')}` : null;
 

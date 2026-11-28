@@ -96,6 +96,12 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-status-paid: var(--status-paid);
+  --color-status-paid-bg: var(--status-paid-bg);
+  --color-status-pending: var(--status-pending);
+  --color-status-pending-bg: var(--status-pending-bg);
+  --color-status-overdue: var(--status-overdue);
+  --color-status-overdue-bg: var(--status-overdue-bg);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
   --font-heading: var(--font-heading);
@@ -108,114 +114,140 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* Violet-tinted neutrals (not pure greys) so every surface belongs to the
-   brand family. Brand violet #7c3aed stays the 600 step of the ramp. */
+/* Brand palette — "Sistema de Branding: Libres Cobros" (specs S1-S2).
+   Light surfaces are blue-tinted slate (#F8FAFC family) with midnight ink;
+   brand anchor is deep violet #582694 with magenta #AD42AF accents. */
 :root {
-  --background: #faf9fd;
-  --foreground: #17141f;
-  --accent: #7c3aed;
-  --accent-hover: #6d28d9;
-  --muted: #66627a;
-  --muted-foreground: #4a4558;
-  --border: #e9e5f0;
-  --card: #ffffff;
-  --card-foreground: #17141f;
-  --primary: #7c3aed;
+  /* Brand (S1) */
+  --primary: #582694;
   --primary-foreground: #ffffff;
-  --secondary: #f1eef7;
-  --secondary-foreground: #17141f;
+  --accent: #ad42af;
+  --accent-hover: color-mix(in srgb, #ad42af 88%, #000000);
+  --ring: #582694;
+
+  /* Surfaces + ink (S2) */
+  --background: #f8fafc;
+  --foreground: #001a40;
+  --muted: #eff6ff;
+  --muted-foreground: #475569;
+  --border: #e2e8f0;
+  --card: #ffffff;
+  --card-foreground: #001a40;
+  --secondary: #eff6ff;
+  --secondary-foreground: #001a40;
   --destructive: #dc2626;
-  --ring: #7c3aed;
-  --input: #8b869c;
-  --chart-1: #7c3aed;
-  --chart-2: #a78bfa;
-  --chart-3: #c4b5fd;
-  --chart-4: #5b21b6;
-  --chart-5: #4c1d95;
+  --input: #e2e8f0;
+
+  /* Operational states (S3) */
+  --status-paid: #16a34a;
+  --status-paid-bg: #dcfce7;
+  --status-pending: #d97706;
+  --status-pending-bg: #fef3c7;
+  --status-overdue: #dc2626;
+  --status-overdue-bg: #fee2e2;
+
+  /* Charts: brand ramp + extended blues (S2) */
+  --chart-1: #582694;
+  --chart-2: #ad42af;
+  --chart-3: #1e1674;
+  --chart-4: #2563eb;
+  --chart-5: #0284c7;
   --radius: 0.625rem;
-  --sidebar: #f7f5fb;
-  --sidebar-foreground: #17141f;
-  --sidebar-primary: #7c3aed;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #001a40;
+  --sidebar-primary: #582694;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f1eef7;
-  --sidebar-accent-foreground: #17141f;
-  --sidebar-border: #e9e5f0;
-  --sidebar-ring: #7c3aed;
+  --sidebar-accent: #eff6ff;
+  --sidebar-accent-foreground: #001a40;
+  --sidebar-border: #e2e8f0;
+  --sidebar-ring: #582694;
 }
 
 /* Institution theme overrides: re-tokenize the full primary/accent ramp,
    chart colors and gradient endpoints so every UI element follows the
    institution's primary color (not just accent utility classes). */
 [data-institution-theme] {
-  --accent: var(--institution-primary, #7c3aed);
-  --accent-hover: color-mix(in srgb, var(--institution-primary, #7c3aed) 88%, #000000);
-  --primary: var(--institution-primary, #7c3aed);
+  --accent: var(--institution-primary, #582694);
+  --accent-hover: color-mix(in srgb, var(--institution-primary, #582694) 88%, #000000);
+  --primary: var(--institution-primary, #582694);
   --primary-foreground: #ffffff;
-  --ring: var(--institution-primary, #7c3aed);
-  --chart-1: var(--institution-primary, #7c3aed);
-  --chart-2: color-mix(in srgb, var(--institution-primary, #7c3aed) 72%, #ffffff);
-  --chart-3: color-mix(in srgb, var(--institution-primary, #7c3aed) 48%, #ffffff);
-  --chart-4: color-mix(in srgb, var(--institution-primary, #7c3aed) 86%, #000000);
-  --chart-5: color-mix(in srgb, var(--institution-primary, #7c3aed) 64%, #000000);
-  --sidebar-primary: var(--institution-primary, #7c3aed);
+  --ring: var(--institution-primary, #582694);
+  --chart-1: var(--institution-primary, #582694);
+  --chart-2: color-mix(in srgb, var(--institution-primary, #582694) 72%, #ffffff);
+  --chart-3: color-mix(in srgb, var(--institution-primary, #582694) 48%, #ffffff);
+  --chart-4: color-mix(in srgb, var(--institution-primary, #582694) 86%, #000000);
+  --chart-5: color-mix(in srgb, var(--institution-primary, #582694) 64%, #000000);
+  --sidebar-primary: var(--institution-primary, #582694);
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-ring: var(--institution-primary, #7c3aed);
-  --institution-primary: var(--institution-primary, #7c3aed);
+  --sidebar-ring: var(--institution-primary, #582694);
+  --institution-primary: var(--institution-primary, #582694);
 }
 
 /* Keep accent utility classes aligned with the re-tokenized ramp. */
 [data-institution-theme] .bg-accent {
-  background-color: var(--institution-primary, #7c3aed) !important;
+  background-color: var(--institution-primary, #582694) !important;
 }
 /* The /10 utility must keep its 10% alpha: sharing the solid rule with .bg-accent
    painted the icon tile fully opaque, so the text-accent icon rendered in the
    exact same color as its background and disappeared. */
 [data-institution-theme] .bg-accent\/10 {
-  background-color: color-mix(in srgb, var(--institution-primary, #7c3aed) 10%, transparent) !important;
+  background-color: color-mix(in srgb, var(--institution-primary, #582694) 10%, transparent) !important;
 }
 [data-institution-theme] .text-accent {
-  color: var(--institution-primary, #7c3aed) !important;
+  color: var(--institution-primary, #582694) !important;
 }
 [data-institution-theme] .hover\:bg-accent:hover {
-  background-color: color-mix(in srgb, var(--institution-primary, #7c3aed) 88%, #000000) !important;
+  background-color: color-mix(in srgb, var(--institution-primary, #582694) 88%, #000000) !important;
 }
 [data-institution-theme] .border-accent {
-  border-color: var(--institution-primary, #7c3aed) !important;
+  border-color: var(--institution-primary, #582694) !important;
 }
 [data-institution-theme] .ring-accent {
-  --tw-ring-color: var(--institution-primary, #7c3aed) !important;
+  --tw-ring-color: var(--institution-primary, #582694) !important;
 }
 
+/* Dark surfaces — derived from the guide's "Variante Oscura" (spec S5):
+   deep midnight/navy surfaces (#001A40 / #0E1B63), luminous magenta accents
+   (#AD42AF), light ink. */
 .dark {
-  --background: #0c0a12;
-  --foreground: #edeaf2;
-  --accent: #a78bfa;
-  --accent-hover: #c4b5fd;
-  --muted: #9d97ad;
-  --muted-foreground: #c4bfce;
-  --border: #2c2738;
-  --card: #15121d;
-  --card-foreground: #edeaf2;
-  --primary: #a78bfa;
-  --primary-foreground: #0c0a12;
-  --secondary: #211c2d;
-  --secondary-foreground: #edeaf2;
-  --destructive: #ef4444;
-  --ring: #a78bfa;
-  --input: #7c7690;
-  --chart-1: #a78bfa;
-  --chart-2: #7c3aed;
-  --chart-3: #5b21b6;
-  --chart-4: #c4b5fd;
-  --chart-5: #ddd6fe;
-  --sidebar: #14121a;
-  --sidebar-foreground: #e5e7eb;
-  --sidebar-primary: #a78bfa;
-  --sidebar-primary-foreground: #0a0a0a;
-  --sidebar-accent: #2a2535;
-  --sidebar-accent-foreground: #e5e7eb;
-  --sidebar-border: #2a2535;
-  --sidebar-ring: #a78bfa;
+  --background: #001a40;
+  --foreground: #f8fafc;
+  --accent: #ad42af;
+  --accent-hover: color-mix(in srgb, #ad42af 88%, #ffffff);
+  --muted: #0e1b63;
+  --muted-foreground: #94a3b8;
+  --border: #1d2b63;
+  --card: #0e1b63;
+  --card-foreground: #f8fafc;
+  --primary: #ad42af;
+  --primary-foreground: #ffffff;
+  --secondary: #1e1674;
+  --secondary-foreground: #f8fafc;
+  --destructive: #f87171;
+  --ring: #ad42af;
+  --input: #4a598f;
+
+  /* Operational states on dark (S3): light inks over soft color tints */
+  --status-paid: #4ade80;
+  --status-paid-bg: color-mix(in srgb, #16a34a 22%, transparent);
+  --status-pending: #fbbf24;
+  --status-pending-bg: color-mix(in srgb, #d97706 22%, transparent);
+  --status-overdue: #f87171;
+  --status-overdue-bg: color-mix(in srgb, #dc2626 22%, transparent);
+
+  --chart-1: #ad42af;
+  --chart-2: #582694;
+  --chart-3: #2563eb;
+  --chart-4: #0284c7;
+  --chart-5: #c4b5fd;
+  --sidebar: #0e1b63;
+  --sidebar-foreground: #f8fafc;
+  --sidebar-primary: #ad42af;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1e1674;
+  --sidebar-accent-foreground: #f8fafc;
+  --sidebar-border: #1d2b63;
+  --sidebar-ring: #ad42af;
 }
 
 @layer base {
@@ -231,6 +263,8 @@
 }
 
 /* Custom scrollbar */
+/* Scrollbar uses a foreground-derived tint (--muted is a light surface tint
+   since the branding refresh, too faint for a thumb). */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -241,20 +275,20 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--muted);
+  background: color-mix(in srgb, var(--foreground) 30%, transparent);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--muted-foreground);
+  background: color-mix(in srgb, var(--foreground) 55%, transparent);
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: var(--muted);
+  background: color-mix(in srgb, var(--foreground) 35%, transparent);
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: var(--muted-foreground);
+  background: color-mix(in srgb, var(--foreground) 55%, transparent);
 }
 
 /* Print styles for ticket pages */

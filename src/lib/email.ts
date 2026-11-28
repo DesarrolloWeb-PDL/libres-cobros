@@ -85,7 +85,7 @@ function buildReminderEmailHtml(
         <h1 style="color: #f9fafb; font-size: 20px; font-weight: 600; margin: 0 0 16px;">Hola ${firstName}, recordatorio de pago.</h1>
         <p style="color: #d1d5db; font-size: 15px; margin: 0 0 4px;">Cuota: ${amount} - Vencimiento: ${dueDate}.</p>
         <p style="color: #d1d5db; font-size: 15px; margin: 0 0 24px;">Paga acá:</p>
-        <a href="${paymentUrl}" style="display: inline-block; padding: 12px 24px; background-color: #7c3aed; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px;">Pagar ahora</a>
+        <a href="${paymentUrl}" style="display: inline-block; padding: 12px 24px; background-color: #582694; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px;">Pagar ahora</a>
       </div>
       <div style="padding: 0 32px 24px;">
         <p style="color: #6b7280; font-size: 12px; margin: 0;">Este es un recordatorio automático de pago de tu institución.</p>

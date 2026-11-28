@@ -50,7 +50,7 @@ function StatusBar({ segments, showCounts }: { segments: Segment[]; showCounts?:
             <div className={cn('mt-1 size-3 rounded-full', segment.bgClass)} />
             <div className="min-w-0 flex-1">
               <p className={cn('text-sm font-medium', segment.color)}>{segment.label}</p>
-              <p className="text-lg font-bold tabular-nums text-foreground">
+              <p className="text-lg font-semibold font-mono tabular-nums text-foreground">
                 {currencyFormatter.format(segment.amount)}
               </p>
               {showCounts && segment.count !== undefined && (

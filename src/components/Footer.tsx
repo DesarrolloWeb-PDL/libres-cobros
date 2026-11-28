@@ -5,7 +5,7 @@ function CubesMark({ className = '' }: { className?: string }) {
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className={className} aria-hidden>
       <defs>
         <linearGradient id="footerCubesGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#7c3aed" />
+          <stop offset="0%" stopColor="#582694" />
           <stop offset="100%" stopColor="#a78bfa" />
         </linearGradient>
       </defs>

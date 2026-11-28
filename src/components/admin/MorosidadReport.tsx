@@ -103,7 +103,7 @@ export function MorosidadReport({ initialData }: Props) {
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Deuda vencida total</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-bold">{currencyFormatter.format(totals.totalDebt)}</div></CardContent>
+          <CardContent><div className="text-2xl font-semibold font-mono tabular-nums">{currencyFormatter.format(totals.totalDebt)}</div></CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Cuotas vencidas</CardTitle></CardHeader>

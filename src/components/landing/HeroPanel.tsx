@@ -56,8 +56,8 @@ export function HeroPanel() {
                       <span
                         className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
                           paid
-                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
-                            : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
+                            ? 'bg-status-paid-bg text-status-paid'
+                            : 'bg-status-pending-bg text-status-pending'
                         }`}
                       >
                         {row.status}

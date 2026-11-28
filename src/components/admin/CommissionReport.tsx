@@ -138,7 +138,7 @@ export function CommissionReport({ initialData }: CommissionReportProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{currencyFormatter.format(totals.amount)}</div>
+            <div className="text-2xl font-semibold font-mono tabular-nums">{currencyFormatter.format(totals.amount)}</div>
           </CardContent>
         </Card>
         <Card>

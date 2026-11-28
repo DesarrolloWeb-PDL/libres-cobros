@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
           clubId: null,
           key: 'theme',
           value: 'default',
-          primaryColor: '#7c3aed',
+          primaryColor: '#582694',
           secondaryColor: '#a78bfa',
           accentColor: '#5b21b6',
           bgColor: '#f8fafc',

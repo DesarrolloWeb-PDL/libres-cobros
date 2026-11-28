@@ -52,7 +52,7 @@ function buildFeeEmailHtml(
       </p>
       <p style="margin:0 0 24px;">
         <a href="${paymentUrl}"
-           style="display:inline-block;background:#7c3aed;color:#ffffff;text-decoration:none;
+           style="display:inline-block;background:#582694;color:#ffffff;text-decoration:none;
                   padding:12px 20px;border-radius:8px;font-size:15px;font-weight:bold;">
           Pagar acá
         </a>

@@ -74,7 +74,7 @@ export function Logo({ size = 180, showScroll = true, className = "", color }: L
   const blur = showScroll ? scrollProgress * 12 : 0;
   const opacities = getOpacities(mouse.x, mouse.y);
   const gradId = color ? `logoGrad-${color.replace('#', '')}` : 'violetGrad';
-  const color1 = color || '#7c3aed';
+  const color1 = color || '#582694';
   const color2 = color ? `${color}cc` : '#a78bfa';
 
   const svg = (

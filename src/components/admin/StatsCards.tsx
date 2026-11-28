@@ -62,7 +62,7 @@ export function StatsCards({ data }: StatsCardsProps) {
               <Icon className={cn('size-4', card.iconColor)} />
             </CardHeader>
             <CardContent className="p-5 pt-0">
-              <div className="text-2xl font-bold tabular-nums">
+              <div className="text-2xl font-semibold font-mono tabular-nums">
                 {card.format(value)}
               </div>
             </CardContent>

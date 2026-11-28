@@ -127,7 +127,7 @@ export function RegistrationForm() {
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   const [email, setEmail] = useState('');
   const [adminName, setAdminName] = useState('');
-  const [primaryColor, setPrimaryColor] = useState('#7c3aed');
+  const [primaryColor, setPrimaryColor] = useState('#582694');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [globalError, setGlobalError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -169,7 +169,7 @@ export function RegistrationForm() {
       slug,
       email,
       adminName,
-      primaryColor: primaryColor !== '#7c3aed' ? primaryColor : undefined,
+      primaryColor: primaryColor !== '#582694' ? primaryColor : undefined,
     };
 
     const parsed = RegistrationSchema.safeParse(payload);
@@ -294,7 +294,7 @@ export function RegistrationForm() {
                 type="text"
                 value={primaryColor}
                 onChange={(e) => setPrimaryColor(e.target.value)}
-                placeholder="#7c3aed"
+                placeholder="#582694"
                 className="flex-1"
                 disabled={isLoading}
               />

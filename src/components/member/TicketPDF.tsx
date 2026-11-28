@@ -101,7 +101,7 @@ export function TicketPDF({
   qrDataUrl,
   comprobante = null,
 }: TicketPDFProps) {
-  const primaryColor = institution.primaryColor ?? '#7c3aed';
+  const primaryColor = institution.primaryColor ?? '#582694';
   const accentStyle = { '--ticket-accent': primaryColor } as React.CSSProperties;
 
   return (

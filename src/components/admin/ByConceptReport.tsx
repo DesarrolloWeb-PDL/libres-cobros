@@ -93,15 +93,15 @@ export function ByConceptReport({ initialData }: Props) {
         </Card>
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Monto total</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-bold">{currencyFormatter.format(totals.totalAmount)}</div></CardContent>
+          <CardContent><div className="text-2xl font-semibold font-mono tabular-nums">{currencyFormatter.format(totals.totalAmount)}</div></CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Pendiente</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-bold">{currencyFormatter.format(totals.pendingAmount)}</div></CardContent>
+          <CardContent><div className="text-2xl font-semibold font-mono tabular-nums">{currencyFormatter.format(totals.pendingAmount)}</div></CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Vencido</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-bold">{currencyFormatter.format(totals.overdueAmount)}</div></CardContent>
+          <CardContent><div className="text-2xl font-semibold font-mono tabular-nums">{currencyFormatter.format(totals.overdueAmount)}</div></CardContent>
         </Card>
       </div>
 

@@ -146,7 +146,7 @@ export function DebtReport({ initialData }: DebtReportProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{currencyFormatter.format(totals.totalDebt)}</div>
+            <div className="text-2xl font-semibold font-mono tabular-nums">{currencyFormatter.format(totals.totalDebt)}</div>
           </CardContent>
         </Card>
         <Card>

@@ -86,7 +86,7 @@ export function KpiStrip({ children }: { children?: ReactNode }) {
               <Users className="size-4 text-blue-600" />
             </CardHeader>
             <CardContent className="p-5 pt-0">
-              <div className="text-2xl font-bold tabular-nums">{platform.institutionsCount}</div>
+              <div className="text-2xl font-semibold font-mono tabular-nums">{platform.institutionsCount}</div>
             </CardContent>
           </Card>
           <Card className="rounded-2xl shadow-sm">
@@ -97,7 +97,7 @@ export function KpiStrip({ children }: { children?: ReactNode }) {
               <Wallet className="size-4 text-emerald-600" />
             </CardHeader>
             <CardContent className="p-5 pt-0">
-              <div className="text-2xl font-bold tabular-nums">
+              <div className="text-2xl font-semibold font-mono tabular-nums">
                 {currencyFormatter.format(platform.totalCollectionsThisMonth)}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -118,7 +118,7 @@ export function KpiStrip({ children }: { children?: ReactNode }) {
               <Users className="size-4 text-blue-600" />
             </CardHeader>
             <CardContent className="p-5 pt-0">
-              <div className="text-2xl font-bold tabular-nums">
+              <div className="text-2xl font-semibold font-mono tabular-nums">
                 {institution.sociosAlDiaPercent.toFixed(1)}%
               </div>
               <p className="text-xs text-muted-foreground">
@@ -135,7 +135,7 @@ export function KpiStrip({ children }: { children?: ReactNode }) {
               <Wallet className="size-4 text-emerald-600" />
             </CardHeader>
             <CardContent className="p-5 pt-0">
-              <div className="text-2xl font-bold tabular-nums">
+              <div className="text-2xl font-semibold font-mono tabular-nums">
                 {currencyFormatter.format(institution.collectionsCurrentMonth)}
               </div>
               <p className="text-xs text-muted-foreground flex items-center gap-1">
@@ -170,7 +170,7 @@ export function KpiStrip({ children }: { children?: ReactNode }) {
               <AlertTriangle className="size-4 text-red-600" />
             </CardHeader>
             <CardContent className="p-5 pt-0">
-              <div className="text-2xl font-bold tabular-nums">
+              <div className="text-2xl font-semibold font-mono tabular-nums">
                 {institution.overdueFeesCount}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -184,10 +184,10 @@ export function KpiStrip({ children }: { children?: ReactNode }) {
               <CardTitle className="text-xs font-semibold text-muted-foreground/80 uppercase tracking-wider">
                 Pagos del mes
               </CardTitle>
-              <CreditCard className="size-4 text-violet-600" />
+              <CreditCard className="size-4 text-primary" />
             </CardHeader>
             <CardContent className="p-5 pt-0">
-              <div className="text-2xl font-bold tabular-nums">
+              <div className="text-2xl font-semibold font-mono tabular-nums">
                 {institution.paymentsThisMonthCount}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -227,7 +227,7 @@ export function KpiStrip({ children }: { children?: ReactNode }) {
               return (
                 <div key={bucket.key} className={cn('rounded-xl p-3', tone)}>
                   <p className="text-xs font-medium text-muted-foreground">{bucket.label}</p>
-                  <p className={cn('text-lg font-bold tabular-nums', toneText)}>{bucket.count}</p>
+                  <p className={cn('text-lg font-semibold font-mono tabular-nums', toneText)}>{bucket.count}</p>
                   <p className="text-xs text-muted-foreground tabular-nums">
                     {currencyFormatter.format(bucket.amount)}
                   </p>

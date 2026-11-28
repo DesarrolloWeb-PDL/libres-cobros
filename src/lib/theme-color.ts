@@ -9,13 +9,13 @@ export function updateMetaThemeColor() {
   if (typeof document === 'undefined') return;
 
   const isDark = document.documentElement.classList.contains('dark');
-  let color = '#0a0a0a';
+  let color = '#001a40';
 
   if (!isDark) {
     const primary =
       getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() ||
       getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
-    color = primary || '#7c3aed';
+    color = primary || '#582694';
   }
 
   let meta = document.querySelector('meta[name="theme-color"]');

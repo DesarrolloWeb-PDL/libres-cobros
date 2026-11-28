@@ -33,8 +33,8 @@ export const viewport: Viewport = {
   viewportFit: "cover",
   // Fallback only — SuperAdminThemeInjector / ThemeToggle keep meta[theme-color] live.
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#7c3aed" },
-    { media: "(prefers-color-scheme: dark)", color: "#0c0a12" },
+    { media: "(prefers-color-scheme: light)", color: "#582694" },
+    { media: "(prefers-color-scheme: dark)", color: "#001a40" },
   ],
 };
 

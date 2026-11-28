@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
           siglas: siglas || null,
           slug,
           status: 'PENDING',
-          primaryColor: primaryColor ?? '#7c3aed',
+          primaryColor: primaryColor ?? '#582694',
         },
       });
 

@@ -17,7 +17,7 @@ import { toast } from '@/components/ui/toast';
 import type { SiteConfigTheme } from '@/types/config';
 
 const COLOR_PRESETS = [
-  { name: 'Violeta', primary: '#7c3aed', secondary: '#a78bfa', accent: '#5b21b6', bg: '#f8fafc' },
+  { name: 'Violeta', primary: '#582694', secondary: '#a78bfa', accent: '#5b21b6', bg: '#f8fafc' },
   { name: 'Azul', primary: '#2563eb', secondary: '#60a5fa', accent: '#1d4ed8', bg: '#f8fafc' },
   { name: 'Verde', primary: '#16a34a', secondary: '#4ade80', accent: '#15803d', bg: '#f8fafc' },
   { name: 'Rojo', primary: '#dc2626', secondary: '#f87171', accent: '#b91c1c', bg: '#fef2f2' },
@@ -30,7 +30,7 @@ const COLOR_PRESETS = [
 export function AdminThemeCard() {
   const [isSavingTheme, setIsSavingTheme] = useState(false);
   const [theme, setTheme] = useState<SiteConfigTheme>({
-    primaryColor: '#7c3aed',
+    primaryColor: '#582694',
     secondaryColor: '#a78bfa',
     accentColor: '#5b21b6',
     bgColor: '#f8fafc',
@@ -140,7 +140,7 @@ export function AdminThemeCard() {
                   type="text"
                   value={theme.primaryColor}
                   onChange={(e) => setTheme({ ...theme, primaryColor: e.target.value })}
-                  placeholder="#7c3aed"
+                  placeholder="#582694"
                   className="h-10 flex-1"
                 />
               </div>

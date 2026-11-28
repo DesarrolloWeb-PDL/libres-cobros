@@ -61,7 +61,7 @@ function getStatusConfig(status: string, method?: string) {
   switch (status) {
     case 'success':
       return {
-        icon: <CheckCircle2 className="size-12 text-green-600" />,
+        icon: <CheckCircle2 className="size-12 text-status-paid" />,
         title: '¡Pago acreditado!',
         message: 'Tu pago fue procesado correctamente. Ya podés cerrar esta ventana.',
         variant: 'success' as const,
@@ -70,7 +70,7 @@ function getStatusConfig(status: string, method?: string) {
     case 'pending':
       if (isBankTransfer) {
         return {
-          icon: <Clock className="size-12 text-amber-600" />,
+          icon: <Clock className="size-12 text-status-pending" />,
           title: 'Pago pendiente de confirmación',
           message:
             'Tu transferencia bancaria fue registrada y está pendiente de confirmación por el club. Tiempo estimado: 1 a 2 días hábiles.',
@@ -79,7 +79,7 @@ function getStatusConfig(status: string, method?: string) {
         };
       }
       return {
-        icon: <Clock className="size-12 text-yellow-600" />,
+        icon: <Clock className="size-12 text-status-pending" />,
         title: 'Pago pendiente',
         message:
           'Tu pago está siendo procesado. En breve recibirás la confirmación.',
