@@ -1,5 +1,7 @@
 'use client';
 
+import { markPathsSvg } from './brand-mark';
+
 /**
  * Keeps the browser/PWA title-bar color in sync with the active day/night theme.
  * Light mode uses the current --primary (Super Admin / institution accent).
@@ -33,20 +35,9 @@ export function updateMetaThemeColor() {
 export function setCubesFavicon(color: string) {
   if (typeof document === 'undefined' || !color) return;
 
-  // Growth bars: 13-wide rounded bars at (8,36)/(25.5,24)/(43,10), all ending at y=56.
-  const opacitySteps = [0.5, 0.75, 1];
-  const bars = [
-    { x: 8, y: 36 },
-    { x: 25.5, y: 24 },
-    { x: 43, y: 10 },
-  ]
-    .map(
-      ({ x, y }, i) =>
-        `<rect x="${x}" y="${y}" width="13" height="${56 - y}" rx="6.5" fill="${color}" opacity="${opacitySteps[i]}"/>`
-    )
-    .join('');
-
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">${bars}</svg>`;
+  // LC → check isotipo (branding guide S7): rounded badge in the active
+  // brand color with the white mark on top.
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="${color}"/><g fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">${markPathsSvg()}</g></svg>`;
   const href = `data:image/svg+xml,${encodeURIComponent(svg)}`;
 
   let link = document.querySelector<HTMLLinkElement>("link[rel='icon']");

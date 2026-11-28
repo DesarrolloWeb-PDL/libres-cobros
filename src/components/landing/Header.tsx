@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { Logo } from '@/components/Logo';
+import { Wordmark } from '@/components/Wordmark';
 
 const navItems = [
   { label: 'Por qué', href: '#problema' },
@@ -40,7 +41,7 @@ export function Header() {
           className="flex items-center gap-2 rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         >
           <Logo size={32} showScroll={false} />
-          <span className="font-heading font-bold text-foreground">Libres Cobros</span>
+          <Wordmark className="font-heading font-bold" />
         </Link>
 
         <nav className="hidden items-center gap-6 md:flex">

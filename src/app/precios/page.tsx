@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { ArrowRight, Check } from 'lucide-react';
 import { Logo } from '@/components/Logo';
+import { Wordmark } from '@/components/Wordmark';
 import { Footer } from '@/components/Footer';
 import { commitments } from '@/lib/pricing-commitments';
 import { getActiveLandingPlans, type LandingPlan } from '@/lib/saas-plans';
@@ -61,7 +62,7 @@ export default async function PricingPage() {
         <Link href="/">
           <Logo size={100} showScroll={false} />
         </Link>
-        <p className="text-3xl sm:text-4xl font-heading font-extrabold tracking-tight mb-2 mt-4">Libres Cobros</p>
+        <p className="text-3xl sm:text-4xl font-heading font-extrabold tracking-tight mb-2 mt-4"><Wordmark /></p>
         <p className="text-accent font-mono text-xs tracking-[0.2em] uppercase mb-4">
           Precios
         </p>

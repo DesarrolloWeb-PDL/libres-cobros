@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Logo } from '@/components/Logo';
+import { Wordmark } from '@/components/Wordmark';
 
 const LoginSchema = z.object({
   email: z.string().email('Ingresá un email válido'),
@@ -77,7 +78,7 @@ export default function AdminLoginPage() {
           <Logo size={64} showScroll={false} />
         </Link>
         <div className="text-center">
-          <h1 className="text-2xl font-bold">Libres Cobros</h1>
+          <h1 className="text-2xl font-bold"><Wordmark /></h1>
           <p className="text-sm text-muted-foreground">Sistema de administración de instituciones</p>
         </div>
       </div>

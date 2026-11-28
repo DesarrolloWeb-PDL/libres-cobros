@@ -1,29 +1,41 @@
 import Link from 'next/link';
+import { Wordmark } from '@/components/Wordmark';
+import { MARK_SEGMENTS, MARK_STROKE_WIDTH } from '@/lib/brand-mark';
 
-function CubesMark({ className = '' }: { className?: string }) {
+function BrandMark({ className = '' }: { className?: string }) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className={className} aria-hidden>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" className={className} aria-hidden>
       <defs>
-        <linearGradient id="footerCubesGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <linearGradient id="footerMarkGrad" gradientUnits="userSpaceOnUse" x1="14" y1="13" x2="57" y2="14">
           <stop offset="0%" stopColor="#582694" />
-          <stop offset="100%" stopColor="#a78bfa" />
+          <stop offset="100%" stopColor="#ad42af" />
         </linearGradient>
       </defs>
-      <rect x="0" y="0" width="14" height="14" rx="2.5" fill="url(#footerCubesGrad)" opacity="1" />
-      <rect x="18" y="0" width="14" height="14" rx="2.5" fill="url(#footerCubesGrad)" opacity="0.7" />
-      <rect x="0" y="18" width="14" height="14" rx="2.5" fill="url(#footerCubesGrad)" opacity="0.5" />
-      <rect x="18" y="18" width="14" height="14" rx="2.5" fill="url(#footerCubesGrad)" opacity="0.3" />
+      <g fill="none" stroke="url(#footerMarkGrad)" strokeWidth={MARK_STROKE_WIDTH} strokeLinecap="round" strokeLinejoin="round">
+        {MARK_SEGMENTS.map((d) => (
+          <path key={d} d={d} />
+        ))}
+      </g>
     </svg>
   );
 }
 
-function CubesMarkMuted({ className = '' }: { className?: string }) {
+function BrandMarkMuted({ className = '' }: { className?: string }) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className={className} fill="currentColor" aria-hidden>
-      <rect x="0" y="0" width="14" height="14" rx="2.5" opacity="1" />
-      <rect x="18" y="0" width="14" height="14" rx="2.5" opacity="0.7" />
-      <rect x="0" y="18" width="14" height="14" rx="2.5" opacity="0.5" />
-      <rect x="18" y="18" width="14" height="14" rx="2.5" opacity="0.3" />
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 64 64"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={MARK_STROKE_WIDTH}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      {MARK_SEGMENTS.map((d) => (
+        <path key={d} d={d} />
+      ))}
     </svg>
   );
 }
@@ -63,8 +75,8 @@ export function Footer() {
           {/* Brand */}
           <div className="flex flex-col gap-2">
             <h3 className="flex items-center gap-2 text-xl font-bold text-white">
-              <CubesMark className="size-7 shrink-0" />
-              Libres Cobros
+              <BrandMark className="size-7 shrink-0" />
+              <Wordmark onDark />
             </h3>
             <p className="text-sm leading-relaxed text-gray-400">
               Sistema de administración de cobros para clubes e instituciones:
@@ -101,7 +113,7 @@ export function Footer() {
             rel="noopener noreferrer"
             className="group flex items-center gap-2 text-xs text-gray-500 no-underline transition-colors hover:text-violet-400"
           >
-            <CubesMarkMuted className="size-4 shrink-0 transition-all duration-200 group-hover:scale-110 group-hover:text-violet-400" />
+            <BrandMarkMuted className="size-4 shrink-0 transition-all duration-200 group-hover:scale-110 group-hover:text-[#d8b4fe]" />
             DesarrolloWeb-pdl
           </a>
         </div>

@@ -28,51 +28,20 @@ export default async function Image() {
           color: '#ffffff',
         }}
       >
-        {/* Subtle cube motif — four rounded squares echoing the site logo mark */}
-        <div
-          style={{
-            display: 'flex',
-            gap: 12,
-            marginBottom: 48,
-          }}
+        {/* LC → check isotipo — white stroke mark echoing the site logo */}
+        <svg
+          width={160}
+          height={160}
+          viewBox="0 0 64 64"
+          fill="none"
+          stroke="#ffffff"
+          strokeWidth={8}
+          strokeLinecap="round"
+          strokeLinejoin="round"
         >
-          <div
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 8,
-              backgroundColor: '#ffffff',
-              opacity: 1,
-            }}
-          />
-          <div
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 8,
-              backgroundColor: '#ffffff',
-              opacity: 0.7,
-            }}
-          />
-          <div
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 8,
-              backgroundColor: '#ffffff',
-              opacity: 0.5,
-            }}
-          />
-          <div
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 8,
-              backgroundColor: '#ffffff',
-              opacity: 0.3,
-            }}
-          />
-        </div>
+          <path d="M14 13 V45 H25" />
+          <path d="M37 45 Q52 47 57 14" />
+        </svg>
 
         <div style={{ fontSize: 92, fontWeight: 700, letterSpacing: -2 }}>
           Libres Cobros
