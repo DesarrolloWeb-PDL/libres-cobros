@@ -58,6 +58,15 @@ const AppearanceSchema = z.object({
   heroStyle: z.enum(['overlay', 'brand']),
 });
 
+// Partial record: each provided key is merged into the stored backgrounds
+// (null clears that section; omitted keys are left untouched).
+const BackgroundsSchema = z.object({
+  events: imageField(3_000_000).optional(),
+  history: imageField(3_000_000).optional(),
+  authorities: imageField(3_000_000).optional(),
+  contacts: imageField(3_000_000).optional(),
+});
+
 const PatchLandingSchema = z.object({
   url: z.string().url('URL inválida').nullable().optional(),
   cover: CoverSchema.nullable().optional(),
@@ -66,6 +75,7 @@ const PatchLandingSchema = z.object({
   contacts: z.array(ContactSchema).max(10, 'Máximo 10 contactos').optional(),
   history: z.string().max(20000).optional(),
   appearance: AppearanceSchema.optional(),
+  backgrounds: BackgroundsSchema.optional(),
 });
 
 type PatchInput = z.infer<typeof PatchLandingSchema>;
@@ -158,6 +168,30 @@ export async function PATCH(request: NextRequest) {
     }
 
     const writes = buildWrites(parsed.data);
+
+    // Section backgrounds: merge the partial record (null clears one key).
+    if (parsed.data.backgrounds) {
+      const existingBg = await prisma.siteConfig.findUnique({
+        where: { clubId_key: { clubId: ctx.institutionId!, key: LANDING_KEYS.backgrounds } },
+      });
+      let record: Record<string, string> = {};
+      if (existingBg?.value) {
+        try {
+          record = JSON.parse(existingBg.value) ?? {};
+        } catch {
+          record = {};
+        }
+      }
+      for (const [section, image] of Object.entries(parsed.data.backgrounds)) {
+        if (image === null || image === undefined) delete record[section];
+        else record[section] = image;
+      }
+      writes.push({
+        key: LANDING_KEYS.backgrounds,
+        value: Object.keys(record).length ? JSON.stringify(record) : '',
+      });
+    }
+
     if (writes.length === 0) {
       return apiError('Nada para guardar', 400, 'No se enviaron secciones', 'VALIDATION_ERROR');
     }

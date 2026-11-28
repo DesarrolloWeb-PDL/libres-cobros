@@ -14,7 +14,13 @@ export const LANDING_KEYS = {
   contacts: 'landing_contacts',
   history: 'landing_history',
   appearance: 'landing_appearance',
+  backgrounds: 'landing_backgrounds',
 } as const;
+
+/** Section key → background image (data-URL) with parallax on the landing.
+ *  `null` means "clear this section's background" on PATCH. */
+export type LandingBackgroundSection = 'events' | 'history' | 'authorities' | 'contacts';
+export type LandingBackgrounds = Partial<Record<LandingBackgroundSection, string | null>>;
 
 export interface LandingCover {
   image: string | null;
@@ -65,6 +71,7 @@ export interface LandingContent {
   contacts: LandingContact[];
   history: string;
   appearance: LandingAppearance;
+  backgrounds: LandingBackgrounds;
 }
 
 export const DEFAULT_APPEARANCE: LandingAppearance = {
@@ -133,6 +140,18 @@ export function readLandingContent(values: Record<string, string>): LandingConte
     heroStyle: rawAppearance?.heroStyle === 'brand' ? 'brand' : 'overlay',
   };
 
+  // Section backgrounds (parallax covers): only known sections, data-URLs only.
+  const rawBackgrounds = parseJson<Record<string, unknown> | null>(values[LANDING_KEYS.backgrounds], null);
+  const backgrounds: LandingBackgrounds = {};
+  if (rawBackgrounds) {
+    for (const key of ['events', 'history', 'authorities', 'contacts'] as const) {
+      const value = rawBackgrounds[key];
+      if (typeof value === 'string' && value.startsWith('data:image/')) {
+        backgrounds[key] = value.slice(0, 3_000_000);
+      }
+    }
+  }
+
   return {
     url: values[LANDING_KEYS.url] || null,
     cover,
@@ -161,5 +180,6 @@ export function readLandingContent(values: Record<string, string>): LandingConte
     // Raw text (not JSON): long prose with newlines must not need escaping.
     history: (values[LANDING_KEYS.history] ?? '').slice(0, 20000),
     appearance,
+    backgrounds,
   };
 }

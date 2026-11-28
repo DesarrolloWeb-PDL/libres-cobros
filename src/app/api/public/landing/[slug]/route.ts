@@ -66,6 +66,7 @@ export async function GET(
       contacts: content.contacts,
       history: content.history,
       appearance: content.appearance,
+      backgrounds: content.backgrounds,
     },
   });
 }

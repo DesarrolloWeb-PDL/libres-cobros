@@ -321,8 +321,14 @@ export function LandingEditor() {
         zone="events"
         description="Flyers que se muestran como carteles de publicidad en la grilla de la landing. Máximo 8."
         saving={saving === 'events'}
-        onSave={() => saveSection('events', { events: content.events })}
+        onSave={() => saveSection('events', { events: content.events, backgrounds: { ...content.backgrounds, events: content.backgrounds?.events ?? null } })}
       >
+        <ImageField
+          label="Imagen de fondo (efecto parallax)"
+          value={content.backgrounds?.events ?? null}
+          maxBytes={COVER_MAX_BYTES}
+          onChange={(image) => patch({ backgrounds: { ...content.backgrounds, events: image } })}
+        />
         {content.events.length === 0 && (
           <p className="text-sm text-muted-foreground">Todavía no hay eventos cargados.</p>
         )}
@@ -410,8 +416,14 @@ export function LandingEditor() {
         zone="authorities"
         description="Presidente, vice, comisiones… tal como se muestran en la landing. Máximo12."
         saving={saving === 'authorities'}
-        onSave={() => saveSection('authorities', { authorities: content.authorities })}
+        onSave={() => saveSection('authorities', { authorities: content.authorities, backgrounds: { ...content.backgrounds, authorities: content.backgrounds?.authorities ?? null } })}
       >
+        <ImageField
+          label="Imagen de fondo (efecto parallax)"
+          value={content.backgrounds?.authorities ?? null}
+          maxBytes={COVER_MAX_BYTES}
+          onChange={(image) => patch({ backgrounds: { ...content.backgrounds, authorities: image } })}
+        />
         {content.authorities.length === 0 && (
           <p className="text-sm text-muted-foreground">Todavía no hay autoridades cargadas.</p>
         )}
@@ -477,8 +489,14 @@ export function LandingEditor() {
         zone="contacts"
         description="Sedes, teléfonos y emails por área (Ej: Secretaría, Club, Eventos). Máximo10."
         saving={saving === 'contacts'}
-        onSave={() => saveSection('contacts', { contacts: content.contacts })}
+        onSave={() => saveSection('contacts', { contacts: content.contacts, backgrounds: { ...content.backgrounds, contacts: content.backgrounds?.contacts ?? null } })}
       >
+        <ImageField
+          label="Imagen de fondo (efecto parallax)"
+          value={content.backgrounds?.contacts ?? null}
+          maxBytes={COVER_MAX_BYTES}
+          onChange={(image) => patch({ backgrounds: { ...content.backgrounds, contacts: image } })}
+        />
         {content.contacts.length === 0 && (
           <p className="text-sm text-muted-foreground">Todavía no hay contactos cargados.</p>
         )}
@@ -568,8 +586,14 @@ export function LandingEditor() {
         zone="history"
         description="Texto que se muestra en la sección Historia de la landing."
         saving={saving === 'history'}
-        onSave={() => saveSection('history', { history: content.history })}
+        onSave={() => saveSection('history', { history: content.history, backgrounds: { ...content.backgrounds, history: content.backgrounds?.history ?? null } })}
       >
+        <ImageField
+          label="Imagen de fondo (efecto parallax)"
+          value={content.backgrounds?.history ?? null}
+          maxBytes={COVER_MAX_BYTES}
+          onChange={(image) => patch({ backgrounds: { ...content.backgrounds, history: image } })}
+        />
         <Textarea
           className="min-h-[180px]"
           placeholder="Contá la historia del club: fundación, logros, tradiciones…"
