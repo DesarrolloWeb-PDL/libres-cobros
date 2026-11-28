@@ -149,7 +149,7 @@ export default async function LandingPage() {
           <h1 className="text-5xl sm:text-6xl md:text-7xl font-heading font-extrabold tracking-tight mb-4">
             Libres Cobros
           </h1>
-          <p className="text-primary font-mono text-xs tracking-[0.2em] uppercase mb-5">
+          <p className="text-primary font-mono text-xs tracking-[0.2em] uppercase mb-5 dark:text-[#d8b4fe]">
             Para clubes e instituciones
           </p>
           <h2 className="text-xl sm:text-2xl md:text-3xl font-heading font-semibold tracking-tight mb-6 max-w-2xl text-foreground/90">
