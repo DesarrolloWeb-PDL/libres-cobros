@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/toast';
 import type { LandingContent } from '@/lib/landing';
+import { LandingWireframe, type WireZone } from '@/components/admin/LandingWireframe';
 
 const COVER_MAX_BYTES = 2 * 1024 * 1024;
 const FLYER_MAX_BYTES = 1024 * 1024;
@@ -20,12 +21,14 @@ function newId(prefix: string): string {
 function SectionCard({
   title,
   description,
+  zone,
   saving,
   onSave,
   children,
 }: {
   title: string;
   description: string;
+  zone: WireZone;
   saving: boolean;
   onSave: () => void;
   children: React.ReactNode;
@@ -33,8 +36,13 @@ function SectionCard({
   return (
     <Card className="rounded-2xl shadow-sm">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base">{title}</CardTitle>
-        <p className="text-sm text-muted-foreground">{description}</p>
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <CardTitle className="text-base">{title}</CardTitle>
+            <p className="text-sm text-muted-foreground">{description}</p>
+          </div>
+          <LandingWireframe zone={zone} className="hidden w-[184px] shrink-0 sm:block" />
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">{children}</CardContent>
       <div className="flex justify-end border-t px-5 py-3">
@@ -190,6 +198,7 @@ export function LandingEditor() {
       {/* URL de la landing (spec S4) */}
       <SectionCard
         title="URL del sitio web"
+        zone="site"
         description="Enlace a la landing externa de la institución. Se muestra como tarjeta en /institucion/<slug>."
         saving={saving === 'url'}
         onSave={() => saveSection('url', { url: content.url || null })}
@@ -209,6 +218,7 @@ export function LandingEditor() {
       {/* Portada publicitaria (spec S3) */}
       <SectionCard
         title="Portada principal"
+        zone="hero"
         description="Publicidad de eventos: imagen de fondo, titular, bajada y botón."
         saving={saving === 'cover'}
         onSave={() => saveSection('cover', { cover: content.cover })}
@@ -308,6 +318,7 @@ export function LandingEditor() {
       {/* Eventos / flyers (spec S1, S3) */}
       <SectionCard
         title="Eventos (carteles)"
+        zone="events"
         description="Flyers que se muestran como carteles de publicidad en la grilla de la landing. Máximo 8."
         saving={saving === 'events'}
         onSave={() => saveSection('events', { events: content.events })}
@@ -396,6 +407,7 @@ export function LandingEditor() {
       {/* Autoridades (spec S1) */}
       <SectionCard
         title="Autoridades"
+        zone="authorities"
         description="Presidente, vice, comisiones… tal como se muestran en la landing. Máximo12."
         saving={saving === 'authorities'}
         onSave={() => saveSection('authorities', { authorities: content.authorities })}
@@ -462,6 +474,7 @@ export function LandingEditor() {
       {/* Contactos por área (spec S1) */}
       <SectionCard
         title="Contactos por área"
+        zone="contacts"
         description="Sedes, teléfonos y emails por área (Ej: Secretaría, Club, Eventos). Máximo10."
         saving={saving === 'contacts'}
         onSave={() => saveSection('contacts', { contacts: content.contacts })}
@@ -552,6 +565,7 @@ export function LandingEditor() {
       {/* Historia (spec S1) */}
       <SectionCard
         title="Historia de la institución"
+        zone="history"
         description="Texto que se muestra en la sección Historia de la landing."
         saving={saving === 'history'}
         onSave={() => saveSection('history', { history: content.history })}
@@ -567,6 +581,7 @@ export function LandingEditor() {
       {/* Apariencia (spec S2) */}
       <SectionCard
         title="Apariencia"
+        zone="appearance"
         description="Cómo se ve la landing: tema, secciones visibles y estilo de la portada."
         saving={saving === 'appearance'}
         onSave={() => saveSection('appearance', { appearance: content.appearance })}

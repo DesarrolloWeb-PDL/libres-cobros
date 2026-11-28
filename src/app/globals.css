@@ -471,3 +471,23 @@ a, button, input, select, textarea {
     rgba(14, 27, 99, 0.86) 100%
   );
 }
+
+/* Admin landing editor: the focused wireframe zone pulses gently. */
+.wire-active {
+  animation: wirePulse 1.4s ease-in-out infinite alternate;
+}
+
+@keyframes wirePulse {
+  from {
+    opacity: 0.72;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wire-active {
+    animation: none;
+  }
+}
