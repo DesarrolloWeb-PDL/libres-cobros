@@ -386,112 +386,56 @@ a, button, input, select, textarea {
 }
 
 /* ------------------------------------------------------------------ */
-/* Brand intro — "Libres Cobros" fluidifies into the LC monogram        */
-/* (branding guide S1 transition storyboard). Plays once per session.   */
+/* In-place lockup transition — the landing header name dissolves into  */
+/* the LC monogram and the name re-deploys beside it (guide S1).        */
+/* Gated by sessionStorage ('lc-lockup-played'); repeat visits and      */
+/* reduced-motion render the final 'done' state directly.               */
 /* ------------------------------------------------------------------ */
-.brand-intro {
-  position: fixed;
-  inset: 0;
-  z-index: 200;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(135deg, #1e1674 0%, #0e1b63 55%, #001a40 100%);
-}
-
-.brand-intro.exit {
-  animation: brandIntroOut 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-.intro-stack {
-  position: relative;
-  display: grid;
-  place-items: center;
-}
-
-.intro-wordmark {
-  grid-area: 1 / 1;
-  font-family: var(--font-heading);
-  font-weight: 700;
-  font-size: clamp(34px, 7vw, 64px);
-  letter-spacing: -0.02em;
-  white-space: nowrap;
-  animation: introWordIn 0.65s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-}
-
-.intro-word-libres {
-  color: #ffffff;
-}
-
-.intro-word-cobros {
-  color: #d8b4fe;
-}
-
-.brand-intro.morph .intro-wordmark {
-  animation: introWordOut 0.55s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-.intro-mark {
-  grid-area: 1 / 1;
+.brand-lockup .brand-mark-wrap {
+  display: inline-flex;
   opacity: 0;
+  transition: opacity 0.35s ease;
 }
 
-.brand-intro.morph .intro-mark {
-  animation: introMarkIn 0.7s 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+.brand-lockup.brand-morph .brand-mark-wrap,
+.brand-lockup.brand-done .brand-mark-wrap {
+  opacity: 1;
 }
 
-.brand-intro.morph .intro-mark path {
+.brand-lockup .brand-wordmark {
+  transition: opacity 0.5s ease, filter 0.5s ease, transform 0.5s ease;
+}
+
+.brand-lockup.brand-morph .brand-wordmark {
+  opacity: 0;
+  filter: blur(8px);
+  transform: scale(0.9);
+}
+
+.logo-draw {
   stroke-dasharray: 100;
   stroke-dashoffset: 100;
-  animation: introDraw 0.85s 0.35s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  animation: markDraw 0.85s 0.1s cubic-bezier(0.65, 0, 0.35, 1) forwards;
 }
 
-@keyframes introWordIn {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-    filter: blur(8px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-    filter: blur(0);
-  }
-}
-
-@keyframes introWordOut {
-  to {
-    opacity: 0;
-    transform: scale(0.82);
-    filter: blur(10px);
-  }
-}
-
-@keyframes introMarkIn {
-  from {
-    opacity: 0;
-    transform: scale(0.65) rotate(-8deg);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@keyframes introDraw {
+@keyframes markDraw {
   to {
     stroke-dashoffset: 0;
   }
 }
 
-@keyframes brandIntroOut {
-  to {
-    opacity: 0;
-    visibility: hidden;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .brand-intro {
-    display: none;
+  .brand-lockup .brand-mark-wrap {
+    opacity: 1;
+    transition: none;
+  }
+
+  .brand-lockup .brand-wordmark {
+    transition: none;
+  }
+
+  .logo-draw {
+    animation: none;
+    stroke-dashoffset: 0;
   }
 }

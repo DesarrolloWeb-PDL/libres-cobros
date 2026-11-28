@@ -14,9 +14,38 @@ const navItems = [
   { label: 'FAQ', href: '#faq' },
 ];
 
+const LOCKUP_KEY = 'lc-lockup-played';
+type LockupPhase = 'name' | 'morph' | 'done';
+
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // In-place brand transition (guide S1 storyboard): the header name itself
+  // dissolves into the LC monogram, then the name re-deploys beside it.
+  // Initial 'name' matches SSR; repeat visits and reduced-motion jump to
+  // 'done' via a deferred setState (React19 lint rule, same as LandingEditor).
+  const [lockup, setLockup] = useState<LockupPhase>('name');
+
+  useEffect(() => {
+    // matchMedia is unavailable in the test environment.
+    const reduce =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce || sessionStorage.getItem(LOCKUP_KEY)) {
+      const id = window.setTimeout(() => setLockup('done'), 0);
+      return () => window.clearTimeout(id);
+    }
+    const t1 = window.setTimeout(() => setLockup('morph'), 850);
+    const t2 = window.setTimeout(() => {
+      setLockup('done');
+      sessionStorage.setItem(LOCKUP_KEY, '1');
+    }, 1950);
+    return () => {
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+    };
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -38,10 +67,12 @@ export function Header() {
       <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-4">
         <Link
           href="/"
-          className="flex items-center gap-2 rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          className={`brand-lockup brand-${lockup} flex items-center gap-2 rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent`}
         >
-          <Logo size={32} showScroll={false} />
-          <Wordmark className="font-heading font-bold" />
+          <span className="brand-mark-wrap inline-flex">
+            <Logo size={32} showScroll={false} draw={lockup === 'morph'} />
+          </span>
+          <Wordmark className="brand-wordmark font-heading font-bold" />
         </Link>
 
         <nav className="hidden items-center gap-6 md:flex">

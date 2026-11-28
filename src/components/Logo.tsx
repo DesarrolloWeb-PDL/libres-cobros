@@ -26,9 +26,11 @@ interface LogoProps {
   showScroll?: boolean;
   className?: string;
   color?: string;
+  /** Draw-on animation for the lockup transition (stroke-dashoffset). */
+  draw?: boolean;
 }
 
-export function Logo({ size = 180, showScroll = true, className = "", color }: LogoProps) {
+export function Logo({ size = 180, showScroll = true, className = "", color, draw = false }: LogoProps) {
   const heroRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -91,6 +93,8 @@ export function Logo({ size = 180, showScroll = true, className = "", color }: L
         <path
           key={d}
           d={d}
+          pathLength={100}
+          className={draw ? 'logo-draw' : undefined}
           fill="none"
           stroke={`url(#${gradId})`}
           strokeWidth={MARK_STROKE_WIDTH}
