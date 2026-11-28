@@ -1,12 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { MARK_ANCHORS, MARK_SEGMENTS, MARK_STROKE_WIDTH } from "@/lib/brand-mark";
+import { MARK_ANCHORS, MARK_GRADIENT, MARK_SEGMENTS, MARK_STROKE_WIDTH } from "@/lib/brand-mark";
 
-// LC → check isotipo (branding guide S7): firm L + C-flavored swoosh that
-// consolidates into an ascending confirmation check. Geometry lives in
-// lib/brand-mark.ts (shared with footer, favicon and PWA icons).
-const BASE_OPACITIES = [0.6, 1];
+// LC monogram (branding guide S1): firm L + enveloping C arc. Geometry lives
+// in lib/brand-mark.ts (shared with footer, favicon and PWA icons).
+// Both glyphs rest at full opacity so the letters read cleanly at any size;
+// the mouse light still spotlights the hovered letter.
+const BASE_OPACITIES = [1, 1];
 
 const MAX_DIST = 40;
 
@@ -77,10 +78,10 @@ export function Logo({ size = 180, showScroll = true, className = "", color }: L
         <linearGradient
           id={gradId}
           gradientUnits="userSpaceOnUse"
-          x1="14"
-          y1="13"
-          x2="57"
-          y2="14"
+          x1={MARK_GRADIENT.x1}
+          y1={MARK_GRADIENT.y1}
+          x2={MARK_GRADIENT.x2}
+          y2={MARK_GRADIENT.y2}
         >
           <stop offset="0%" stopColor={color1} />
           <stop offset="100%" stopColor={color2} />

@@ -39,8 +39,8 @@ export default async function Image() {
           strokeLinecap="round"
           strokeLinejoin="round"
         >
-          <path d="M14 13 V45 H25" />
-          <path d="M37 45 Q52 47 57 14" />
+          <path d="M12 14 V48 H24" />
+          <path d="M52 22 A12 12 0 1 0 52 40" />
         </svg>
 
         <div style={{ fontSize: 92, fontWeight: 700, letterSpacing: -2 }}>

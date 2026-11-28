@@ -1,12 +1,12 @@
 import Link from 'next/link';
 import { Wordmark } from '@/components/Wordmark';
-import { MARK_SEGMENTS, MARK_STROKE_WIDTH } from '@/lib/brand-mark';
+import { MARK_GRADIENT, MARK_SEGMENTS, MARK_STROKE_WIDTH } from '@/lib/brand-mark';
 
 function BrandMark({ className = '' }: { className?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" className={className} aria-hidden>
       <defs>
-        <linearGradient id="footerMarkGrad" gradientUnits="userSpaceOnUse" x1="14" y1="13" x2="57" y2="14">
+        <linearGradient id="footerMarkGrad" gradientUnits="userSpaceOnUse" x1={MARK_GRADIENT.x1} y1={MARK_GRADIENT.y1} x2={MARK_GRADIENT.x2} y2={MARK_GRADIENT.y2}>
           <stop offset="0%" stopColor="#582694" />
           <stop offset="100%" stopColor="#ad42af" />
         </linearGradient>

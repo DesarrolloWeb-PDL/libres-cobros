@@ -1,29 +1,32 @@
 /**
- * Brand isotipo — "LC → check" (branding guide S7).
+ * Brand isotipo — "LC" monogram (branding guide S1: "monograma geométrico
+ * modular... una L de trazo firme y una C envolvente").
  *
- * Modular monogram on a 64×64 viewBox: a firm L (vertical + foot) followed
- * by a deliberate gap and a continuous C-flavored swoosh that consolidates
- * into an ascending confirmation check ("cobro automatizado y comprobante
- * verificado"). Two segments keep the guide's modular DNA and let the
- * interactive logo light each zone independently.
+ * Two letterform modules on a 64×64 viewBox: a firm L (vertical + foot) and
+ * a proper 270° C arc opening to the right — readable as "LC" even at 16px.
+ * The check/ticket consolidation from the guide's transition storyboard is
+ * intentionally deferred: legibility of the LC monogram comes first.
  *
  * Single source of truth: Logo.tsx, Footer marks, the dynamic favicon and
  * the generated PWA icons all render these exact paths.
  */
 export const MARK_SEGMENTS = [
-  // L: firm vertical stroke with a short foot.
-  'M14 13 V45 H25',
-  // C bowl rising into the check arm (one smooth quadratic, tangent-continuous).
-  'M37 45 Q52 47 57 14',
+  // L: firm vertical stroke with a foot.
+  'M12 14 V48 H24',
+  // C: 270° arc (large-arc through the left), opening to the right.
+  'M52 22 A12 12 0 1 0 52 40',
 ];
 
 /** Representative anchor per segment (for the mouse-proximity light effect). */
 export const MARK_ANCHORS = [
-  { x: 19, y: 32 },
-  { x: 47, y: 38 },
+  { x: 18, y: 34 },
+  { x: 44, y: 31 },
 ];
 
 export const MARK_STROKE_WIDTH = 8;
+
+/** Gradient line across both glyphs (userSpaceOnUse). */
+export const MARK_GRADIENT = { x1: 12, y1: 14, x2: 56, y2: 40 } as const;
 
 /** Badge container radius for app icons / favicons (guide: rounded corners). */
 export const BADGE_RADIUS = 14;
